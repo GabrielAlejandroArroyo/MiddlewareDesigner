@@ -53,23 +53,23 @@ foreach ($service in $services) {
     }
     
     # Iniciar el servicio en background
-    # Pasamos el rootDir al job para configurar el PYTHONPATH
+    # Pasamos el servicePath al job para aislar el entorno de cada microservicio
     $job = Start-Job -ScriptBlock {
-        param($servicesDir, $serviceName, $port)
+        param($servicePath, $serviceName, $port)
         $ErrorActionPreference = "Continue"
         
-        # Configurar PYTHONPATH para que incluya la carpeta services
-        # Esto permite que los imports relativos funcionen correctamente
-        $env:PYTHONPATH = $servicesDir
+        # Cambiar al directorio del microservicio
+        Set-Location $servicePath
         
-        Set-Location $servicesDir
+        # Configurar PYTHONPATH al directorio actual para resolver imports absolutos internos
+        $env:PYTHONPATH = $servicePath
         
-        # Ejecutar uvicorn
-        python -m uvicorn "$($serviceName).main:app" --host 0.0.0.0 --port $port --reload 2>&1
-    } -ArgumentList $servicesDir, $serviceName, $port
+        # Ejecutar uvicorn como modulo para asegurar que el path actual este en sys.path
+        python -m uvicorn main:app --host 0.0.0.0 --port $port --reload 2>&1
+    } -ArgumentList $servicePath, $serviceName, $port
     
     # Esperar un momento para ver si falla rapido
-    Start-Sleep -Seconds 4
+    Start-Sleep -Seconds 5
     
     $jobState = $job.State
     if ($jobState -eq "Failed" -or $jobState -eq "Completed") {
