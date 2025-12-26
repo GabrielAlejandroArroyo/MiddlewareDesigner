@@ -17,6 +17,11 @@ export interface Endpoint {
   method: string;
   summary: string;
   operationId: string;
+  is_enabled?: boolean;
+  parameters?: any[];
+  request_dto?: any;
+  response_dto?: any;
+  configuracion_ui?: any;
 }
 
 @Injectable({
@@ -40,5 +45,19 @@ export class MiddlewareService {
 
   deleteBackend(serviceId: string, physical: boolean = false): Observable<any> {
     return this.http.delete(`${this.apiUrl}/backend-services/${serviceId}?physical=${physical}`);
+  }
+
+  toggleEndpointMapping(mapping: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/mappings/toggle`, mapping);
+  }
+
+  removeEndpointMapping(backendId: string, path: string, method: string): Observable<any> {
+    const params = {
+      backend_service_id: backendId,
+      endpoint_path: path,
+      metodo: method,
+      frontend_service_id: 'default'
+    };
+    return this.http.delete(`${this.apiUrl}/mappings`, { params });
   }
 }

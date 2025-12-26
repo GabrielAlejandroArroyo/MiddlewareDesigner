@@ -106,27 +106,73 @@ async def inspect_backend_service(service_id: str):
         if "error" in spec:
             raise HTTPException(status_code=400, detail=spec["error"])
         
+        # Obtener mapeos existentes para este backend
+        mappings_query = select(BackendMapping).where(BackendMapping.backend_service_id == search_id)
+        mappings_result = await session.execute(mappings_query)
+        active_mappings = {f"{m.metodo}:{m.endpoint_path}": m.configuracion_ui for m in mappings_result.scalars().all()}
+        
+        endpoints = openapi_service.extract_endpoints(spec)
+        
+        # Enriquecer endpoints con estado de habilitación
+        for ep in endpoints:
+            key = f"{ep['method']}:{ep['path']}"
+            ep["is_enabled"] = key in active_mappings
+            ep["configuracion_ui"] = active_mappings.get(key, {})
+
         return {
             "service_id": svc.id,
             "service_name": spec.get("info", {}).get("title", svc.nombre),
-            "endpoints": openapi_service.extract_endpoints(spec)
+            "endpoints": endpoints
         }
 
-# --- ABM Microfrontends ---
-
-@router.post("/frontend-services", response_model=FrontendServiceResponse)
-async def create_frontend_service(data: FrontendServiceCreate):
+@router.post("/mappings/toggle")
+async def toggle_endpoint_mapping(data: BackendMappingCreate):
+    """Habilita o actualiza un mapeo de endpoint. Si ya existe, lo actualiza."""
     async with AsyncSessionLocal() as session:
-        new_svc = FrontendService(**data.model_dump())
-        session.add(new_svc)
-        await session.commit()
-        await session.refresh(new_svc)
-        return new_svc
+        # Buscar mapeo existente
+        query = select(BackendMapping).where(
+            BackendMapping.backend_service_id == data.backend_service_id,
+            BackendMapping.endpoint_path == data.endpoint_path,
+            BackendMapping.metodo == data.metodo,
+            BackendMapping.frontend_service_id == data.frontend_service_id
+        )
+        result = await session.execute(query)
+        existing = result.scalar_one_or_none()
 
-@router.post("/mappings")
-async def add_backend_mapping(data: BackendMappingCreate):
-    async with AsyncSessionLocal() as session:
-        new_mapping = BackendMapping(**data.model_dump())
-        session.add(new_mapping)
+        if existing:
+            # Actualizar configuración
+            existing.configuracion_ui = data.configuracion_ui
+            mensaje = "Configuración de endpoint actualizada"
+        else:
+            # Crear nuevo mapeo
+            new_mapping = BackendMapping(**data.model_dump())
+            session.add(new_mapping)
+            mensaje = "Endpoint habilitado correctamente"
+        
         await session.commit()
-        return {"status": "success", "mapping_id": new_mapping.id}
+        return {"status": "success", "message": mensaje}
+
+@router.delete("/mappings")
+async def remove_endpoint_mapping(
+    backend_service_id: str, 
+    endpoint_path: str, 
+    metodo: str, 
+    frontend_service_id: str = "default"
+):
+    """Deshabilita un endpoint (elimina el mapeo)"""
+    async with AsyncSessionLocal() as session:
+        query = select(BackendMapping).where(
+            BackendMapping.backend_service_id == backend_service_id,
+            BackendMapping.endpoint_path == endpoint_path,
+            BackendMapping.metodo == metodo,
+            BackendMapping.frontend_service_id == frontend_service_id
+        )
+        result = await session.execute(query)
+        mapping = result.scalar_one_or_none()
+
+        if not mapping:
+            raise HTTPException(status_code=404, detail="Mapeo no encontrado")
+
+        await session.delete(mapping)
+        await session.commit()
+        return {"status": "success", "message": "Endpoint deshabilitado"}
