@@ -1,0 +1,38 @@
+---
+alwaysApply: false
+globs: ["middleware/**/config/**/*.yml", "middleware/**/config/**/*.yaml", "middleware/**/config/**/*.json", "middleware/**/layouts/**/*.yml", "middleware/**/layouts/**/*.yaml", "middleware/**/layouts/**/*.json"]
+---
+
+# Configs y layouts del middleware
+
+## Principios
+
+- Los layouts deben ser:
+  - **declarativos**,
+  - versionables,
+  - y referenciables por endpoint (ej: `service + method + path` u `operationId`).
+
+## Identificación de endpoint
+
+Preferir `operationId` como clave estable.  
+Si no existe, usar tupla:
+- `service`
+- `method`
+- `path`
+
+## Contenido mínimo recomendado
+
+- Metadata del endpoint:
+  - `title`, `description`
+- Exposición de parámetros:
+  - orden,
+  - requerido/opcional,
+  - default/placeholder,
+  - validaciones UI (min/max/regex)
+- Mapping de DTO:
+  - request schema
+  - response schema
+- Layout:
+  - secciones (header/body/footer),
+  - grids/filas/columnas,
+  - componentes (input/select/table/etc.)

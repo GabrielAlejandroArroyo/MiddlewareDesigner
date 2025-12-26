@@ -1,0 +1,30 @@
+---
+alwaysApply: false
+description: "Aplicar cuando se diseñen reglas de integración entre services, middleware y microfrontends; o cuando se discuta versionado, seguridad y observabilidad."
+---
+
+# Reglas transversales (cross-cutting)
+
+## Seguridad
+
+- Comunicación entre componentes por HTTPS.
+- No hardcodear secretos: usar variables de entorno / secret managers.
+- Autenticación/autorización consistente:
+  - definir en OpenAPI los esquemas de seguridad y scopes/roles si aplica.
+
+## Observabilidad
+
+- Logs estructurados en services y middleware.
+- Propagar `correlation-id`/`trace-id` (header) extremo a extremo.
+- Métricas mínimas: latencia, errores por endpoint, timeouts.
+
+## Versionado
+
+- Versionar APIs (por path `/v1` o por estrategia acordada).
+- Mantener compatibilidad hacia atrás siempre que sea posible.
+- Documentar breaking changes en `docs/` (ADR/Changelog).
+
+## Testing
+
+- Contract tests: validar que implementación coincide con OpenAPI.
+- E2E: validar flujo desde MFE → middleware → service.

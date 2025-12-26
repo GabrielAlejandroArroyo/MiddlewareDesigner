@@ -1,0 +1,33 @@
+---
+alwaysApply: false
+globs: ["microfrontends/**/*.ts", "microfrontends/**/*.tsx", "microfrontends/**/*.html", "microfrontends/**/*.scss", "microfrontends/**/*.css"]
+---
+
+# Estándares de microfrontends (Angular)
+
+## Arquitectura
+
+- Cada MFE vive en `microfrontends/<mfe-name>/`.
+- Un MFE suele mapear a:
+  - un dominio (ej: `customers`),
+  - o un grupo coherente de endpoints.
+
+## Consumo de contratos
+
+- Consumir el middleware como “facade” preferente (si el middleware es quien traduce contratos a UI).
+- Si se consume directo un microservicio:
+  - usar clientes tipados desde OpenAPI,
+  - y mantenerlos sincronizados con `services/<svc>/openapi/openapi.yaml`.
+
+## UI y estado
+
+- Formularios basados en DTO:
+  - validaciones alineadas a OpenAPI (required, min/max, formats).
+- Evitar lógica de negocio pesada en el frontend:
+  - el frontend orquesta UI, no reglas core.
+
+## Calidad
+
+- Lint + format consistentes.
+- Tests (unit + e2e donde aplique).
+- Manejo centralizado de errores (mensajes de API uniformes).

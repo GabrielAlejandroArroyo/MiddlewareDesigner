@@ -1,0 +1,38 @@
+---
+alwaysApply: false
+globs: ["services/**/src/**/*.py", "services/**/tests/**/*.py"]
+---
+
+# Estándares de microservicios (Python)
+
+## Diseño de endpoints
+
+- Cada endpoint debe tener:
+  - propósito claro,
+  - códigos HTTP consistentes,
+  - request/response tipados por DTO (schemas),
+  - ejemplos en OpenAPI cuando sea relevante.
+- Errores: usar una estructura **estándar** (ej: `{ "code": "...", "message": "...", "details": ... }`).
+
+## Contrato primero
+
+- El archivo `services/<svc>/openapi/openapi.yaml` debe reflejar fielmente:
+  - paths, métodos,
+  - parámetros de query/path,
+  - headers relevantes,
+  - requestBody + responseBody con sus schemas,
+  - códigos de respuesta esperados.
+
+## Compatibilidad
+
+- No romper contratos sin versionado/estrategia de migración.
+- Si se depreca un campo:
+  - mantenerlo por un tiempo,
+  - documentar `deprecated: true` en OpenAPI,
+  - y planificar remoción en una versión futura.
+
+## Calidad mínima
+
+- Validaciones de entrada (DTO) y mensajes claros.
+- Logs estructurados (nivel, trace/correlation id si aplica).
+- Tests unitarios para lógica y tests de integración para endpoints críticos.

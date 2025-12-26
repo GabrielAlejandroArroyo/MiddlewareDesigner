@@ -1,0 +1,34 @@
+---
+alwaysApply: false
+globs: ["services/**/openapi/**/*.yml", "services/**/openapi/**/*.yaml", "services/**/openapi/**/*.json"]
+---
+
+# OpenAPI/Swagger en microservicios
+
+## Fuente de verdad
+
+- El OpenAPI de cada servicio vive en:
+  - `services/<svc>/openapi/openapi.yaml`
+
+## Reglas de especificación
+
+- Mantener **OpenAPI 3.x**.
+- Incluir en cada operación:
+  - `operationId` estable,
+  - `tags` por dominio,
+  - `summary` y `description`,
+  - `parameters` (path/query/header) completos,
+  - `requestBody` y `responses` con schemas,
+  - ejemplos (`example` / `examples`) cuando aporten claridad.
+- DTOs deben ir en `components/schemas`.
+
+## Tipado y consistencia
+
+- Fechas: preferir `format: date-time` (ISO 8601).
+- Identificadores: `string` (si no hay garantía fuerte de rango numérico).
+- No duplicar schemas: referenciar con `$ref`.
+
+## Contratos para el middleware
+
+- Documentar headers “funcionales” (por ejemplo, headers que seleccionen variantes de DTO o comportamiento).
+- Asegurar que request/response estén completamente especificados (sin `any` implícitos).

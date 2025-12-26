@@ -1,0 +1,38 @@
+---
+alwaysApply: false
+globs: ["middleware/**/*.py"]
+---
+
+# Estándares del middleware (Python)
+
+## Responsabilidad del middleware
+
+- Leer OpenAPI/Swagger desde `services/<svc>/openapi/openapi.yaml` (o URL publicada por el servicio).
+- Parsear:
+  - endpoints (paths + methods),
+  - parámetros (path/query/header),
+  - DTOs request/response (schemas),
+  - códigos de respuesta.
+- Construir un **modelo intermedio** consumible por UI.
+
+## Configuración (habilitación y UI)
+
+- Permitir configurar por endpoint:
+  - habilitado/visible,
+  - qué parámetros se exponen,
+  - qué DTOs se usan (request/response),
+  - y cómo se renderiza (layout).
+- El layout debe ser declarativo (no hardcodeado en código de negocio).
+
+## HTML / serialización
+
+- Generar HTML “seguro” (evitar inyección; sanitizar).
+- Separar:
+  - generación de estructura (layout),
+  - binding de datos,
+  - estilos/temas.
+
+## Resiliencia
+
+- Cachear contratos OpenAPI y soportar invalidación (por versión o TTL).
+- Manejar fallos de lectura del swagger (reintentos, fallback, mensajes claros).

@@ -1,0 +1,54 @@
+---
+alwaysApply: true
+---
+
+# Estructura del monorepo y naming
+
+## Estructura esperada
+
+```
+/
+├─ services/
+│  ├─ <service-name>/
+│  │  ├─ src/
+│  │  ├─ openapi/
+│  │  │  └─ openapi.yaml
+│  │  ├─ tests/
+│  │  ├─ Dockerfile
+│  │  └─ pyproject.toml (o requirements.txt)
+│  └─ ...
+├─ middleware/
+│  ├─ src/
+│  ├─ config/
+│  ├─ layouts/
+│  ├─ tests/
+│  ├─ Dockerfile
+│  └─ pyproject.toml
+├─ microfrontends/
+│  ├─ <mfe-name>/
+│  │  ├─ src/
+│  │  ├─ project.json / angular.json / workspace config
+│  │  └─ ...
+│  └─ ...
+├─ docs/
+├─ scripts/
+└─ .cursor/
+   └─ rules/
+```
+
+## Naming
+
+- Carpetas de servicios y MFEs: **kebab-case** (ej: `users`, `payments`, `customer-onboarding`).
+- Paquetes Python: `snake_case`.
+- Endpoints REST: `kebab-case` para paths (ej: `/customer-onboarding/status`), y **versionados** si aplica (ej: `/v1/...`).
+- DTOs / Schemas: `PascalCase` (ej: `CustomerCreateRequest`, `CustomerCreateResponse`).
+
+## Reglas prácticas para cambios
+
+- Si tocás un endpoint:
+  1) actualizá `services/<svc>/openapi/openapi.yaml`,
+  2) implementá el handler,
+  3) actualizá middleware (parser + mapping + UI),
+  4) actualizá microfrontend si consume ese contrato.
+
+- Evitá “atajos” (cambiar código sin actualizar contrato o viceversa).

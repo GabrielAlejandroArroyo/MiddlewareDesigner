@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+# Contexto del proyecto
+
+Este repositorio es un **monorepo** con arquitectura de microservicios + middleware + microfrontends.
+
+## Convención de carpetas (OBLIGATORIA)
+
+- `services/` → **microservicios backend** (Python). Cada microservicio expone **OpenAPI/Swagger**.
+- `middleware/` → **middleware** (Python). Lee los Swagger/OpenAPI de `services/`, permite seleccionar endpoints/DTOs y genera/serializa HTML según definiciones de layout.
+- `microfrontends/` → **microfrontends Angular** (MFEs) que consumen el middleware y/o los servicios (según la estrategia).
+
+## Intención del sistema
+
+1. Los microservicios publican contratos (OpenAPI) con endpoints, parámetros, headers y DTOs (schemas).
+2. El middleware consume esos contratos y genera un **modelo intermedio** (endpoints + request/response DTO + metadata UI).
+3. El middleware permite configurar:
+   - Qué endpoints se habilitan
+   - Qué DTOs y parámetros se muestran
+   - Layouts (estructura visual) para renderizar HTML
+4. Los microfrontends presentan la UI (microfrontend por dominio o por grupo de endpoints).
+
+## Regla de oro
+
+**El contrato OpenAPI es la fuente de verdad.**  
+Cualquier cambio de API empieza por:
+- actualizar OpenAPI,
+- validar compatibilidad,
+- y recién después actualizar middleware/UI.
