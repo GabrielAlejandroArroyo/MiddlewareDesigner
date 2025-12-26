@@ -10,6 +10,7 @@ export interface BackendService {
   openapi_url: string;
   descripcion: string;
   is_active: boolean;
+  baja_logica: boolean;
 }
 
 export interface Endpoint {
@@ -31,8 +32,8 @@ export class MiddlewareService {
   private http = inject(HttpClient);
   private apiUrl = 'http://127.0.0.1:9000/api/v1/config';
 
-  getBackendServices(): Observable<BackendService[]> {
-    return this.http.get<BackendService[]>(`${this.apiUrl}/backend-services`);
+  getBackendServices(includeDeleted: boolean = false): Observable<BackendService[]> {
+    return this.http.get<BackendService[]>(`${this.apiUrl}/backend-services?include_deleted=${includeDeleted}`);
   }
 
   registerBackend(service: Partial<BackendService>): Observable<BackendService> {
@@ -45,6 +46,10 @@ export class MiddlewareService {
 
   deleteBackend(serviceId: string, physical: boolean = false): Observable<any> {
     return this.http.delete(`${this.apiUrl}/backend-services/${serviceId}?physical=${physical}`);
+  }
+
+  reactivateBackend(serviceId: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/backend-services/${serviceId}/alta-logica`, {});
   }
 
   toggleEndpointMapping(mapping: any): Observable<any> {

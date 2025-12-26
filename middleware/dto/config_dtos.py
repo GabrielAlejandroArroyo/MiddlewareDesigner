@@ -16,6 +16,7 @@ class BackendServiceBase(BaseModel):
     openapi_url: str
     descripcion: Optional[str] = None
     is_active: bool = True
+    baja_logica: bool = False
 
 class BackendServiceCreate(BackendServiceBase):
     pass

@@ -3,7 +3,7 @@ from typing import List, Union
 from dto.pais_create_dto import PaisCreateDTO
 from dto.pais_update_dto import PaisUpdateDTO
 from dto.pais_put_dto import PaisPutDTO
-from dto.pais_read_dto import PaisReadDTO
+from dto.pais_read_dto import PaisReadDTO, PaisListDTO
 from dto.pais_delete_dto import PaisDeleteDTO
 from services.pais_service import (
     get_pais_by_id,
@@ -17,12 +17,28 @@ from services.pais_service import (
 
 router = APIRouter(prefix="/paises", tags=["paises"])
 
-@router.get("/", response_model=List[PaisReadDTO], status_code=status.HTTP_200_OK)
+@router.get("/", 
+    response_model=PaisListDTO, 
+    status_code=status.HTTP_200_OK,
+    summary="Listar todos los países",
+    response_description="Listado de países con contador total")
 async def listar_paises(include_baja_logica: bool = True):
+    """
+    Obtiene el listado completo de países registrados.
+    Implementa el patrón RORO devolviendo un objeto con la lista y el total.
+    """
     return await get_all_paises(include_baja_logica=include_baja_logica)
 
-@router.get("/{pais_id}", response_model=PaisReadDTO, status_code=status.HTTP_200_OK)
+@router.get("/{pais_id}", 
+    response_model=PaisReadDTO, 
+    status_code=status.HTTP_200_OK,
+    summary="Obtener un país por ID",
+    response_description="Datos detallados del país solicitado")
 async def obtener_pais(pais_id: str):
+    """
+    Busca un país específico por su identificador alfanumérico.
+    Retorna el DTO de lectura completo incluyendo datos de auditoría.
+    """
     pais = await get_pais_by_id(pais_id)
     if not pais:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="País no encontrado")

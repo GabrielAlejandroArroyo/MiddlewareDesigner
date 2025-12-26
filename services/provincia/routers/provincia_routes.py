@@ -3,7 +3,7 @@ from typing import List
 from dto.provincia_create_dto import ProvinciaCreateDTO
 from dto.provincia_update_dto import ProvinciaUpdateDTO
 from dto.provincia_put_dto import ProvinciaPutDTO
-from dto.provincia_read_dto import ProvinciaReadDTO
+from dto.provincia_read_dto import ProvinciaReadDTO, ProvinciaListDTO
 from dto.provincia_delete_dto import ProvinciaDeleteDTO
 from services.provincia_service import (
     get_provincia_by_id,
@@ -18,12 +18,27 @@ from services.provincia_service import (
 
 router = APIRouter(prefix="/provincias", tags=["provincias"])
 
-@router.get("/", response_model=List[ProvinciaReadDTO], status_code=status.HTTP_200_OK)
+@router.get("/", 
+    response_model=ProvinciaListDTO, 
+    status_code=status.HTTP_200_OK,
+    summary="Listar todas las provincias",
+    response_description="Listado de provincias con contador total")
 async def listar_provincias(include_baja_logica: bool = True):
+    """
+    Obtiene el listado completo de provincias registradas.
+    Permite filtrar por estado de baja lógica.
+    """
     return await get_all_provincias(include_baja_logica=include_baja_logica)
 
-@router.get("/{provincia_id}", response_model=ProvinciaReadDTO, status_code=status.HTTP_200_OK)
+@router.get("/{provincia_id}", 
+    response_model=ProvinciaReadDTO, 
+    status_code=status.HTTP_200_OK,
+    summary="Obtener una provincia por ID",
+    response_description="Datos detallados de la provincia solicitada")
 async def obtener_provincia(provincia_id: str):
+    """
+    Busca una provincia específica por su identificador.
+    """
     provincia = await get_provincia_by_id(provincia_id)
     if not provincia:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Provincia no encontrada")

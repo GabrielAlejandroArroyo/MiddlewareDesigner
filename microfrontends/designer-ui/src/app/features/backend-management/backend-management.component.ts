@@ -13,8 +13,8 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0 fw-bold">Gestión de Microservicios</h2>
         <div class="d-flex gap-2">
-          <!-- Botón para abrir modal de registro -->
-          <button (click)="showRegisterModal = true" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+          <!-- Botón para abrir modal de registro (Solo en Activos o Todos) -->
+          <button *ngIf="filterTab !== 'inactive'" (click)="showRegisterModal = true" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
             <span class="fs-4 line-height-1">+</span> Registrar Backend
           </button>
           
@@ -37,23 +37,49 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
         </div>
       </div>
 
-      <!-- Estado vacío -->
-      <div *ngIf="services.length === 0" class="text-center py-5 bg-light rounded-4 border-dashed">
+      <!-- Filtro por Tabs -->
+      <ul class="nav nav-tabs mb-4 border-bottom-0">
+        <li class="nav-item">
+          <button class="nav-link px-4 fw-bold" [class.active]="filterTab === 'active'" 
+                  (click)="setFilter('active')">Activos</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-4 fw-bold" [class.active]="filterTab === 'inactive'" 
+                  (click)="setFilter('inactive')">Inactivos</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-4 fw-bold" [class.active]="filterTab === 'all'" 
+                  (click)="setFilter('all')">Todos</button>
+        </li>
+      </ul>
+
+      <!-- Estado vacío (Solo para Activos y Todos) -->
+      <div *ngIf="services.length === 0 && filterTab !== 'inactive'" class="text-center py-5 bg-light rounded-4 border-dashed">
         <h4 class="text-muted">No hay microservicios registrados</h4>
         <p class="text-muted mb-4">Comienza registrando tu primer backend haciendo clic en el botón superior.</p>
         <button (click)="showRegisterModal = true" class="btn btn-primary">Registrar mi primer Backend</button>
       </div>
 
+      <!-- Estado vacío específico para Inactivos -->
+      <div *ngIf="services.length === 0 && filterTab === 'inactive'" class="text-center py-5">
+        <p class="text-muted italic">No hay microservicios en baja lógica actualmente.</p>
+      </div>
+
       <!-- Vista de Tarjetas (Cards) -->
       <div *ngIf="services.length > 0 && viewMode === 'cards'" class="row g-4">
         <div *ngFor="let svc of services" class="col-12 col-md-6 col-lg-4 col-xl-3">
-          <div class="card h-100 shadow-sm border-0 service-card">
+          <div class="card h-100 shadow-sm border-0 service-card" [class.opacity-75]="svc.baja_logica">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
-                <span class="badge bg-info bg-opacity-10 text-info px-2 py-1">{{ svc.id }}</span>
+                <span class="badge px-2 py-1" [ngClass]="svc.baja_logica ? 'bg-secondary' : 'bg-info bg-opacity-10 text-info'">
+                  {{ svc.id }} {{ svc.baja_logica ? '(INACTIVO)' : '' }}
+                </span>
                 <div class="dropdown">
-                  <button class="btn btn-link p-0 text-muted" type="button" (click)="confirmDelete(svc)">
+                  <button *ngIf="!svc.baja_logica" class="btn btn-link p-0 text-muted" type="button" (click)="confirmDelete(svc)">
                     <span class="text-danger small">Eliminar</span>
+                  </button>
+                  <button *ngIf="svc.baja_logica" class="btn btn-link p-0 text-muted" type="button" (click)="reactivate(svc.id)">
+                    <span class="text-success small fw-bold">Activar</span>
                   </button>
                 </div>
               </div>
@@ -67,9 +93,12 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
                   </div>
                   <code class="small text-primary text-truncate">{{ svc.host }}:{{ svc.puerto }}</code>
                 </div>
-                <button [routerLink]="['/inspect', svc.id]" class="btn btn-outline-primary w-100">
+                <button *ngIf="!svc.baja_logica" [routerLink]="['/inspect', svc.id]" class="btn btn-outline-primary w-100">
                   Inspeccionar Contrato
                 </button>
+                <div *ngIf="svc.baja_logica" class="alert alert-secondary py-2 px-3 mb-0 small text-center">
+                  Servicio Inactivo
+                </div>
               </div>
             </div>
           </div>
@@ -90,15 +119,24 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let svc of services">
-                <td class="ps-4"><span class="badge bg-light text-dark border">{{ svc.id }}</span></td>
-                <td><span class="fw-bold">{{ svc.nombre }}</span></td>
-                <td><span class="text-muted small">{{ svc.descripcion }}</span></td>
+              <tr *ngFor="let svc of services" [class.table-light]="svc.baja_logica" [class.text-muted]="svc.baja_logica">
+                <td class="ps-4">
+                  <span class="badge border" [ngClass]="svc.baja_logica ? 'bg-secondary text-white' : 'bg-light text-dark'">
+                    {{ svc.id }}
+                  </span>
+                </td>
+                <td>
+                  <span class="fw-bold">{{ svc.nombre }}</span>
+                  <span *ngIf="svc.baja_logica" class="ms-2 small badge bg-secondary">INACTIVO</span>
+                </td>
+                <td><span class="small">{{ svc.descripcion }}</span></td>
                 <td><code class="small">{{ svc.host }}:{{ svc.puerto }}</code></td>
                 <td class="text-end pe-4">
                   <div class="btn-group">
-                    <button [routerLink]="['/inspect', svc.id]" class="btn btn-sm btn-outline-primary">Inspeccionar</button>
-                    <button (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    <button *ngIf="!svc.baja_logica" [routerLink]="['/inspect', svc.id]" class="btn btn-sm btn-outline-primary">Inspeccionar</button>
+                    <button *ngIf="!svc.baja_logica" (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    <button *ngIf="svc.baja_logica" (click)="reactivate(svc.id)" class="btn btn-sm btn-outline-success">Activar</button>
+                    <button *ngIf="svc.baja_logica" (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger">Eliminar Definitivo</button>
                   </div>
                 </td>
               </tr>
@@ -182,6 +220,9 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
       .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
       .icon-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
       
+      .nav-tabs .nav-link { color: #6c757d; border: none; border-bottom: 3px solid transparent; }
+      .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: transparent; }
+      
       .custom-modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
@@ -202,17 +243,38 @@ export class BackendManagementComponent implements OnInit {
   private router = inject(Router);
   
   services: BackendService[] = [];
+  allServicesRaw: BackendService[] = [];
   newService: Partial<BackendService> = {};
   showRegisterModal = false;
   serviceToDelete: BackendService | null = null;
   viewMode: 'cards' | 'list' = 'cards';
+  filterTab: 'active' | 'inactive' | 'all' = 'active';
 
   ngOnInit() {
     this.loadServices();
   }
 
+  setFilter(tab: 'active' | 'inactive' | 'all') {
+    this.filterTab = tab;
+    this.applyFilter();
+  }
+
   loadServices() {
-    this.service.getBackendServices().subscribe(data => this.services = data);
+    // Siempre pedimos con include_deleted=true para poder filtrar localmente en los tabs
+    this.service.getBackendServices(true).subscribe(data => {
+      this.allServicesRaw = data;
+      this.applyFilter();
+    });
+  }
+
+  applyFilter() {
+    if (this.filterTab === 'active') {
+      this.services = this.allServicesRaw.filter(s => !s.baja_logica);
+    } else if (this.filterTab === 'inactive') {
+      this.services = this.allServicesRaw.filter(s => s.baja_logica);
+    } else {
+      this.services = [...this.allServicesRaw];
+    }
   }
 
   register() {
@@ -245,6 +307,16 @@ export class BackendManagementComponent implements OnInit {
 
   confirmDelete(svc: BackendService) {
     this.serviceToDelete = svc;
+  }
+
+  reactivate(id: string) {
+    this.service.reactivateBackend(id).subscribe({
+      next: (res) => {
+        alert(res.message);
+        this.loadServices();
+      },
+      error: (err) => alert('Error al reactivar: ' + err.message)
+    });
   }
 
   delete(physical: boolean) {

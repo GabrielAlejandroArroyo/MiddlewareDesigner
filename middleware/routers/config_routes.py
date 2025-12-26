@@ -94,8 +94,19 @@ async def delete_backend_service(service_id: str, physical: bool = Query(False))
         await session.commit()
         return {"status": "success", "message": mensaje}
 
-@router.get("/backend-services/{service_id}/inspect")
-async def inspect_backend_service(service_id: str):
+@router.patch("/backend-services/{service_id}/alta-logica")
+async def reactivate_backend_service(service_id: str):
+    """Reactiva un backend que estaba en baja lógica"""
+    async with AsyncSessionLocal() as session:
+        search_id = service_id.lower().strip()
+        svc = await session.get(BackendService, search_id)
+        
+        if not svc:
+            raise HTTPException(status_code=404, detail=f"Servicio '{search_id}' no encontrado")
+
+        svc.baja_logica = False
+        await session.commit()
+        return {"status": "success", "message": f"Servicio '{svc.id}' reactivado correctamente"}
     async with AsyncSessionLocal() as session:
         search_id = service_id.lower().strip()
         svc = await session.get(BackendService, search_id)

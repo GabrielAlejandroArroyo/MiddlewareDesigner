@@ -63,20 +63,59 @@ class OpenApiService:
                 })
         return endpoints
 
-    def _resolve_schema(self, schema_ref: Dict[str, Any], all_schemas: Dict[str, Any]) -> Dict[str, Any]:
-        """Resuelve una referencia $ref o devuelve el esquema si es inline"""
+    def _resolve_schema(self, schema_ref: Dict[str, Any], all_schemas: Dict[str, Any], depth: int = 0) -> Dict[str, Any]:
+        """Resuelve una referencia $ref o devuelve el esquema si es inline, con soporte para anidamiento"""
+        if depth > 5: return {"name": "LimitReached", "properties": {}}
+
+        # Caso 1: Es una referencia directa
         if "$ref" in schema_ref:
             ref_path = schema_ref["$ref"]
             schema_name = ref_path.split("/")[-1]
             schema_content = all_schemas.get(schema_name, {})
+            
+            resolved_props = {}
+            for p_name, p_val in schema_content.get("properties", {}).items():
+                resolved_props[p_name] = self._resolve_property(p_val, all_schemas, depth + 1)
+
             return {
                 "name": schema_name,
-                "properties": schema_content.get("properties", {}),
+                "properties": resolved_props,
                 "required": schema_content.get("required", [])
             }
         
+        # Caso 2: Es un array
+        if schema_ref.get("type") == "array":
+            items_ref = schema_ref.get("items", {})
+            resolved_items = self._resolve_schema(items_ref, all_schemas, depth + 1)
+            return {
+                "name": f"Array<{resolved_items.get('name', 'Items')}>",
+                "type": "array",
+                "items": resolved_items,
+                "properties": resolved_items.get("properties", {}) # Importante para que el frontend lo detecte como objeto
+            }
+
+        # Caso 3: Es un esquema inline
+        resolved_props = {}
+        for p_name, p_val in schema_ref.get("properties", {}).items():
+            resolved_props[p_name] = self._resolve_property(p_val, all_schemas, depth + 1)
+
         return {
-            "name": "InlineSchema",
-            "properties": schema_ref.get("properties", {}),
+            "name": schema_ref.get("title", "InlineSchema"),
+            "properties": resolved_props,
             "required": schema_ref.get("required", [])
         }
+
+    def _resolve_property(self, prop_val: Dict[str, Any], all_schemas: Dict[str, Any], depth: int) -> Dict[str, Any]:
+        """Resuelve el tipo de una propiedad individual"""
+        if "$ref" in prop_val:
+            return self._resolve_schema(prop_val, all_schemas, depth)
+        
+        if prop_val.get("type") == "array":
+            item_schema = self._resolve_schema(prop_val.get("items", {}), all_schemas, depth)
+            return {
+                "type": "array",
+                "items": item_schema,
+                "name": f"Array<{item_schema.get('name', 'any')}>"
+            }
+        
+        return prop_val

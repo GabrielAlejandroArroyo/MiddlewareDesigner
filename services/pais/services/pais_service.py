@@ -6,18 +6,23 @@ from entity.pais_model import PaisModel
 from dto.pais_create_dto import PaisCreateDTO
 from dto.pais_update_dto import PaisUpdateDTO
 from dto.pais_put_dto import PaisPutDTO
-from dto.pais_read_dto import PaisReadDTO
+from dto.pais_read_dto import PaisReadDTO, PaisListDTO
 from dto.pais_delete_dto import PaisDeleteDTO
 
-async def get_all_paises(include_baja_logica: bool = True) -> List[PaisReadDTO]:
+async def get_all_paises(include_baja_logica: bool = True) -> PaisListDTO:
     async with AsyncSessionLocal() as session:
         query = select(PaisModel)
         if not include_baja_logica:
             query = query.where(PaisModel.baja_logica == False)
         
         result = await session.execute(query)
-        paises = result.scalars().all()
-        return [PaisReadDTO.model_validate(p) for p in paises]
+        paises_entities = result.scalars().all()
+        
+        paises_dtos = [PaisReadDTO.model_validate(p) for p in paises_entities]
+        return PaisListDTO(
+            paises=paises_dtos,
+            total=len(paises_dtos)
+        )
 
 async def get_pais_by_id(pais_id: str) -> Optional[PaisReadDTO]:
     async with AsyncSessionLocal() as session:
