@@ -222,6 +222,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                              <tr class="small text-muted uppercase">
                                <th>PARÁMETRO</th>
                                <th>UBICACIÓN</th>
+                               <th class="text-center">ORDEN</th>
                                <th class="text-center">VISUALIZAR</th>
                                <th class="text-center">EDITABLE</th>
                              </tr>
@@ -234,8 +235,16 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                </td>
                                <td><span class="badge bg-light text-dark border">{{ p.in }}</span></td>
                                <td class="text-center">
+                                 <input type="number" class="form-control form-control-sm text-center mx-auto" 
+                                        style="width: 60px"
+                                        [(ngModel)]="getFieldConfig(p.name, 'params').order"
+                                        placeholder="0">
+                               </td>
+                               <td class="text-center">
                                  <div class="form-check form-switch d-inline-block">
-                                   <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').show">
+                                   <input class="form-check-input" type="checkbox" 
+                                          [(ngModel)]="getFieldConfig(p.name, 'params').show"
+                                          (ngModelChange)="toggleVisibility(p.name, 'params')">
                                  </div>
                                </td>
                                <td class="text-center">
@@ -279,6 +288,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                    <tr>
                                      <th class="ps-3">ATRIBUTO</th>
                                      <th>TIPO</th>
+                                     <th class="text-center" style="width: 100px">ORDEN</th>
                                      <th class="text-center" style="width: 100px">VISUALIZAR</th>
                                      <th class="text-center" style="width: 100px" *ngIf="activeTab === 'request'">EDITABLE</th>
                                    </tr>
@@ -292,9 +302,16 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                        <span [ngClass]="getPropColor(prop.value)">{{ getSimplePropType(prop.value) }}</span>
                                      </td>
                                      <td class="text-center">
+                                       <input type="number" class="form-control form-control-sm text-center mx-auto" 
+                                              style="width: 60px"
+                                              [(ngModel)]="getFieldConfig(prop.key, activeTab).order"
+                                              placeholder="0">
+                                     </td>
+                                     <td class="text-center">
                                        <div class="form-check form-switch d-inline-block">
                                          <input class="form-check-input" type="checkbox" 
-                                                [(ngModel)]="getFieldConfig(prop.key, activeTab).show">
+                                                [(ngModel)]="getFieldConfig(prop.key, activeTab).show"
+                                                (ngModelChange)="toggleVisibility(prop.key, activeTab)">
                                        </div>
                                      </td>
                                      <td class="text-center" *ngIf="activeTab === 'request'">
@@ -406,9 +423,8 @@ export class ActionDefinitionComponent implements OnInit {
 
   getPropertyConfig(propKey: string, type: 'params' | 'request' | 'response' | string): any {
     const config = this.endpoint?.configuracion_ui?.fields_config;
-    if (!config) return { show: true, editable: true };
+    if (!config) return { show: true, editable: true, order: 0 };
     
-    // Normalizar tipo (activeTab puede ser 'request' o 'response')
     const category = type === 'params' ? 'params' : (type === 'request' ? 'request' : 'response');
     
     if (!config[category]) {
@@ -416,10 +432,15 @@ export class ActionDefinitionComponent implements OnInit {
     }
 
     if (!config[category][propKey]) {
-      // Valor por defecto: visible y editable (si es request o params)
+      // Al inicializar un campo por primera vez, si no tiene orden, 
+      // le asignamos el siguiente número disponible para que sea >= 1
+      const existingFields = Object.values(config[category]) as any[];
+      const maxOrder = existingFields.reduce((max, f) => Math.max(max, f.order || 0), 0);
+      
       config[category][propKey] = {
         show: true,
-        editable: category !== 'response'
+        editable: category !== 'response',
+        order: maxOrder + 1
       };
     }
 
@@ -428,6 +449,34 @@ export class ActionDefinitionComponent implements OnInit {
 
   getFieldConfig(propKey: any, type: string): any {
     return this.getPropertyConfig(String(propKey), type);
+  }
+
+  toggleVisibility(propKey: any, type: string) {
+    const key = String(propKey);
+    const category = type === 'params' ? 'params' : (type === 'request' ? 'request' : 'response');
+    const fieldsConfig = this.endpoint?.configuracion_ui?.fields_config?.[category];
+    if (!fieldsConfig) return;
+
+    const currentField = fieldsConfig[key];
+    if (!currentField) return;
+
+    if (currentField.show) {
+      // Si se activa, asignar el siguiente número correlativo al final
+      const activeFields = Object.values(fieldsConfig).filter((f: any) => f.show && f !== currentField);
+      const maxOrder = activeFields.reduce((max: number, f: any) => Math.max(max, f.order || 0), 0);
+      currentField.order = maxOrder + 1;
+    } else {
+      // Si se desactiva, poner en 0 y reordenar todos los demás activos para que sean correlativos
+      currentField.order = 0;
+      
+      const activeFields = (Object.entries(fieldsConfig) as [string, any][])
+        .filter(([k, config]) => config.show)
+        .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+      
+      activeFields.forEach(([k, config], index) => {
+        config.order = index + 1;
+      });
+    }
   }
 
   changeMainTab(tab: 'request' | 'response') {
@@ -531,8 +580,11 @@ export class ActionDefinitionComponent implements OnInit {
       columns = ['id', 'descripcion', 'estado'];
     }
 
-    // Filtrar según configuración de visibilidad
-    return columns.filter(col => config[col]?.show !== false).slice(0, 5);
+    // Filtrar según configuración de visibilidad y ordenar
+    return columns
+      .filter(col => config[col]?.show !== false)
+      .sort((a, b) => (config[a]?.order || 0) - (config[b]?.order || 0))
+      .slice(0, 5);
   }
 
   getFormFields(): { key: string, type: string, editable: boolean }[] {
@@ -548,10 +600,12 @@ export class ActionDefinitionComponent implements OnInit {
         .map(([k, v]: [string, any]) => ({
           key: k,
           type: v.type || 'string',
-          editable: config[k]?.editable !== false
+          editable: config[k]?.editable !== false,
+          order: config[k]?.order || 0
         }))
         .filter(f => !['fecha_alta_creacion', 'fecha_alta_modificacion'].includes(f.key)) // Auditoría siempre fuera
-        .filter(f => config[f.key]?.show !== false); // Filtrar por visibilidad
+        .filter(f => config[f.key]?.show !== false) // Filtrar por visibilidad
+        .sort((a, b) => a.order - b.order); // Ordenar por propiedad order
     }
     return [
       { key: 'id', type: 'string', editable: true }, 

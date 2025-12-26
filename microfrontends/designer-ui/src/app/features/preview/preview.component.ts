@@ -262,7 +262,10 @@ export class PreviewComponent implements OnInit {
     if (!properties) return ['id', 'descripcion'];
 
     const config = ep.configuracion_ui?.fields_config?.response || {};
-    return Object.keys(properties).filter(col => config[col]?.show !== false).slice(0, 5);
+    return Object.keys(properties)
+      .filter(col => config[col]?.show !== false)
+      .sort((a, b) => (config[a]?.order || 0) - (config[b]?.order || 0))
+      .slice(0, 5);
   }
 
   calculateFields(ep: any): {key: string, type: string, editable: boolean}[] {
@@ -274,9 +277,11 @@ export class PreviewComponent implements OnInit {
       .map(([k, v]: any) => ({ 
         key: k, 
         type: v.type,
-        editable: config[k]?.editable !== false
+        editable: config[k]?.editable !== false,
+        order: config[k]?.order || 0
       }))
-      .filter(f => config[f.key]?.show !== false);
+      .filter(f => config[f.key]?.show !== false)
+      .sort((a, b) => a.order - b.order);
   }
 
   // --- EJECUCIÓN REAL DE PRUEBAS ---
