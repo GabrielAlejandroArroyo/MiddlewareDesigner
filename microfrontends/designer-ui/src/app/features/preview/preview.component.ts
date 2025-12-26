@@ -161,7 +161,10 @@ import { HttpClient } from '@angular/common/http';
                 <label class="form-label small fw-bold text-muted">{{ prop.key }}</label>
                 <input [type]="prop.type === 'integer' ? 'number' : 'text'" 
                        [(ngModel)]="formData[prop.key]"
-                       class="form-control form-control-sm" [placeholder]="'Valor para ' + prop.key">
+                       class="form-control form-control-sm" 
+                       [placeholder]="'Valor para ' + prop.key"
+                       [disabled]="!prop.editable"
+                       [class.bg-light]="!prop.editable">
               </div>
             </div>
             <div class="mt-4 pt-3 border-top d-flex gap-2">
@@ -188,34 +191,6 @@ import { HttpClient } from '@angular/common/http';
         </div>
       </div>
     </div>
-
-    <style>
-      .x-small { font-size: 0.7rem; }
-      .badge-GET { background-color: #61affe; }
-      .badge-POST { background-color: #49cc90; }
-      .badge-PUT { background-color: #fca130; }
-      .badge-DELETE { background-color: #f93e3e; }
-      .badge-PATCH { background-color: #50e3c2; }
-      
-      .border-GET { border-color: #61affe !important; }
-      .border-POST { border-color: #49cc90 !important; }
-      .border-PUT { border-color: #fca130 !important; }
-      .border-DELETE { border-color: #f93e3e !important; }
-      .border-PATCH { border-color: #50e3c2 !important; }
-
-      .action-card { transition: all 0.3s ease; }
-      .shadow-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-      
-             .custom-modal-overlay {
-               position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-               background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-               display: flex; align-items: center; justify-content: center; z-index: 9999 !important;
-             }
-      .custom-modal { max-width: 700px; width: 95%; max-height: 90vh; }
-      .scrollable-modal-content { max-height: 70vh; overflow-y: auto; }
-      .animate-in { animation: fadeIn 0.3s ease-out; }
-      @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-    </style>
   `
 })
 export class PreviewComponent implements OnInit {
@@ -236,7 +211,7 @@ export class PreviewComponent implements OnInit {
   deleteId: string = '';
   testResponse: any = null;
   testerColumns: string[] = [];
-  testerFields: {key: string, type: string}[] = [];
+  testerFields: {key: string, type: string, editable: boolean}[] = [];
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -283,12 +258,25 @@ export class PreviewComponent implements OnInit {
     const properties = ep.response_dto?.properties?.paises?.items?.properties || 
                      ep.response_dto?.properties?.provincias?.items?.properties ||
                      ep.response_dto?.properties;
-    return properties ? Object.keys(properties).slice(0, 5) : ['id', 'descripcion'];
+    
+    if (!properties) return ['id', 'descripcion'];
+
+    const config = ep.configuracion_ui?.fields_config?.response || {};
+    return Object.keys(properties).filter(col => config[col]?.show !== false).slice(0, 5);
   }
 
-  calculateFields(ep: any): {key: string, type: string}[] {
+  calculateFields(ep: any): {key: string, type: string, editable: boolean}[] {
     const props = ep.request_dto?.properties || ep.response_dto?.properties;
-    return props ? Object.entries(props).map(([k, v]: any) => ({ key: k, type: v.type })) : [];
+    if (!props) return [];
+
+    const config = ep.configuracion_ui?.fields_config?.request || {};
+    return Object.entries(props)
+      .map(([k, v]: any) => ({ 
+        key: k, 
+        type: v.type,
+        editable: config[k]?.editable !== false
+      }))
+      .filter(f => config[f.key]?.show !== false);
   }
 
   // --- EJECUCIÓN REAL DE PRUEBAS ---

@@ -211,31 +211,6 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
         </div>
       </div>
     </div>
-
-    <style>
-      .line-height-1 { line-height: 1; }
-      .border-dashed { border: 2px dashed #dee2e6; }
-      .service-card { transition: transform 0.2s, box-shadow 0.2s; }
-      .service-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-      .text-truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-      .icon-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
-      
-      .nav-tabs .nav-link { color: #6c757d; border: none; border-bottom: 3px solid transparent; }
-      .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: transparent; }
-      
-             .custom-modal-overlay {
-               position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-               background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-               display: flex; align-items: center; justify-content: center; z-index: 9999 !important;
-             }
-      .custom-modal { max-width: 450px; width: 90%; }
-      .animate-in { animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-      
-      @keyframes modalIn {
-        from { opacity: 0; transform: scale(0.9) translateY(20px); }
-        to { opacity: 1; transform: scale(1) translateY(0); }
-      }
-    </style>
   `
 })
 export class BackendManagementComponent implements OnInit {

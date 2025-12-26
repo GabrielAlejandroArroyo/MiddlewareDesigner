@@ -157,27 +157,29 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                   </div>
                 </div>
 
-                <!-- Caso POST/PUT/PATCH: Formulario Dinámico -->
-                <div *ngIf="method === 'POST' || method === 'PUT' || method === 'PATCH'">
-                  <div class="card border-0 bg-white shadow-sm rounded-4 p-4">
-                    <h5 class="fw-bold mb-4">{{ method === 'POST' ? 'Crear' : 'Editar' }} {{ actionName || 'Entidad' }}</h5>
-                    <div class="row g-3">
-                      <div *ngFor="let prop of getFormFields()" class="col-md-6">
-                        <label class="form-label small fw-bold text-muted">{{ prop.key | titlecase }}</label>
-                        <input *ngIf="prop.type !== 'boolean'" [type]="prop.type === 'integer' ? 'number' : 'text'" 
-                               class="form-control" [placeholder]="'Ingrese ' + prop.key">
-                        <div *ngIf="prop.type === 'boolean'" class="form-check form-switch mt-2">
-                          <input class="form-check-input" type="checkbox">
-                          <label class="form-check-label small">Habilitado</label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="d-flex gap-2 mt-5">
-                      <button class="btn btn-light border flex-grow-1">Cancelar</button>
-                      <button class="btn btn-primary flex-grow-1 fw-bold">{{ method === 'POST' ? 'Guardar Registro' : 'Actualizar Cambios' }}</button>
-                    </div>
-                  </div>
-                </div>
+                       <!-- Caso POST/PUT/PATCH: Formulario Dinámico -->
+                       <div *ngIf="method === 'POST' || method === 'PUT' || method === 'PATCH'">
+                         <div class="card border-0 bg-white shadow-sm rounded-4 p-4">
+                           <h5 class="fw-bold mb-4">{{ method === 'POST' ? 'Crear' : 'Editar' }} {{ actionName || 'Entidad' }}</h5>
+                           <div class="row g-3">
+                             <div *ngFor="let prop of getFormFields()" class="col-md-6">
+                               <label class="form-label small fw-bold text-muted">{{ prop.key | titlecase }}</label>
+                               <input *ngIf="prop.type !== 'boolean'" [type]="prop.type === 'integer' ? 'number' : 'text'" 
+                                      class="form-control" [placeholder]="'Ingrese ' + prop.key"
+                                      [disabled]="!prop.editable"
+                                      [class.bg-light]="!prop.editable">
+                               <div *ngIf="prop.type === 'boolean'" class="form-check form-switch mt-2">
+                                 <input class="form-check-input" type="checkbox" [disabled]="!prop.editable">
+                                 <label class="form-check-label small">Habilitado</label>
+                               </div>
+                             </div>
+                           </div>
+                           <div class="d-flex gap-2 mt-5">
+                             <button class="btn btn-light border flex-grow-1">Cancelar</button>
+                             <button class="btn btn-primary flex-grow-1 fw-bold">{{ method === 'POST' ? 'Guardar Registro' : 'Actualizar Cambios' }}</button>
+                           </div>
+                         </div>
+                       </div>
 
                 <!-- Caso DELETE: Confirmación de Borrado -->
                 <div *ngIf="method === 'DELETE'" class="text-center py-4">
@@ -209,81 +211,125 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
               </div>
 
-              <!-- Contenido Pestaña: Parámetros -->
-              <div *ngIf="activeTab === 'params'">
-                <div *ngIf="!endpoint?.parameters || endpoint?.parameters?.length === 0" class="text-center py-5 text-muted">
-                  <p class="mb-0 italic">No se detectaron parámetros de entrada (query/path).</p>
-                </div>
-                <div class="list-group list-group-flush" *ngIf="endpoint?.parameters && endpoint?.parameters!.length > 0">
-                  <div *ngFor="let p of endpoint?.parameters" class="list-group-item px-0 border-light py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        <span class="badge bg-secondary-subtle text-secondary border me-2">{{ p.in }}</span>
-                        <strong class="text-dark">{{ p.name }}</strong>
-                      </div>
-                      <span class="text-primary small fw-bold font-monospace">{{ p.schema?.type || 'string' }}</span>
-                    </div>
-                    <p class="small text-muted mt-1 mb-0" *ngIf="p.description">{{ p.description }}</p>
-                  </div>
-                </div>
-              </div>
+                     <!-- Contenido Pestaña: Parámetros -->
+                     <div *ngIf="activeTab === 'params'">
+                       <div *ngIf="!endpoint?.parameters || endpoint?.parameters?.length === 0" class="text-center py-5 text-muted">
+                         <p class="mb-0 italic">No se detectaron parámetros de entrada (query/path).</p>
+                       </div>
+                       <div class="table-responsive" *ngIf="endpoint?.parameters && endpoint?.parameters!.length > 0">
+                         <table class="table table-sm align-middle">
+                           <thead>
+                             <tr class="small text-muted uppercase">
+                               <th>PARÁMETRO</th>
+                               <th>UBICACIÓN</th>
+                               <th class="text-center">VISUALIZAR</th>
+                               <th class="text-center">EDITABLE</th>
+                             </tr>
+                           </thead>
+                           <tbody>
+                             <tr *ngFor="let p of endpoint?.parameters">
+                               <td>
+                                 <strong class="text-dark">{{ p.name }}</strong>
+                                 <div class="x-small text-muted font-monospace">{{ p.schema?.type || 'string' }}</div>
+                               </td>
+                               <td><span class="badge bg-light text-dark border">{{ p.in }}</span></td>
+                               <td class="text-center">
+                                 <div class="form-check form-switch d-inline-block">
+                                   <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').show">
+                                 </div>
+                               </td>
+                               <td class="text-center">
+                                 <div class="form-check form-switch d-inline-block">
+                                   <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').editable">
+                                 </div>
+                               </td>
+                             </tr>
+                           </tbody>
+                         </table>
+                       </div>
+                     </div>
 
-              <!-- Contenido Pestaña: DTOs -->
-              <div *ngIf="activeTab === 'request' || activeTab === 'response'">
-                <div *ngIf="detectedDtos.length === 0" class="text-center py-5 text-muted bg-light rounded-3">
-                  <p class="mb-0 italic">No se detectaron modelos estructurados para esta sección.</p>
-                </div>
+                     <!-- Contenido Pestaña: Request o Response DTO con Subpestañas -->
+                     <div *ngIf="activeTab === 'request' || activeTab === 'response'">
+                       <h6 class="fw-bold mb-3 small text-uppercase text-muted">
+                         {{ activeTab === 'request' ? 'Modelo de Entrada' : 'Modelo de Salida' }}
+                       </h6>
+                       
+                       <div *ngIf="detectedDtos.length === 0" class="text-center py-5 text-muted bg-light rounded-3">
+                         <p class="mb-0 italic">No se detectaron modelos estructurados para esta sección.</p>
+                       </div>
 
-                <div *ngIf="detectedDtos.length > 0">
-                  <div class="d-flex flex-wrap gap-2 mb-4 border-bottom pb-3">
-                    <button *ngFor="let dto of detectedDtos" 
-                            (click)="activeDtoId = dto.name"
-                            class="btn btn-sm py-1 px-3 rounded-pill"
-                            [class.btn-info]="activeDtoId === dto.name"
-                            [class.text-white]="activeDtoId === dto.name"
-                            [class.btn-outline-secondary]="activeDtoId !== dto.name">
-                      {{ dto.name }}
-                    </button>
-                  </div>
+                       <div *ngIf="detectedDtos.length > 0">
+                         <div class="d-flex flex-wrap gap-2 mb-4 border-bottom pb-3">
+                           <button *ngFor="let dto of detectedDtos" 
+                                   (click)="activeDtoId = dto.name"
+                                   class="btn btn-sm py-1 px-3 rounded-pill"
+                                   [class.btn-info]="activeDtoId === dto.name"
+                                   [class.text-white]="activeDtoId === dto.name"
+                                   [class.btn-outline-secondary]="activeDtoId !== dto.name">
+                             {{ dto.name }}
+                           </button>
+                         </div>
 
-                  <div *ngFor="let dto of detectedDtos">
-                    <div *ngIf="activeDtoId === dto.name" class="bg-dark p-4 rounded-4 font-monospace small overflow-auto animate-in shadow-inner" style="max-height: 450px">
-                      <div class="mb-1">
-                        <span class="text-warning">interface</span> <span class="text-info">{{ dto.name }}</span> <span class="text-white">&#123;</span>
-                        <div *ngFor="let prop of dto.properties | keyvalue" class="ms-4 my-1">
-                          <span class="text-light">{{ prop.key }}</span><span class="text-white">:</span> 
-                          <span [ngClass]="getPropColor(prop.value)">{{ getSimplePropType(prop.value) }}</span><span class="text-white">;</span>
-                        </div>
-                        <span class="text-white">&#125;</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                         <div *ngFor="let dto of detectedDtos">
+                           <div *ngIf="activeDtoId === dto.name" class="animate-in">
+                             <div class="table-responsive border rounded-3 overflow-hidden">
+                               <table class="table table-hover align-middle mb-0">
+                                 <thead class="table-dark small">
+                                   <tr>
+                                     <th class="ps-3">ATRIBUTO</th>
+                                     <th>TIPO</th>
+                                     <th class="text-center" style="width: 100px">VISUALIZAR</th>
+                                     <th class="text-center" style="width: 100px" *ngIf="activeTab === 'request'">EDITABLE</th>
+                                   </tr>
+                                 </thead>
+                                 <tbody class="small">
+                                   <tr *ngFor="let prop of dto.properties | keyvalue">
+                                     <td class="ps-3">
+                                       <span class="fw-bold">{{ prop.key }}</span>
+                                     </td>
+                                     <td>
+                                       <span [ngClass]="getPropColor(prop.value)">{{ getSimplePropType(prop.value) }}</span>
+                                     </td>
+                                     <td class="text-center">
+                                       <div class="form-check form-switch d-inline-block">
+                                         <input class="form-check-input" type="checkbox" 
+                                                [(ngModel)]="getFieldConfig(prop.key, activeTab).show">
+                                       </div>
+                                     </td>
+                                     <td class="text-center" *ngIf="activeTab === 'request'">
+                                       <div class="form-check form-switch d-inline-block">
+                                         <input class="form-check-input" type="checkbox" 
+                                                [(ngModel)]="getFieldConfig(prop.key, activeTab).editable">
+                                       </div>
+                                     </td>
+                                   </tr>
+                                 </tbody>
+                               </table>
+                             </div>
+                             
+                             <!-- Vista Código (Opcional/Colapsable) -->
+                             <div class="mt-3">
+                               <button class="btn btn-sm btn-link p-0 text-decoration-none x-small" (click)="showCode = !showCode">
+                                 {{ showCode ? 'Ocultar' : 'Ver' }} definición de interface
+                               </button>
+                               <div *ngIf="showCode" class="bg-dark p-3 rounded mt-2 font-monospace x-small text-white shadow-inner overflow-auto" style="max-height: 200px">
+                                 <span class="text-warning">interface</span> <span class="text-info">{{ dto.name }}</span> &#123;<br>
+                                 <div *ngFor="let prop of dto.properties | keyvalue" class="ms-3">
+                                   {{ prop.key }}: <span [ngClass]="getPropColor(prop.value)">{{ getSimplePropType(prop.value) }}</span>;
+                                 </div>
+                                 &#125;
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <style>
-      .badge-GET { background-color: #61affe; }
-      .badge-POST { background-color: #49cc90; }
-      .badge-PUT { background-color: #fca130; }
-      .badge-DELETE { background-color: #f93e3e; }
-      .badge-PATCH { background-color: #50e3c2; }
-      
-      .nav-tabs .nav-link { color: #6c757d; border: none; border-bottom: 3px solid transparent; }
-      .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: transparent; }
-      
-      .shadow-inner { box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-      .animate-in { animation: fadeIn 0.3s ease-out; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      
-      .text-primary { color: #61affe !important; }
-      .text-success { color: #49cc90 !important; }
-      .text-info { color: #50e3c2 !important; }
-    </style>
   `
 })
 export class ActionDefinitionComponent implements OnInit {
@@ -306,6 +352,7 @@ export class ActionDefinitionComponent implements OnInit {
   detectedDtos: any[] = [];
   activeDtoId: string = '';
   availableActions = { create: false, edit: false, delete: false };
+  showCode = false;
 
   ngOnInit() {
     this.serviceId = this.route.snapshot.paramMap.get('id') || '';
@@ -331,6 +378,16 @@ export class ActionDefinitionComponent implements OnInit {
           this.actionName = found.configuracion_ui?.label || found.summary || '';
           this.actionDescription = found.configuracion_ui?.description || '';
           
+          // Asegurar que exista la configuración de campos
+          if (!found.configuracion_ui) found.configuracion_ui = {};
+          if (!found.configuracion_ui.fields_config) {
+            found.configuracion_ui.fields_config = {
+              params: {},
+              request: {},
+              response: {}
+            };
+          }
+
           // Detectar otras acciones activas en el mismo microservicio
           this.availableActions.create = data.endpoints.some((e: any) => e.is_enabled && e.method === 'POST');
           this.availableActions.edit = data.endpoints.some((e: any) => e.is_enabled && (e.method === 'PUT' || e.method === 'PATCH'));
@@ -345,6 +402,32 @@ export class ActionDefinitionComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  getPropertyConfig(propKey: string, type: 'params' | 'request' | 'response' | string): any {
+    const config = this.endpoint?.configuracion_ui?.fields_config;
+    if (!config) return { show: true, editable: true };
+    
+    // Normalizar tipo (activeTab puede ser 'request' o 'response')
+    const category = type === 'params' ? 'params' : (type === 'request' ? 'request' : 'response');
+    
+    if (!config[category]) {
+      config[category] = {};
+    }
+
+    if (!config[category][propKey]) {
+      // Valor por defecto: visible y editable (si es request o params)
+      config[category][propKey] = {
+        show: true,
+        editable: category !== 'response'
+      };
+    }
+
+    return config[category][propKey];
+  }
+
+  getFieldConfig(propKey: any, type: string): any {
+    return this.getPropertyConfig(String(propKey), type);
   }
 
   changeMainTab(tab: 'request' | 'response') {
@@ -390,7 +473,8 @@ export class ActionDefinitionComponent implements OnInit {
   }
 
   saveDefinition() {
-    if (!this.endpoint) return;
+    const ep = this.endpoint;
+    if (!ep) return;
 
     const mapping = {
       backend_service_id: this.serviceId,
@@ -398,12 +482,12 @@ export class ActionDefinitionComponent implements OnInit {
       metodo: this.method,
       frontend_service_id: 'default',
       configuracion_ui: {
-        ...this.endpoint.configuracion_ui,
+        ...ep.configuracion_ui,
         label: this.actionName,
         description: this.actionDescription,
-        parameters: this.endpoint.parameters,
-        request_dto: this.endpoint.request_dto,
-        response_dto: this.endpoint.response_dto
+        parameters: ep.parameters,
+        request_dto: ep.request_dto,
+        response_dto: ep.response_dto
       }
     };
 
@@ -431,29 +515,48 @@ export class ActionDefinitionComponent implements OnInit {
 
   getPreviewTableColumns(): string[] {
     const responseDto = this.endpoint?.response_dto;
-    if (responseDto?.properties) {
+    const config = this.endpoint?.configuracion_ui?.fields_config?.response || {};
+    
+    let columns: string[] = [];
+    if (responseDto && responseDto.properties) {
       // Si es un listado (tipo RORO), buscamos las propiedades del item del array
       const listProp: any = Object.values(responseDto.properties).find((p: any) => p.type === 'array');
-      if (listProp?.items?.properties) {
-        return Object.keys(listProp.items.properties).slice(0, 5); // Tomar las primeras 5 columnas
+      if (listProp && listProp.items && listProp.items.properties) {
+        columns = Object.keys(listProp.items.properties);
+      } else {
+        // Si no es un array, devolvemos las propiedades del objeto directamente
+        columns = Object.keys(responseDto.properties);
       }
-      // Si no es un array, devolvemos las propiedades del objeto directamente
-      return Object.keys(responseDto.properties).slice(0, 5);
+    } else {
+      columns = ['id', 'descripcion', 'estado'];
     }
-    return ['id', 'descripcion', 'estado'];
+
+    // Filtrar según configuración de visibilidad
+    return columns.filter(col => config[col]?.show !== false).slice(0, 5);
   }
 
-  getFormFields(): { key: string, type: string }[] {
+  getFormFields(): { key: string, type: string, editable: boolean }[] {
+    const ep = this.endpoint;
+    if (!ep) return [];
+
     const dto = (this.method === 'POST' || this.method === 'PUT' || this.method === 'PATCH') 
-                ? this.endpoint?.request_dto : this.endpoint?.response_dto;
+                ? ep.request_dto : ep.response_dto;
+    const config = ep.configuracion_ui?.fields_config?.request || {};
     
-    if (dto?.properties) {
-      return Object.entries(dto.properties).map(([k, v]: [string, any]) => ({
-        key: k,
-        type: v.type || 'string'
-      })).filter(f => !['fecha_alta_creacion', 'fecha_alta_modificacion'].includes(f.key)); // No mostrar auditoría en form
+    if (dto && dto.properties) {
+      return Object.entries(dto.properties)
+        .map(([k, v]: [string, any]) => ({
+          key: k,
+          type: v.type || 'string',
+          editable: config[k]?.editable !== false
+        }))
+        .filter(f => !['fecha_alta_creacion', 'fecha_alta_modificacion'].includes(f.key)) // Auditoría siempre fuera
+        .filter(f => config[f.key]?.show !== false); // Filtrar por visibilidad
     }
-    return [{ key: 'id', type: 'string' }, { key: 'descripcion', type: 'string' }];
+    return [
+      { key: 'id', type: 'string', editable: true }, 
+      { key: 'descripcion', type: 'string', editable: true }
+    ];
   }
 }
 

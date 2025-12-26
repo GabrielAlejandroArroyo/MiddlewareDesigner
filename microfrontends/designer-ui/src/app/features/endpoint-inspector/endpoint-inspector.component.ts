@@ -88,31 +88,6 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         </div>
       </div>
     </div>
-
-    <style>
-      .badge-GET { background-color: #61affe; }
-      .badge-POST { background-color: #49cc90; }
-      .badge-PUT { background-color: #fca130; }
-      .badge-DELETE { background-color: #f93e3e; }
-      .badge-PATCH { background-color: #50e3c2; }
-      .table th { font-size: 0.75rem; text-transform: uppercase; color: #6c757d; }
-      .pointer { cursor: pointer; }
-      .italic { font-style: italic; }
-      
-             .custom-modal-overlay {
-               position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-               background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-               display: flex; align-items: center; justify-content: center; z-index: 9999 !important;
-             }
-      .custom-modal { max-width: 650px; width: 95%; max-height: 90vh; }
-      .scrollable-modal-content { max-height: 70vh; overflow-y: auto; }
-      
-      .animate-in { animation: fadeIn 0.3s ease-out; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      .text-primary { color: #61affe !important; }
-      .text-success { color: #49cc90 !important; }
-      .text-info { color: #50e3c2 !important; }
-    </style>
   `
 })
 export class EndpointInspectorComponent implements OnInit {
