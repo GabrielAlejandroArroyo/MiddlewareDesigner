@@ -4,10 +4,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes, RouterOutlet, RouterModule } from '@angular/router';
 import { BackendManagementComponent } from './app/features/backend-management/backend-management.component';
 import { EndpointInspectorComponent } from './app/features/endpoint-inspector/endpoint-inspector.component';
+import { ActionDefinitionComponent } from './app/features/action-definition/action-definition.component';
 
 const routes: Routes = [
   { path: '', component: BackendManagementComponent },
   { path: 'inspect/:id', component: EndpointInspectorComponent },
+  { path: 'inspect/:id/action-definition', component: ActionDefinitionComponent },
   { path: '**', redirectTo: '' }
 ];
 

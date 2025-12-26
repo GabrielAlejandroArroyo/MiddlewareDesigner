@@ -75,7 +75,8 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </td>
                 <td class="text-end pe-4">
                   <button *ngIf="ep.is_enabled" 
-                          (click)="openDefinitionModal(ep)"
+                          [routerLink]="['/inspect', inspectionData.service_id, 'action-definition']"
+                          [queryParams]="{ path: ep.path, method: ep.method }"
                           class="btn btn-sm btn-primary shadow-sm">
                     Definir Acción
                   </button>
@@ -84,101 +85,6 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de Definición de Acción -->
-    <div *ngIf="selectedEndpoint" class="custom-modal-overlay">
-      <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in">
-        <div class="p-3 border-bottom bg-primary text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold">Configurar Acción: {{ selectedEndpoint.path }}</h5>
-          <button (click)="selectedEndpoint = null" class="btn-close btn-close-white"></button>
-        </div>
-        
-        <div class="p-4 scrollable-modal-content">
-          <!-- Pestañas Principales (Métodos) -->
-          <ul class="nav nav-pills mb-3 bg-light p-1 rounded-3">
-            <li class="nav-item flex-grow-1 text-center">
-              <button class="nav-link w-100 py-1 small" [class.active]="activeTab === 'params'" (click)="activeTab = 'params'">Parámetros</button>
-            </li>
-            <li class="nav-item flex-grow-1 text-center">
-              <button class="nav-link w-100 py-1 small" [class.active]="activeTab === 'request'" (click)="changeMainTab('request')">Request DTO</button>
-            </li>
-            <li class="nav-item flex-grow-1 text-center">
-              <button class="nav-link w-100 py-1 small" [class.active]="activeTab === 'response'" (click)="changeMainTab('response')">Response DTO</button>
-            </li>
-          </ul>
-
-          <!-- Contenido Pestaña: Parámetros -->
-          <div *ngIf="activeTab === 'params'">
-            <h6 class="fw-bold mb-3 small text-uppercase text-muted">Parámetros de Entrada</h6>
-            <div *ngIf="!selectedEndpoint.parameters || selectedEndpoint.parameters.length === 0" class="text-muted small py-3 text-center">
-              No se definieron parámetros para este endpoint.
-            </div>
-            <div class="list-group mb-3">
-              <div *ngFor="let p of selectedEndpoint.parameters" class="list-group-item border-0 bg-light mb-2 rounded-3">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <span class="badge bg-secondary me-2">{{ p.in }}</span>
-                    <strong class="text-dark">{{ p.name }}</strong>
-                  </div>
-                  <span class="small text-muted">{{ p.schema?.type || 'string' }}</span>
-                </div>
-                <div class="small text-muted mt-1" *ngIf="p.description">{{ p.description }}</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Contenido Pestaña: Request o Response DTO con Subpestañas -->
-          <div *ngIf="activeTab === 'request' || activeTab === 'response'">
-            <h6 class="fw-bold mb-3 small text-uppercase text-muted">
-              {{ activeTab === 'request' ? 'Modelo de Entrada' : 'Modelo de Salida' }}
-            </h6>
-            
-            <div *ngIf="detectedDtos.length === 0" class="text-muted small py-3 text-center bg-light rounded-3">
-              No se detectaron modelos estructurados para esta sección.
-            </div>
-
-            <div *ngIf="detectedDtos.length > 0">
-              <!-- Subpestañas de DTOs -->
-              <div class="d-flex flex-wrap gap-2 mb-3 border-bottom pb-2">
-                <button *ngFor="let dto of detectedDtos" 
-                        (click)="activeDtoId = dto.name"
-                        class="btn btn-sm py-1 px-3 rounded-pill"
-                        [class.btn-info]="activeDtoId === dto.name"
-                        [class.text-white]="activeDtoId === dto.name"
-                        [class.btn-outline-secondary]="activeDtoId !== dto.name">
-                  {{ dto.name }}
-                </button>
-              </div>
-
-              <!-- Definición del DTO Seleccionado -->
-              <div *ngFor="let dto of detectedDtos">
-                <div *ngIf="activeDtoId === dto.name" class="bg-dark p-3 rounded-3 font-monospace small overflow-auto animate-in" style="max-height: 350px">
-                  <div class="mb-1">
-                    <span class="text-warning">interface</span> <span class="text-info">{{ dto.name }}</span> &#123;
-                    <div *ngFor="let prop of dto.properties | keyvalue" class="ms-4">
-                      <span class="text-light">{{ prop.key }}</span>: 
-                      <span [ngClass]="getPropColor(prop.value)">{{ getSimplePropType(prop.value) }}</span>;
-                    </div>
-                    <span class="text-white">&#125;</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-3 border-top">
-            <div class="mb-3">
-              <label class="form-label small fw-bold">Nombre de la Acción / Pantalla</label>
-              <input type="text" class="form-control" [(ngModel)]="actionName" placeholder="Ej: Alta de País">
-            </div>
-            <div class="d-flex gap-2">
-              <button (click)="selectedEndpoint = null" class="btn btn-light border flex-grow-1">Cerrar</button>
-              <button (click)="saveActionDefinition()" class="btn btn-primary flex-grow-1 shadow-sm fw-bold">Guardar Definición</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -217,15 +123,6 @@ export class EndpointInspectorComponent implements OnInit {
   loading = true;
   error: string | null = null;
 
-  // Modal State
-  selectedEndpoint: Endpoint | null = null;
-  activeTab: 'params' | 'request' | 'response' = 'params';
-  actionName: string = '';
-
-  // DTO Sub-tabs state
-  detectedDtos: any[] = [];
-  activeDtoId: string = '';
-
   ngOnInit() {
     this.loadInspection();
   }
@@ -247,57 +144,6 @@ export class EndpointInspectorComponent implements OnInit {
         this.loading = false;
       }
     });
-  }
-
-  changeMainTab(tab: 'request' | 'response') {
-    this.activeTab = tab;
-    this.updateDetectedDtos();
-  }
-
-  updateDetectedDtos() {
-    const rootDto = this.activeTab === 'request' ? this.selectedEndpoint?.request_dto : this.selectedEndpoint?.response_dto;
-    this.detectedDtos = [];
-    if (rootDto) {
-      this.extractAllDtos(rootDto);
-      if (this.detectedDtos.length > 0) {
-        this.activeDtoId = this.detectedDtos[0].name;
-      }
-    }
-  }
-
-  extractAllDtos(dto: any) {
-    if (!dto || !dto.name) return;
-    
-    // Evitar duplicados
-    if (this.detectedDtos.find(d => d.name === dto.name)) return;
-
-    // Agregar el DTO actual
-    this.detectedDtos.push(dto);
-
-    // Buscar en sus propiedades
-    if (dto.properties) {
-      Object.values(dto.properties).forEach((prop: any) => {
-        if (prop.properties) {
-          this.extractAllDtos(prop);
-        } else if (prop.type === 'array' && prop.items?.properties) {
-          this.extractAllDtos(prop.items);
-        }
-      });
-    }
-  }
-
-  getSimplePropType(prop: any): string {
-    if (prop.type === 'array') {
-      const itemName = prop.items?.name || prop.items?.type || 'any';
-      return `${itemName}[]`;
-    }
-    return prop.name || prop.type || 'any';
-  }
-
-  getPropColor(prop: any): string {
-    if (prop.properties || (prop.type === 'array' && prop.items?.properties)) return 'text-info';
-    if (prop.type === 'array') return 'text-success';
-    return 'text-primary';
   }
 
   toggleEndpoint(ep: Endpoint) {
@@ -337,43 +183,6 @@ export class EndpointInspectorComponent implements OnInit {
         error: (err) => alert('No se pudo habilitar: ' + err.message)
       });
     }
-  }
-
-  openDefinitionModal(ep: Endpoint) {
-    this.selectedEndpoint = ep;
-    this.activeTab = 'params';
-    this.actionName = ep.configuracion_ui?.label || ep.summary || '';
-    this.detectedDtos = [];
-    this.activeDtoId = '';
-  }
-
-  saveActionDefinition() {
-    if (!this.selectedEndpoint || !this.inspectionData) return;
-
-    const mapping = {
-      backend_service_id: this.inspectionData.service_id,
-      endpoint_path: this.selectedEndpoint.path,
-      metodo: this.selectedEndpoint.method,
-      frontend_service_id: 'default',
-      configuracion_ui: {
-        ...this.selectedEndpoint.configuracion_ui,
-        label: this.actionName,
-        parameters: this.selectedEndpoint.parameters,
-        request_dto: this.selectedEndpoint.request_dto,
-        response_dto: this.selectedEndpoint.response_dto
-      }
-    };
-
-    this.middlewareService.toggleEndpointMapping(mapping).subscribe({
-      next: () => {
-        if (this.selectedEndpoint) {
-          this.selectedEndpoint.configuracion_ui = mapping.configuracion_ui;
-          this.selectedEndpoint = null;
-        }
-        alert('Definición guardada correctamente');
-      },
-      error: (err) => alert('Error al guardar: ' + err.message)
-    });
   }
 
   getMethodClass(method: string): string {
