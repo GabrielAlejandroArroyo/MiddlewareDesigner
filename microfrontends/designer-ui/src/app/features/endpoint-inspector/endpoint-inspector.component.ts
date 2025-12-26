@@ -99,11 +99,11 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       .pointer { cursor: pointer; }
       .italic { font-style: italic; }
       
-      .custom-modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-        display: flex; align-items: center; justify-content: center; z-index: 1000;
-      }
+             .custom-modal-overlay {
+               position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+               background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+               display: flex; align-items: center; justify-content: center; z-index: 9999 !important;
+             }
       .custom-modal { max-width: 650px; width: 95%; max-height: 90vh; }
       .scrollable-modal-content { max-height: 70vh; overflow-y: auto; }
       

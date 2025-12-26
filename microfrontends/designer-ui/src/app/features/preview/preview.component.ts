@@ -1,12 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MiddlewareService, BackendService } from '../../core/services/middleware.service';
+import { MiddlewareService, BackendService, Endpoint } from '../../core/services/middleware.service';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-preview',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="container-fluid px-4 py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
@@ -47,7 +49,7 @@ import { RouterModule } from '@angular/router';
           </div>
         </div>
 
-        <!-- Main Content: Dashboard de Previsualización -->
+        <!-- Main Content -->
         <div class="col-md-9">
           <div *ngIf="!selectedServiceId" class="card shadow-sm border-0 bg-light py-5 text-center rounded-4">
             <div class="card-body">
@@ -72,7 +74,6 @@ import { RouterModule } from '@angular/router';
               </div>
             </div>
 
-            <!-- Grid de Acciones Habilitadas -->
             <div class="row g-4">
               <div *ngFor="let ep of enabledEndpoints" class="col-md-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0 border-top border-4 action-card shadow-hover"
@@ -85,15 +86,103 @@ import { RouterModule } from '@angular/router';
                     <h5 class="fw-bold mb-2">{{ ep.configuracion_ui?.label || ep.summary || 'Acción sin nombre' }}</h5>
                     <p class="small text-muted mb-4">{{ ep.configuracion_ui?.description || 'Sin descripción adicional.' }}</p>
                     
-                    <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between">
-                      <span class="small text-muted"><i class="bi bi-ui-checks me-1"></i> Componente {{ getComponentType(ep.method) }}</span>
-                      <button [routerLink]="['/inspect', selectedServiceId, 'action-definition']" 
-                              [queryParams]="{ path: ep.path, method: ep.method }"
-                              class="btn btn-sm btn-link p-0">Configurar</button>
+                    <div class="mt-auto pt-3 border-top d-flex flex-column gap-2">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <span class="small text-muted"><i class="bi bi-ui-checks me-1"></i> {{ getComponentType(ep.method) }}</span>
+                        <button [routerLink]="['/inspect', selectedServiceId, 'action-definition']" 
+                                [queryParams]="{ path: ep.path, method: ep.method }"
+                                class="btn btn-sm btn-link p-0">Configurar</button>
+                      </div>
+                      <!-- Botón Probar Solicitado -->
+                      <button (click)="openTester(ep)" class="btn btn-sm btn-primary w-100 fw-bold shadow-sm py-2">
+                        <i class="bi bi-play-fill"></i> PROBAR FUNCIONALIDAD
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Pruebas (Tester Funcional) -->
+    <div *ngIf="activeTest" class="custom-modal-overlay">
+      <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in">
+        <div class="p-3 border-bottom bg-dark text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold"><i class="bi bi-terminal me-2 text-info"></i> Probar: {{ activeTest.configuracion_ui?.label }}</h5>
+          <button (click)="activeTest = null" class="btn-close btn-close-white"></button>
+        </div>
+        
+        <div class="p-4 scrollable-modal-content">
+          <!-- Alerta de Respuesta -->
+          <div *ngIf="testResponse" class="alert shadow-sm border-0 mb-4 animate-in" 
+               [ngClass]="testResponse.success ? 'alert-success' : 'alert-danger'">
+            <div class="d-flex justify-content-between">
+              <strong class="small text-uppercase">{{ testResponse.success ? 'Éxito' : 'Error' }}</strong>
+              <button class="btn-close btn-close-sm" (click)="testResponse = null"></button>
+            </div>
+            <pre class="mb-0 mt-2 small overflow-auto" style="max-height: 150px">{{ testResponse.data | json }}</pre>
+          </div>
+
+          <!-- Caso GET: Listado Real -->
+          <div *ngIf="activeTest.method === 'GET'">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold mb-0">Datos del Backend</h6>
+              <button class="btn btn-sm btn-outline-primary" (click)="executeGet()">Ejecutar Consulta</button>
+            </div>
+            <div class="table-responsive border rounded-3 bg-light" style="max-height: 300px">
+              <table class="table table-sm mb-0">
+                <thead class="table-dark small">
+                  <tr>
+                    <th *ngFor="let col of testerColumns" class="ps-3">{{ col }}</th>
+                  </tr>
+                </thead>
+                <tbody class="small">
+                  <tr *ngFor="let row of testData">
+                    <td *ngFor="let col of testerColumns" class="ps-3 py-2">{{ row[col] }}</td>
+                  </tr>
+                  <tr *ngIf="testData.length === 0">
+                    <td [attr.colspan]="testerColumns.length" class="text-center py-4 text-muted">
+                      No hay datos o pulsa "Ejecutar Consulta"
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Caso POST/PUT/PATCH: Formulario Real -->
+          <div *ngIf="['POST', 'PUT', 'PATCH'].includes(activeTest.method)">
+            <h6 class="fw-bold mb-3">Formulario de Entrada</h6>
+            <div class="row g-3">
+              <div *ngFor="let prop of testerFields" class="col-md-6">
+                <label class="form-label small fw-bold text-muted">{{ prop.key }}</label>
+                <input [type]="prop.type === 'integer' ? 'number' : 'text'" 
+                       [(ngModel)]="formData[prop.key]"
+                       class="form-control form-control-sm" [placeholder]="'Valor para ' + prop.key">
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-top d-flex gap-2">
+              <button class="btn btn-light border flex-grow-1" (click)="activeTest = null">Cancelar</button>
+              <button class="btn btn-primary flex-grow-1 fw-bold" (click)="executeMutation()">
+                {{ activeTest.method === 'POST' ? 'Crear Registro' : 'Actualizar Registro' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Caso DELETE -->
+          <div *ngIf="activeTest.method === 'DELETE'" class="text-center py-3">
+            <i class="bi bi-trash3 text-danger fs-1 mb-3"></i>
+            <h5 class="fw-bold">Eliminar por ID</h5>
+            <p class="text-muted small">Ingresa el identificador único para procesar la baja.</p>
+            <div class="input-group mb-4" style="max-width: 300px; margin: 0 auto">
+              <input type="text" [(ngModel)]="deleteId" class="form-control text-center" placeholder="ID del registro">
+            </div>
+            <div class="d-flex gap-2 justify-content-center">
+              <button class="btn btn-light border px-4" (click)="activeTest = null">Cancelar</button>
+              <button class="btn btn-danger px-4 fw-bold" (click)="executeDelete()">Eliminar Definitivamente</button>
             </div>
           </div>
         </div>
@@ -115,21 +204,39 @@ import { RouterModule } from '@angular/router';
       .border-PATCH { border-color: #50e3c2 !important; }
 
       .action-card { transition: all 0.3s ease; }
-      .shadow-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; cursor: pointer; }
+      .shadow-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
       
-      .animate-in { animation: fadeIn 0.4s ease-out; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+             .custom-modal-overlay {
+               position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+               background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+               display: flex; align-items: center; justify-content: center; z-index: 9999 !important;
+             }
+      .custom-modal { max-width: 700px; width: 95%; max-height: 90vh; }
+      .scrollable-modal-content { max-height: 70vh; overflow-y: auto; }
+      .animate-in { animation: fadeIn 0.3s ease-out; }
+      @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
   `
 })
 export class PreviewComponent implements OnInit {
   private middlewareService = inject(MiddlewareService);
+  private http = inject(HttpClient);
   
   services: BackendService[] = [];
   loading = true;
   selectedServiceId: string | null = null;
+  selectedServiceRaw: BackendService | null = null;
   inspectionData: any = null;
   enabledEndpoints: any[] = [];
+
+  // Tester State
+  activeTest: any = null;
+  testData: any[] = [];
+  formData: any = {};
+  deleteId: string = '';
+  testResponse: any = null;
+  testerColumns: string[] = [];
+  testerFields: {key: string, type: string}[] = [];
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -148,6 +255,7 @@ export class PreviewComponent implements OnInit {
 
   selectService(id: string) {
     this.selectedServiceId = id;
+    this.selectedServiceRaw = this.services.find(s => s.id === id) || null;
     this.loading = true;
     this.middlewareService.inspectService(id).subscribe({
       next: (data) => {
@@ -159,14 +267,95 @@ export class PreviewComponent implements OnInit {
     });
   }
 
-  getMethodClass(method: string): string {
-    return `badge-${method}`;
+  openTester(ep: any) {
+    this.activeTest = ep;
+    this.testData = [];
+    this.formData = {};
+    this.deleteId = '';
+    this.testResponse = null;
+    
+    // Pre-calcular columnas y campos para evitar bucles infinitos de detección de cambios
+    this.testerColumns = this.calculateColumns(ep);
+    this.testerFields = this.calculateFields(ep);
   }
 
-  getBorderClass(method: string): string {
-    return `border-${method}`;
+  calculateColumns(ep: any): string[] {
+    const properties = ep.response_dto?.properties?.paises?.items?.properties || 
+                     ep.response_dto?.properties?.provincias?.items?.properties ||
+                     ep.response_dto?.properties;
+    return properties ? Object.keys(properties).slice(0, 5) : ['id', 'descripcion'];
   }
 
+  calculateFields(ep: any): {key: string, type: string}[] {
+    const props = ep.request_dto?.properties || ep.response_dto?.properties;
+    return props ? Object.entries(props).map(([k, v]: any) => ({ key: k, type: v.type })) : [];
+  }
+
+  // --- EJECUCIÓN REAL DE PRUEBAS ---
+
+  executeGet() {
+    if (!this.selectedServiceRaw || !this.activeTest) return;
+    
+    // Asegurar que la URL sea válida
+    let baseUrl = this.selectedServiceRaw.host;
+    if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+    
+    const url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        if (res && typeof res === 'object') {
+          const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
+          this.testData = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
+        }
+        this.testResponse = { success: true, data: res };
+      },
+      error: (err) => this.testResponse = { success: false, data: err }
+    });
+  }
+
+  executeMutation() {
+    if (!this.selectedServiceRaw || !this.activeTest) return;
+    
+    let baseUrl = this.selectedServiceRaw.host;
+    if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+    
+    const url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    
+    const obs = this.activeTest.method === 'POST' 
+      ? this.http.post(url, this.formData)
+      : this.http.put(url.replace('{pais_id}', this.formData.id).replace('{provincia_id}', this.formData.id), this.formData);
+
+    obs.subscribe({
+      next: (res) => {
+        this.testResponse = { success: true, data: res };
+        if (this.activeTest.method === 'POST') this.formData = {}; // Limpiar form tras éxito
+      },
+      error: (err) => this.testResponse = { success: false, data: err }
+    });
+  }
+
+  executeDelete() {
+    if (!this.selectedServiceRaw || !this.activeTest || !this.deleteId) return;
+    
+    let baseUrl = this.selectedServiceRaw.host;
+    if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+    
+    const url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path.replace('{pais_id}', this.deleteId).replace('{provincia_id}', this.deleteId)}`;
+    
+    this.http.delete(url).subscribe({
+      next: (res) => {
+        this.testResponse = { success: true, data: res };
+        this.deleteId = ''; // Limpiar tras éxito
+      },
+      error: (err) => this.testResponse = { success: false, data: err }
+    });
+  }
+
+  // --- HELPERS ---
+
+  getMethodClass(method: string): string { return `badge-${method}`; }
+  getBorderClass(method: string): string { return `border-${method}`; }
   getComponentType(method: string): string {
     if (method === 'GET') return 'Grilla';
     if (method === 'POST') return 'Formulario';
@@ -174,4 +363,3 @@ export class PreviewComponent implements OnInit {
     return 'Editor';
   }
 }
-

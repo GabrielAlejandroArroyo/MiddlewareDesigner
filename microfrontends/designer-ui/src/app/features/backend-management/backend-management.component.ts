@@ -223,11 +223,11 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
       .nav-tabs .nav-link { color: #6c757d; border: none; border-bottom: 3px solid transparent; }
       .nav-tabs .nav-link.active { color: #0d6efd; border-bottom: 3px solid #0d6efd; background: transparent; }
       
-      .custom-modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-        display: flex; align-items: center; justify-content: center; z-index: 1000;
-      }
+             .custom-modal-overlay {
+               position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+               background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+               display: flex; align-items: center; justify-content: center; z-index: 9999 !important;
+             }
       .custom-modal { max-width: 450px; width: 90%; }
       .animate-in { animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
       
