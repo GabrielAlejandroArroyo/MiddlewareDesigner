@@ -37,4 +37,8 @@ export class MiddlewareService {
   inspectService(serviceId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/backend-services/${serviceId}/inspect`);
   }
+
+  deleteBackend(serviceId: string, physical: boolean = false): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/backend-services/${serviceId}?physical=${physical}`);
+  }
 }

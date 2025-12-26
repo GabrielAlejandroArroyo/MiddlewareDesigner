@@ -13,6 +13,7 @@ class BackendService(Base):
     puerto: Mapped[int] = mapped_column(Integer, nullable=False)
     openapi_url: Mapped[str] = mapped_column(String(500), nullable=False)
     descripcion: Mapped[Optional[str]] = mapped_column(String(500))
+    baja_logica: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 class FrontendService(Base):

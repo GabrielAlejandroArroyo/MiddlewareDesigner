@@ -19,10 +19,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configurar CORS
+# Configuración de CORS robusta
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex="http://(127\.0\.0\.1|localhost):[0-9]+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,4 +33,3 @@ app.include_router(config_routes.router, prefix="/api/v1")
 @app.get("/")
 async def root():
     return {"message": "Middleware Designer is running"}
-

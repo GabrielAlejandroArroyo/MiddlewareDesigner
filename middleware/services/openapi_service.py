@@ -6,6 +6,12 @@ class OpenApiService:
     
     async def fetch_spec_by_url(self, url: str) -> Dict[str, Any]:
         """Obtiene el JSON de OpenAPI desde una URL completa"""
+        # Correccion automatica: si el usuario pasa la URL de docs, cambiar a openapi.json
+        if url.endswith("/docs"):
+            url = url.replace("/docs", "/openapi.json")
+        elif url.endswith("/docs/"):
+            url = url.replace("/docs/", "/openapi.json")
+            
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(url)

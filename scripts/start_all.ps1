@@ -1,59 +1,84 @@
 # Script maestro para levantar todos los servicios (backend, middleware y frontend)
 # Uso: .\scripts\start_all.ps1
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "  Iniciando Todos los Servicios" -ForegroundColor Magenta
+Write-Host "  Middleware Designer - Reiniciando Ecosistema" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
+
+# --- FASE 1: BAJADA DE SERVICIOS EXISTENTES ---
+Write-Host "[0/3] Bajando procesos existentes (Python/Node)..." -ForegroundColor Yellow
+
+# Detener procesos hijos persistentes
+$processes = Get-Process | Where-Object { $_.Name -match "python" -or $_.Name -match "node" }
+if ($processes) {
+    $processes | Stop-Process -Force -ErrorAction SilentlyContinue
+    Write-Host "  ✓ $($processes.Count) procesos detenidos." -ForegroundColor Green
+} else {
+    Write-Host "  ✓ No se encontraron procesos activos." -ForegroundColor Gray
+}
+
+# Detener Jobs de PowerShell previos
+Get-Job | Stop-Job -ErrorAction SilentlyContinue
+Get-Job | Remove-Job -ErrorAction SilentlyContinue
+
+# Esperar a que los puertos se liberen
+Write-Host "  Esperando liberación de puertos..." -ForegroundColor Gray
+Start-Sleep -Seconds 2
+
+Write-Host ""
+
+# --- FASE 2: LEVANTADO DE SERVICIOS ---
 
 # Obtener la ruta del directorio de scripts
 $scriptsDir = $PSScriptRoot
 
 # Iniciar servicios backend
-Write-Host "Iniciando servicios backend..." -ForegroundColor Cyan
+Write-Host "[1/3] Iniciando servicios backend..." -ForegroundColor Cyan
 $backendJob = Start-Job -ScriptBlock {
     param($scriptPath)
+    Set-Location (Split-Path $scriptPath)
     & "$scriptPath\start_backend.ps1"
 } -ArgumentList $scriptsDir
 
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 5
 
 # Iniciar middleware
-Write-Host "Iniciando middleware..." -ForegroundColor Cyan
+Write-Host "[2/3] Iniciando middleware..." -ForegroundColor Cyan
 $middlewareJob = Start-Job -ScriptBlock {
     param($scriptPath)
     & "$scriptPath\start_middleware.ps1"
 } -ArgumentList $scriptsDir
 
-Start-Sleep -Seconds 2
+# Esperar a que el middleware levante la base de datos y el socket
+Start-Sleep -Seconds 5
 
 # Iniciar microfrontends
-Write-Host "Iniciando microfrontends..." -ForegroundColor Cyan
+Write-Host "[3/3] Iniciando microfrontends..." -ForegroundColor Cyan
 $frontendJob = Start-Job -ScriptBlock {
     param($scriptPath)
     & "$scriptPath\start_frontend.ps1"
 } -ArgumentList $scriptsDir
 
-Start-Sleep -Seconds 3
+Start-Sleep -Seconds 5
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "  Todos los Servicios Iniciados" -ForegroundColor Magenta
+Write-Host "  Todos los Procesos Reiniciados" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
-Write-Host "Servicios Backend: http://localhost:8000+" -ForegroundColor Green
-Write-Host "Middleware: http://localhost:9000" -ForegroundColor Green
-Write-Host "Microfrontends: http://localhost:4200+" -ForegroundColor Green
+Write-Host "  Servicios Backend: http://127.0.0.1:8000+" -ForegroundColor Green
+Write-Host "  Middleware:        http://127.0.0.1:9000" -ForegroundColor Green
+Write-Host "  Frontend (UI):     http://127.0.0.1:4200" -ForegroundColor Green
 Write-Host ""
 Write-Host "Presiona Ctrl+C para detener todos los servicios" -ForegroundColor Yellow
 Write-Host ""
 
 # Función para limpiar procesos al salir
 function Cleanup {
-    Write-Host ""
-    Write-Host "Deteniendo todos los servicios..." -ForegroundColor Yellow
+    Write-Host "`nDeteniendo todos los procesos..." -ForegroundColor Yellow
     
     Stop-Job -Job $backendJob -ErrorAction SilentlyContinue
     Stop-Job -Job $middlewareJob -ErrorAction SilentlyContinue
@@ -63,23 +88,32 @@ function Cleanup {
     Remove-Job -Job $middlewareJob -ErrorAction SilentlyContinue
     Remove-Job -Job $frontendJob -ErrorAction SilentlyContinue
     
-    Write-Host "Todos los servicios detenidos" -ForegroundColor Green
+    Get-Process | Where-Object { $_.Name -match "python" -or $_.Name -match "node" } | Stop-Process -Force -ErrorAction SilentlyContinue
+    
+    Write-Host "Todos los procesos detenidos." -ForegroundColor Green
 }
 
-# Capturar Ctrl+C
-[Console]::TreatControlCAsInput = $false
+# Monitoreo de salud
 try {
     while ($true) {
-        Start-Sleep -Seconds 1
+        Start-Sleep -Seconds 5
         
-        # Verificar si algún job falló
-        if ($backendJob.State -eq "Failed" -or $middlewareJob.State -eq "Failed" -or $frontendJob.State -eq "Failed") {
-            Write-Host "Error: Uno o más servicios fallaron" -ForegroundColor Red
-            Cleanup
-            exit 1
+        if ($backendJob.State -eq "Failed") {
+            Write-Host "Error: El proceso de Backend fallo." -ForegroundColor Red
+            Receive-Job -Job $backendJob
+            break
+        }
+        if ($middlewareJob.State -eq "Failed") {
+            Write-Host "Error: El proceso de Middleware fallo." -ForegroundColor Red
+            Receive-Job -Job $middlewareJob
+            break
+        }
+        if ($frontendJob.State -eq "Failed") {
+            Write-Host "Error: El proceso de Frontend fallo." -ForegroundColor Red
+            Receive-Job -Job $frontendJob
+            break
         }
     }
 } finally {
     Cleanup
 }
-
