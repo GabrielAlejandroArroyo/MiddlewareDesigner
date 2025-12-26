@@ -107,6 +107,9 @@ async def reactivate_backend_service(service_id: str):
         svc.baja_logica = False
         await session.commit()
         return {"status": "success", "message": f"Servicio '{svc.id}' reactivado correctamente"}
+
+@router.get("/backend-services/{service_id}/inspect")
+async def inspect_backend_service(service_id: str):
     async with AsyncSessionLocal() as session:
         search_id = service_id.lower().strip()
         svc = await session.get(BackendService, search_id)
