@@ -7,7 +7,7 @@ from entity.provincia_model import ProvinciaModel
 from dto.provincia_create_dto import ProvinciaCreateDTO
 from dto.provincia_update_dto import ProvinciaUpdateDTO
 from dto.provincia_put_dto import ProvinciaPutDTO
-from dto.provincia_read_dto import ProvinciaReadDTO
+from dto.provincia_read_dto import ProvinciaReadDTO, ProvinciaListDTO
 from dto.provincia_delete_dto import ProvinciaDeleteDTO
 
 # URL del microservicio de Pais para validación
@@ -22,14 +22,19 @@ async def validar_pais_existe(id_pais: str) -> bool:
         except Exception:
             return False
 
-async def get_all_provincias(include_baja_logica: bool = True) -> List[ProvinciaReadDTO]:
+async def get_all_provincias(include_baja_logica: bool = True) -> ProvinciaListDTO:
     async with AsyncSessionLocal() as session:
         query = select(ProvinciaModel)
         if not include_baja_logica:
             query = query.where(ProvinciaModel.baja_logica == False)
+        
         result = await session.execute(query)
         provincias = result.scalars().all()
-        return [ProvinciaReadDTO.model_validate(p) for p in provincias]
+        
+        return ProvinciaListDTO(
+            provincias=[ProvinciaReadDTO.model_validate(p) for p in provincias],
+            total=len(provincias)
+        )
 
 async def get_provincia_by_id(provincia_id: str) -> Optional[ProvinciaReadDTO]:
     async with AsyncSessionLocal() as session:

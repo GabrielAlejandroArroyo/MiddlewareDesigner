@@ -123,7 +123,10 @@ import { HttpClient } from '@angular/common/http';
               <strong class="small text-uppercase">{{ testResponse.success ? 'Éxito' : 'Error' }}</strong>
               <button class="btn-close btn-close-sm" (click)="testResponse = null"></button>
             </div>
-            <pre class="mb-0 mt-2 small overflow-auto" style="max-height: 150px">{{ testResponse.data | json }}</pre>
+            <div class="mb-0 mt-2 small overflow-auto" style="max-height: 150px">
+              <pre *ngIf="isObject(testResponse.data)" class="mb-0">{{ testResponse.data | json }}</pre>
+              <div *ngIf="!isObject(testResponse.data)" class="fw-bold">{{ testResponse.data }}</div>
+            </div>
           </div>
 
           <!-- Caso GET: Listado Real -->
@@ -289,7 +292,6 @@ export class PreviewComponent implements OnInit {
   executeGet() {
     if (!this.selectedServiceRaw || !this.activeTest) return;
     
-    // Asegurar que la URL sea válida
     let baseUrl = this.selectedServiceRaw.host;
     if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
     
@@ -303,7 +305,11 @@ export class PreviewComponent implements OnInit {
         }
         this.testResponse = { success: true, data: res };
       },
-      error: (err) => this.testResponse = { success: false, data: err }
+      error: (err) => {
+        console.error('Error en GET:', err);
+        const errorMsg = err.error?.detail || err.message || 'Error de conexión con el microservicio';
+        this.testResponse = { success: false, data: errorMsg };
+      }
     });
   }
 
@@ -324,7 +330,11 @@ export class PreviewComponent implements OnInit {
         this.testResponse = { success: true, data: res };
         if (this.activeTest.method === 'POST') this.formData = {}; // Limpiar form tras éxito
       },
-      error: (err) => this.testResponse = { success: false, data: err }
+      error: (err) => {
+        console.error('Error en Mutation:', err);
+        const errorMsg = err.error?.detail || err.message || 'Error al procesar la solicitud';
+        this.testResponse = { success: false, data: errorMsg };
+      }
     });
   }
 
@@ -341,11 +351,19 @@ export class PreviewComponent implements OnInit {
         this.testResponse = { success: true, data: res };
         this.deleteId = ''; // Limpiar tras éxito
       },
-      error: (err) => this.testResponse = { success: false, data: err }
+      error: (err) => {
+        console.error('Error en DELETE:', err);
+        const errorMsg = err.error?.detail || err.message || 'Error al eliminar el registro';
+        this.testResponse = { success: false, data: errorMsg };
+      }
     });
   }
 
   // --- HELPERS ---
+
+  isObject(val: any): boolean {
+    return val !== null && typeof val === 'object';
+  }
 
   getMethodClass(method: string): string { return `badge-${method}`; }
   getBorderClass(method: string): string { return `border-${method}`; }
