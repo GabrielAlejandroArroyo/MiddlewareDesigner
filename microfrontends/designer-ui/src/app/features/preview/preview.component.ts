@@ -178,10 +178,13 @@ import { HttpClient } from '@angular/common/http';
                   </span>
                   <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable">
                     <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
-                    <option *ngFor="let opt of refDataCache[prop.refService]" [value]="opt.id">
+                    <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn)" [value]="opt.id">
                       {{ opt.descripcion || opt.nombre || opt.id }} (ID: {{ opt.id }})
                     </option>
                   </select>
+                </div>
+                <div *ngIf="prop.dependsOn && !formData[prop.dependsOn]" class="x-small text-warning mt-1">
+                  <i class="bi bi-exclamation-triangle"></i> Debe seleccionar <strong>{{ prop.dependsOn }}</strong> primero.
                 </div>
 
                 <!-- Caso ESTÁNDAR -->
@@ -240,7 +243,7 @@ export class PreviewComponent implements OnInit {
   deleteId: string = '';
   testResponse: any = null;
   testerColumns: string[] = [];
-  testerFields: {key: string, type: string, editable: boolean, refService?: string, refDisplay?: string}[] = [];
+  testerFields: {key: string, type: string, editable: boolean, refService?: string, refDisplay?: string, dependsOn?: string}[] = [];
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -330,6 +333,15 @@ export class PreviewComponent implements OnInit {
     return val;
   }
 
+  getFilteredOptions(refService: string, dependsOn?: string): any[] {
+    const data = this.refDataCache[refService] || [];
+    if (!dependsOn || !this.formData[dependsOn]) return data;
+    
+    // Filtrar la lista del servicio referenciado buscando el campo que coincide con la dependencia
+    // Por ejemplo: si id_provincia depende de id_pais, filtramos provincias donde provincia.id_pais == formData.id_pais
+    return data.filter(item => String(item[dependsOn]) === String(this.formData[dependsOn]));
+  }
+
   calculateColumns(ep: any): string[] {
     const properties = ep.response_dto?.properties?.paises?.items?.properties || 
                      ep.response_dto?.properties?.provincias?.items?.properties ||
@@ -356,7 +368,8 @@ export class PreviewComponent implements OnInit {
         editable: config[k]?.editable !== false,
         order: config[k]?.order || 0,
         refService: config[k]?.refService,
-        refDisplay: config[k]?.refDisplay
+        refDisplay: config[k]?.refDisplay,
+        dependsOn: config[k]?.dependsOn
       }))
       .filter(f => config[f.key]?.show !== false)
       .sort((a, b) => a.order - b.order);

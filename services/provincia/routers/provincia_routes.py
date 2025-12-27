@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List
+from typing import List, Optional
 from dto.provincia_create_dto import ProvinciaCreateDTO
 from dto.provincia_update_dto import ProvinciaUpdateDTO
 from dto.provincia_put_dto import ProvinciaPutDTO
@@ -23,12 +23,12 @@ router = APIRouter(prefix="/provincias", tags=["provincias"])
     status_code=status.HTTP_200_OK,
     summary="Listar todas las provincias",
     response_description="Listado de provincias con contador total")
-async def listar_provincias(include_baja_logica: bool = True):
+async def listar_provincias(include_baja_logica: bool = True, id_pais: Optional[str] = None):
     """
     Obtiene el listado completo de provincias registradas.
-    Permite filtrar por estado de baja lógica.
+    Permite filtrar por estado de baja lógica y por ID de país.
     """
-    return await get_all_provincias(include_baja_logica=include_baja_logica)
+    return await get_all_provincias(include_baja_logica=include_baja_logica, id_pais=id_pais)
 
 @router.get("/{provincia_id}", 
     response_model=ProvinciaReadDTO, 

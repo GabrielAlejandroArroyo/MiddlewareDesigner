@@ -22,11 +22,14 @@ async def validar_pais_existe(id_pais: str) -> bool:
         except Exception:
             return False
 
-async def get_all_provincias(include_baja_logica: bool = True) -> ProvinciaListDTO:
+async def get_all_provincias(include_baja_logica: bool = True, id_pais: Optional[str] = None) -> ProvinciaListDTO:
     async with AsyncSessionLocal() as session:
         query = select(ProvinciaModel)
         if not include_baja_logica:
             query = query.where(ProvinciaModel.baja_logica == False)
+        
+        if id_pais:
+            query = query.where(ProvinciaModel.id_pais == id_pais)
         
         result = await session.execute(query)
         provincias = result.scalars().all()

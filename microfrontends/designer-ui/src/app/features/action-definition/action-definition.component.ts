@@ -184,6 +184,9 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                    <option value="2">Ejemplo Relacionado 2</option>
                                  </select>
                                </div>
+                               <div *ngIf="getFieldConfig(prop.key, 'request').dependsOn" class="x-small text-info mt-1 animate-in">
+                                 <i class="bi bi-funnel-fill"></i> Filtra según selección de <strong>{{ getFieldConfig(prop.key, 'request').dependsOn }}</strong>
+                               </div>
 
                                <!-- Campo Estándar -->
                                <ng-container *ngIf="!getFieldConfig(prop.key, 'request').refService">
@@ -346,19 +349,33 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                        </div>
                                      </td>
                                      <td>
-                                       <div class="d-flex gap-1">
-                                         <select class="form-select form-select-sm" 
-                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).refService">
-                                           <option [value]="null">Sin referencia</option>
-                                           <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
-                                         </select>
-                                         <select *ngIf="getFieldConfig(prop.key, activeTab).refService" 
-                                                 class="form-select form-select-sm" 
-                                                 style="width: 100px"
-                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).refDisplay">
-                                           <option value="id">Mostrar ID</option>
-                                           <option value="desc">Mostrar Descr.</option>
-                                         </select>
+                                       <div class="d-flex flex-column gap-1">
+                                         <div class="d-flex gap-1">
+                                           <select class="form-select form-select-sm" 
+                                                   [(ngModel)]="getFieldConfig(prop.key, activeTab).refService">
+                                             <option [value]="null">Sin referencia</option>
+                                             <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
+                                           </select>
+                                           <select *ngIf="getFieldConfig(prop.key, activeTab).refService" 
+                                                   class="form-select form-select-sm" 
+                                                   style="width: 100px"
+                                                   [(ngModel)]="getFieldConfig(prop.key, activeTab).refDisplay">
+                                             <option value="id">Mostrar ID</option>
+                                             <option value="desc">Mostrar Descr.</option>
+                                           </select>
+                                         </div>
+                                         <!-- Dependencia: Solo si tiene referencia y hay otros campos que podrían ser padres -->
+                                         <div *ngIf="getFieldConfig(prop.key, activeTab).refService" class="animate-in">
+                                           <select class="form-select form-select-sm x-small bg-light" 
+                                                   [(ngModel)]="getFieldConfig(prop.key, activeTab).dependsOn">
+                                             <option [value]="null">Sin dependencia</option>
+                                             <ng-container *ngFor="let otherProp of dto.properties | keyvalue">
+                                                <option *ngIf="otherProp.key !== prop.key" [value]="otherProp.key">
+                                                  Filtrar por: {{ otherProp.key }}
+                                                </option>
+                                             </ng-container>
+                                           </select>
+                                         </div>
                                        </div>
                                      </td>
                                    </tr>
@@ -491,7 +508,8 @@ export class ActionDefinitionComponent implements OnInit {
         editable: category !== 'response',
         order: maxOrder + 1,
         refService: null,
-        refDisplay: 'id'
+        refDisplay: 'id',
+        dependsOn: null
       };
     }
 

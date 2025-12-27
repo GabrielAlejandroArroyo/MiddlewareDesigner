@@ -32,16 +32,28 @@ if ($null -eq $services -or $services.Count -eq 0) {
 Write-Host "Servicios encontrados: $($services.Count)" -ForegroundColor Green
 Write-Host ""
 
-# Puerto base para los servicios
-$basePort = 8000
-$portIndex = 0
+# Puerto fijo para cada servicio para evitar problemas de dependencias
+$servicePorts = @{
+    "pais" = 8000
+    "provincia" = 8001
+    "localidad" = 8002
+}
 
 $jobs = @()
 
 foreach ($service in $services) {
     $serviceName = $service.Name
     $servicePath = $service.FullName
-    $port = $basePort + $portIndex
+    
+    # Obtener puerto del mapeo o usar el siguiente disponible si no esta definido
+    if ($servicePorts.ContainsKey($serviceName)) {
+        $port = $servicePorts[$serviceName]
+    } else {
+        $port = $basePort + $portIndex
+        while ($servicePorts.ContainsValue($port)) {
+            $port++
+        }
+    }
     
     Write-Host "Iniciando servicio: $serviceName en puerto $port" -ForegroundColor Yellow
     
