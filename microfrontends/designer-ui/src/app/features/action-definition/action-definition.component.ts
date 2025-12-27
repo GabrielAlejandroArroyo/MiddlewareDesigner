@@ -111,41 +111,49 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                   <span class="badge bg-info-subtle text-info border border-info">Modo: {{ getComponentType() }}</span>
                 </div>
 
-                <!-- Caso GET: Grilla Dinámica -->
-                <div *ngIf="method === 'GET'">
-                  <div class="card border shadow-none bg-light mb-3">
-                    <div class="card-body py-2 d-flex justify-content-between align-items-center">
-                      <div class="d-flex gap-2">
-                        <input type="text" class="form-control form-control-sm" style="width: 200px" placeholder="Buscar...">
-                        <button class="btn btn-sm btn-primary">Filtrar</button>
-                      </div>
-                      <button *ngIf="availableActions.create" class="btn btn-sm btn-success">+ Nuevo Registro</button>
-                    </div>
-                  </div>
-                  <div class="table-responsive rounded-3 border">
-                    <table class="table table-sm table-hover mb-0">
-                      <thead class="table-light">
-                        <tr>
-                          <th *ngFor="let prop of getPreviewTableColumns()" class="small text-uppercase ps-3">{{ prop }}</th>
-                          <th *ngIf="availableActions.edit || availableActions.delete" class="text-end pe-3 small text-uppercase">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let row of [1,2,3]">
-                          <td *ngFor="let prop of getPreviewTableColumns()" class="ps-3 py-2 small text-muted">
-                            <span *ngIf="prop === 'id'">{{ serviceId.split('-')[0] | uppercase }}_{{ row }}0{{ row }}</span>
-                            <span *ngIf="prop !== 'id'">Dato de ejemplo {{ row }}</span>
-                          </td>
-                          <td *ngIf="availableActions.edit || availableActions.delete" class="text-end pe-3 py-2">
-                            <div class="btn-group">
-                              <button *ngIf="availableActions.edit" class="btn btn-xs btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></button>
-                              <button *ngIf="availableActions.delete" class="btn btn-xs btn-outline-danger py-0 px-2" title="Eliminar"><i class="bi bi-trash"></i></button>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                       <!-- Caso GET: Grilla Dinámica -->
+                       <div *ngIf="method === 'GET'">
+                         <div class="card border shadow-none bg-light mb-3">
+                           <div class="card-body py-2 d-flex justify-content-between align-items-center">
+                             <div class="d-flex gap-2">
+                               <input type="text" class="form-control form-control-sm" style="width: 200px" placeholder="Buscar...">
+                               <button class="btn btn-sm btn-primary">Filtrar</button>
+                             </div>
+                             <button *ngIf="availableActions.create" class="btn btn-sm btn-success">+ Nuevo Registro</button>
+                           </div>
+                         </div>
+                         <div class="table-responsive rounded-3 border">
+                           <table class="table table-sm table-hover mb-0">
+                             <thead class="table-light">
+                               <tr>
+                                 <th *ngFor="let prop of getPreviewTableColumns()" class="small text-uppercase ps-3">{{ prop }}</th>
+                                 <th *ngIf="availableActions.edit || availableActions.delete" class="text-end pe-3 small text-uppercase">Acciones</th>
+                               </tr>
+                             </thead>
+                             <tbody>
+                               <tr *ngFor="let row of [1,2,3]">
+                                 <td *ngFor="let prop of getPreviewTableColumns()" class="ps-3 py-2 small text-muted">
+                                   <div *ngIf="getFieldConfig(prop, 'response').refService" class="d-flex align-items-center gap-1">
+                                      <span class="badge bg-info-subtle text-info x-small border border-info border-opacity-25">
+                                        {{ getFieldConfig(prop, 'response').refService }}
+                                      </span>
+                                      <span>{{ getFieldConfig(prop, 'response').refDisplay === 'id' ? 'ID_REF' : 'DESCR_REF' }}_{{ row }}</span>
+                                   </div>
+                                   <div *ngIf="!getFieldConfig(prop, 'response').refService">
+                                      <span *ngIf="prop === 'id'">{{ serviceId.split('-')[0] | uppercase }}_{{ row }}0{{ row }}</span>
+                                      <span *ngIf="prop !== 'id'">Dato de ejemplo {{ row }}</span>
+                                   </div>
+                                 </td>
+                                 <td *ngIf="availableActions.edit || availableActions.delete" class="text-end pe-3 py-2">
+                                   <div class="btn-group">
+                                     <button *ngIf="availableActions.edit" class="btn btn-xs btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></button>
+                                     <button *ngIf="availableActions.delete" class="btn btn-xs btn-outline-danger py-0 px-2" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                   </div>
+                                 </td>
+                               </tr>
+                             </tbody>
+                           </table>
+                         </div>
                   <div class="d-flex justify-content-between align-items-center mt-3 px-1">
                     <span class="small text-muted">Mostrando 3 de 15 registros</span>
                     <nav><ul class="pagination pagination-sm mb-0">
@@ -164,14 +172,30 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                            <div class="row g-3">
                              <div *ngFor="let prop of getFormFields()" class="col-md-6">
                                <label class="form-label small fw-bold text-muted">{{ prop.key | titlecase }}</label>
-                               <input *ngIf="prop.type !== 'boolean'" [type]="prop.type === 'integer' ? 'number' : 'text'" 
-                                      class="form-control" [placeholder]="'Ingrese ' + prop.key"
-                                      [disabled]="!prop.editable"
-                                      [class.bg-light]="!prop.editable">
-                               <div *ngIf="prop.type === 'boolean'" class="form-check form-switch mt-2">
-                                 <input class="form-check-input" type="checkbox" [disabled]="!prop.editable">
-                                 <label class="form-check-label small">Habilitado</label>
+                               
+                               <!-- Campo con Referencia: Se muestra como SELECT -->
+                               <div *ngIf="getFieldConfig(prop.key, 'request').refService" class="input-group input-group-sm">
+                                 <span class="input-group-text bg-info-subtle text-info border-info border-opacity-25 x-small">
+                                   <i class="bi bi-link-45deg"></i>
+                                 </span>
+                                 <select class="form-select" [disabled]="!prop.editable">
+                                   <option value="">Seleccione {{ getFieldConfig(prop.key, 'request').refService }}...</option>
+                                   <option value="1">Ejemplo Relacionado 1</option>
+                                   <option value="2">Ejemplo Relacionado 2</option>
+                                 </select>
                                </div>
+
+                               <!-- Campo Estándar -->
+                               <ng-container *ngIf="!getFieldConfig(prop.key, 'request').refService">
+                                 <input *ngIf="prop.type !== 'boolean'" [type]="prop.type === 'integer' ? 'number' : 'text'" 
+                                        class="form-control" [placeholder]="'Ingrese ' + prop.key"
+                                        [disabled]="!prop.editable"
+                                        [class.bg-light]="!prop.editable">
+                                 <div *ngIf="prop.type === 'boolean'" class="form-check form-switch mt-2">
+                                   <input class="form-check-input" type="checkbox" [disabled]="!prop.editable">
+                                   <label class="form-check-label small">Habilitado</label>
+                                 </div>
+                               </ng-container>
                              </div>
                            </div>
                            <div class="d-flex gap-2 mt-5">
@@ -291,6 +315,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                      <th class="text-center" style="width: 100px">ORDEN</th>
                                      <th class="text-center" style="width: 100px">VISUALIZAR</th>
                                      <th class="text-center" style="width: 100px" *ngIf="activeTab === 'request'">EDITABLE</th>
+                                     <th style="width: 250px">REFERENCIA EXTERNA (DEPENDE DE)</th>
                                    </tr>
                                  </thead>
                                  <tbody class="small">
@@ -318,6 +343,22 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                        <div class="form-check form-switch d-inline-block">
                                          <input class="form-check-input" type="checkbox" 
                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).editable">
+                                       </div>
+                                     </td>
+                                     <td>
+                                       <div class="d-flex gap-1">
+                                         <select class="form-select form-select-sm" 
+                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).refService">
+                                           <option [value]="null">Sin referencia</option>
+                                           <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
+                                         </select>
+                                         <select *ngIf="getFieldConfig(prop.key, activeTab).refService" 
+                                                 class="form-select form-select-sm" 
+                                                 style="width: 100px"
+                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).refDisplay">
+                                           <option value="id">Mostrar ID</option>
+                                           <option value="desc">Mostrar Descr.</option>
+                                         </select>
                                        </div>
                                      </td>
                                    </tr>
@@ -359,6 +400,7 @@ export class ActionDefinitionComponent implements OnInit {
   method: string = '';
   
   endpoint: Endpoint | null = null;
+  allServices: any[] = [];
   loading = true;
   error: string | null = null;
 
@@ -383,6 +425,13 @@ export class ActionDefinitionComponent implements OnInit {
     }
 
     this.loadEndpointDetails();
+    this.loadAllServices();
+  }
+
+  loadAllServices() {
+    this.middlewareService.getBackendServices().subscribe(data => {
+      this.allServices = data.filter(s => s.id !== this.serviceId); // No referenciarse a sí mismo
+    });
   }
 
   loadEndpointDetails() {
@@ -440,7 +489,9 @@ export class ActionDefinitionComponent implements OnInit {
       config[category][propKey] = {
         show: true,
         editable: category !== 'response',
-        order: maxOrder + 1
+        order: maxOrder + 1,
+        refService: null,
+        refDisplay: 'id'
       };
     }
 

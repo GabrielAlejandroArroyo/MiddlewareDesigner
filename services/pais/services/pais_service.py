@@ -33,11 +33,13 @@ async def get_pais_by_id(pais_id: str) -> Optional[PaisReadDTO]:
 
 async def create_pais(pais_data: PaisCreateDTO) -> PaisReadDTO:
     async with AsyncSessionLocal() as session:
+        now = datetime.utcnow()
         nuevo_pais = PaisModel(
             id=pais_data.id,
             descripcion=pais_data.descripcion,
             sigla_pais=pais_data.sigla_pais,
-            fecha_alta_creacion=datetime.utcnow()
+            fecha_alta_creacion=now,
+            fecha_alta_modificacion=now
         )
         session.add(nuevo_pais)
         await session.commit()

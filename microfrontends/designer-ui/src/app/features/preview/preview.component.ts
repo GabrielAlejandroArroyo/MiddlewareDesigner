@@ -144,7 +144,15 @@ import { HttpClient } from '@angular/common/http';
                 </thead>
                 <tbody class="small">
                   <tr *ngFor="let row of testData">
-                    <td *ngFor="let col of testerColumns" class="ps-3 py-2">{{ row[col] }}</td>
+                    <td *ngFor="let col of testerColumns" class="ps-3 py-2">
+                      <div *ngIf="activeTest.configuracion_ui?.fields_config?.response?.[col]?.refService" class="d-flex align-items-center gap-1">
+                        <span class="badge bg-info-subtle text-info x-small border border-info border-opacity-25">
+                          {{ activeTest.configuracion_ui.fields_config.response[col].refService }}
+                        </span>
+                        <span>{{ getRefValue(row[col], activeTest.configuracion_ui.fields_config.response[col].refService, activeTest.configuracion_ui.fields_config.response[col].refDisplay) }}</span>
+                      </div>
+                      <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col]?.refService">{{ row[col] }}</span>
+                    </td>
                   </tr>
                   <tr *ngIf="testData.length === 0">
                     <td [attr.colspan]="testerColumns.length" class="text-center py-4 text-muted">
@@ -162,7 +170,22 @@ import { HttpClient } from '@angular/common/http';
             <div class="row g-3">
               <div *ngFor="let prop of testerFields" class="col-md-6">
                 <label class="form-label small fw-bold text-muted">{{ prop.key }}</label>
-                <input [type]="prop.type === 'integer' ? 'number' : 'text'" 
+                
+                <!-- Caso REFERENCIA: Selector Desplegable Real -->
+                <div *ngIf="prop.refService" class="input-group input-group-sm">
+                  <span class="input-group-text bg-info-subtle text-info border-info border-opacity-25 x-small">
+                    <i class="bi bi-link-45deg"></i>
+                  </span>
+                  <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable">
+                    <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
+                    <option *ngFor="let opt of refDataCache[prop.refService]" [value]="opt.id">
+                      {{ opt.descripcion || opt.nombre || opt.id }} (ID: {{ opt.id }})
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Caso ESTÁNDAR -->
+                <input *ngIf="!prop.refService" [type]="prop.type === 'integer' ? 'number' : 'text'" 
                        [(ngModel)]="formData[prop.key]"
                        class="form-control form-control-sm" 
                        [placeholder]="'Valor para ' + prop.key"
@@ -206,6 +229,9 @@ export class PreviewComponent implements OnInit {
   selectedServiceRaw: BackendService | null = null;
   inspectionData: any = null;
   enabledEndpoints: any[] = [];
+  
+  // Cache para datos de referencias externas
+  refDataCache: {[key: string]: any[]} = {};
 
   // Tester State
   activeTest: any = null;
@@ -214,7 +240,7 @@ export class PreviewComponent implements OnInit {
   deleteId: string = '';
   testResponse: any = null;
   testerColumns: string[] = [];
-  testerFields: {key: string, type: string, editable: boolean}[] = [];
+  testerFields: {key: string, type: string, editable: boolean, refService?: string, refDisplay?: string}[] = [];
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -252,9 +278,56 @@ export class PreviewComponent implements OnInit {
     this.deleteId = '';
     this.testResponse = null;
     
-    // Pre-calcular columnas y campos para evitar bucles infinitos de detección de cambios
+    // Pre-calcular columnas y campos
     this.testerColumns = this.calculateColumns(ep);
     this.testerFields = this.calculateFields(ep);
+
+    // Cargar datos para referencias externas si existen
+    this.testerFields.forEach(f => {
+      if (f.refService) this.fetchRefData(f.refService);
+    });
+
+    // También revisar las columnas del GET por si tienen referencias
+    const responseConfig = ep.configuracion_ui?.fields_config?.response || {};
+    Object.values(responseConfig).forEach((c: any) => {
+      if (c.refService) this.fetchRefData(c.refService);
+    });
+  }
+
+  fetchRefData(serviceId: string) {
+    if (this.refDataCache[serviceId]) return;
+
+    const service = this.services.find(s => s.id === serviceId);
+    if (!service) return;
+
+    // Intentar encontrar el endpoint GET principal del servicio referenciado
+    this.middlewareService.inspectService(serviceId).subscribe(data => {
+      const getEndpoint = data.endpoints.find((e: any) => e.method === 'GET' && !e.path.includes('{'));
+      if (getEndpoint) {
+        let baseUrl = service.host;
+        if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+        const url = `${baseUrl}:${service.puerto}${getEndpoint.path}`;
+
+        this.http.get<any>(url).subscribe(res => {
+          // Extraer la lista (manejo de patrón RORO)
+          const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
+          this.refDataCache[serviceId] = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
+        });
+      }
+    });
+  }
+
+  getRefValue(val: any, serviceId: string, display: string): string {
+    const list = this.refDataCache[serviceId];
+    if (!list || !val) return val;
+
+    const item = list.find(i => String(i.id) === String(val));
+    if (!item) return val;
+
+    if (display === 'desc') {
+      return item.descripcion || item.nombre || item.label || val;
+    }
+    return val;
   }
 
   calculateColumns(ep: any): string[] {
@@ -271,7 +344,7 @@ export class PreviewComponent implements OnInit {
       .slice(0, 5);
   }
 
-  calculateFields(ep: any): {key: string, type: string, editable: boolean}[] {
+  calculateFields(ep: any): {key: string, type: string, editable: boolean, refService?: string, refDisplay?: string}[] {
     const props = ep.request_dto?.properties || ep.response_dto?.properties;
     if (!props) return [];
 
@@ -281,7 +354,9 @@ export class PreviewComponent implements OnInit {
         key: k, 
         type: v.type,
         editable: config[k]?.editable !== false,
-        order: config[k]?.order || 0
+        order: config[k]?.order || 0,
+        refService: config[k]?.refService,
+        refDisplay: config[k]?.refDisplay
       }))
       .filter(f => config[f.key]?.show !== false)
       .sort((a, b) => a.order - b.order);

@@ -45,11 +45,13 @@ async def get_provincia_by_id(provincia_id: str) -> Optional[ProvinciaReadDTO]:
 
 async def create_provincia(provincia_data: ProvinciaCreateDTO) -> ProvinciaReadDTO:
     async with AsyncSessionLocal() as session:
+        now = datetime.utcnow()
         nueva_provincia = ProvinciaModel(
             id=provincia_data.id,
             descripcion=provincia_data.descripcion,
             id_pais=provincia_data.id_pais,
-            fecha_alta_creacion=datetime.utcnow()
+            fecha_alta_creacion=now,
+            fecha_alta_modificacion=now
         )
         session.add(nueva_provincia)
         await session.commit()
