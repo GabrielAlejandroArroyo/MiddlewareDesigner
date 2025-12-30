@@ -169,7 +169,10 @@ import { HttpClient } from '@angular/common/http';
             <h6 class="fw-bold mb-3">Formulario de Entrada</h6>
             <div class="row g-3">
               <div *ngFor="let prop of testerFields" class="col-md-6">
-                <label class="form-label small fw-bold text-muted">{{ prop.key }}</label>
+                <label class="form-label small fw-bold text-muted">
+                  {{ prop.key }}
+                  <span *ngIf="prop.required" class="text-danger">*</span>
+                </label>
                 
                 <!-- Caso REFERENCIA: Selector Desplegable Real -->
                 <div *ngIf="prop.refService" class="input-group input-group-sm">
@@ -193,7 +196,11 @@ import { HttpClient } from '@angular/common/http';
                        class="form-control form-control-sm" 
                        [placeholder]="'Valor para ' + prop.key"
                        [disabled]="!prop.editable"
-                       [class.bg-light]="!prop.editable">
+                       [class.bg-light]="!prop.editable"
+                       [class.border-info]="prop.unique">
+                <div *ngIf="prop.unique" class="x-small text-info mt-1">
+                  <i class="bi bi-magic"></i> Valor autogenerado por ser campo <strong>único</strong>
+                </div>
               </div>
             </div>
             <div class="mt-4 pt-3 border-top d-flex gap-2">
@@ -243,7 +250,7 @@ export class PreviewComponent implements OnInit {
   deleteId: string = '';
   testResponse: any = null;
   testerColumns: string[] = [];
-  testerFields: {key: string, type: string, editable: boolean, refService?: string, refDisplay?: string, dependsOn?: string}[] = [];
+  testerFields: {key: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, dependsOn?: string}[] = [];
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -285,6 +292,9 @@ export class PreviewComponent implements OnInit {
     this.testerColumns = this.calculateColumns(ep);
     this.testerFields = this.calculateFields(ep);
 
+    // Auto-generar valores para campos ÚNICOS (como ID) si es un POST
+    this.generateUniqueIds();
+
     // Cargar datos para referencias externas si existen
     this.testerFields.forEach(f => {
       if (f.refService) this.fetchRefData(f.refService);
@@ -295,6 +305,19 @@ export class PreviewComponent implements OnInit {
     Object.values(responseConfig).forEach((c: any) => {
       if (c.refService) this.fetchRefData(c.refService);
     });
+  }
+
+  private generateUniqueIds() {
+    if (this.activeTest?.method === 'POST') {
+      this.testerFields.forEach(f => {
+        if (f.unique) {
+          // Generar un ID aleatorio corto pero identificativo
+          const prefix = this.activeTest.path.split('/')[2]?.substring(0, 3).toUpperCase() || 'ID';
+          const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
+          this.formData[f.key] = `${prefix}_${randomSuffix}`;
+        }
+      });
+    }
   }
 
   fetchRefData(serviceId: string) {
@@ -343,11 +366,18 @@ export class PreviewComponent implements OnInit {
   }
 
   calculateColumns(ep: any): string[] {
-    const properties = ep.response_dto?.properties?.paises?.items?.properties || 
-                     ep.response_dto?.properties?.provincias?.items?.properties ||
-                     ep.response_dto?.properties;
+    const responseDto = ep.response_dto;
+    if (!responseDto || !responseDto.properties) return ['id', 'descripcion'];
+
+    // Buscamos dinámicamente la propiedad que sea un array (lista de resultados)
+    const listProp: any = Object.values(responseDto.properties).find((p: any) => p.type === 'array');
     
-    if (!properties) return ['id', 'descripcion'];
+    let properties = {};
+    if (listProp && listProp.items && listProp.items.properties) {
+      properties = listProp.items.properties;
+    } else {
+      properties = responseDto.properties;
+    }
 
     const config = ep.configuracion_ui?.fields_config?.response || {};
     return Object.keys(properties)
@@ -356,7 +386,7 @@ export class PreviewComponent implements OnInit {
       .slice(0, 5);
   }
 
-  calculateFields(ep: any): {key: string, type: string, editable: boolean, refService?: string, refDisplay?: string}[] {
+  calculateFields(ep: any): {key: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string}[] {
     const props = ep.request_dto?.properties || ep.response_dto?.properties;
     if (!props) return [];
 
@@ -366,6 +396,8 @@ export class PreviewComponent implements OnInit {
         key: k, 
         type: v.type,
         editable: config[k]?.editable !== false,
+        required: config[k]?.required === true,
+        unique: config[k]?.unique === true,
         order: config[k]?.order || 0,
         refService: config[k]?.refService,
         refDisplay: config[k]?.refDisplay,
@@ -407,16 +439,30 @@ export class PreviewComponent implements OnInit {
     let baseUrl = this.selectedServiceRaw.host;
     if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
     
-    const url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    let url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    
+    // Reemplazar parámetros de ruta dinámicamente si existen
+    if (url.includes('{')) {
+      Object.keys(this.formData).forEach(key => {
+        url = url.replace(`{${key}}`, this.formData[key]);
+      });
+      // Fallback para ids comunes si no coinciden exactamente
+      if (url.includes('{')) {
+        url = url.replace(/\{.*_id\}/, this.formData.id);
+      }
+    }
     
     const obs = this.activeTest.method === 'POST' 
       ? this.http.post(url, this.formData)
-      : this.http.put(url.replace('{pais_id}', this.formData.id).replace('{provincia_id}', this.formData.id), this.formData);
+      : this.http.put(url, this.formData);
 
     obs.subscribe({
       next: (res) => {
         this.testResponse = { success: true, data: res };
-        if (this.activeTest.method === 'POST') this.formData = {}; // Limpiar form tras éxito
+        if (this.activeTest.method === 'POST') {
+          this.formData = {}; // Limpiar form tras éxito
+          this.generateUniqueIds(); // Regenerar IDs para la siguiente carga
+        }
       },
       error: (err) => {
         console.error('Error en Mutation:', err);
@@ -432,7 +478,12 @@ export class PreviewComponent implements OnInit {
     let baseUrl = this.selectedServiceRaw.host;
     if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
     
-    const url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path.replace('{pais_id}', this.deleteId).replace('{provincia_id}', this.deleteId)}`;
+    let url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    
+    // Reemplazar parámetros de ruta dinámicamente
+    if (url.includes('{')) {
+      url = url.replace(/\{.*\}/, this.deleteId);
+    }
     
     this.http.delete(url).subscribe({
       next: (res) => {

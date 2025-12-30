@@ -5,7 +5,7 @@ from .pais_base_dto import PaisBaseDTO
 
 class PaisReadDTO(PaisBaseDTO):
     """DTO para lectura y listado detallado de un país"""
-    id: str = Field(..., description="Identificador único alfanumérico del país")
+    id: str = Field(..., description="Identificador único alfanumérico del país", json_schema_extra={"unique": True})
     baja_logica: bool = Field(..., description="Indica si el registro está inactivo lógicamente")
     fecha_alta_creacion: datetime = Field(..., description="Fecha y hora de creación del registro")
     fecha_alta_modificacion: Optional[datetime] = Field(None, description="Fecha y hora de la última modificación")

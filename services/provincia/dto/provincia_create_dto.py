@@ -2,7 +2,7 @@ from pydantic import Field, field_validator
 from .provincia_base_dto import ProvinciaBaseDTO
 
 class ProvinciaCreateDTO(ProvinciaBaseDTO):
-    id: str = Field(..., min_length=1, max_length=50)
+    id: str = Field(..., min_length=1, max_length=50, json_schema_extra={"unique": True})
 
     @field_validator('id')
     @classmethod

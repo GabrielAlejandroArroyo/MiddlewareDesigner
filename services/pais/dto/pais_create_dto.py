@@ -3,7 +3,7 @@ from .pais_base_dto import PaisBaseDTO
 
 class PaisCreateDTO(PaisBaseDTO):
     """DTO para la creación (POST)"""
-    id: str = Field(..., min_length=1, max_length=50)
+    id: str = Field(..., min_length=1, max_length=50, json_schema_extra={"unique": True})
 
     @field_validator('id')
     @classmethod

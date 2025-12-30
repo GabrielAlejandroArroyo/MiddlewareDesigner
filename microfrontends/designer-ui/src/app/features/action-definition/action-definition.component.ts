@@ -45,67 +45,68 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         <button class="btn btn-sm btn-outline-danger" (click)="loadEndpointDetails()">Reintentar</button>
       </div>
 
-      <div *ngIf="endpoint && !loading" class="row g-4">
-        <!-- Columna Izquierda: Configuración -->
-        <div class="col-lg-5">
-          <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white py-3">
-              <h5 class="mb-0 fw-bold">Propiedades de la Acción</h5>
+      <div *ngIf="endpoint && !loading">
+        <!-- Propiedades de la Acción (Colapsable y arriba) -->
+        <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center cursor-pointer" 
+               (click)="propertiesCollapsed = !propertiesCollapsed">
+            <h5 class="mb-0 fw-bold">
+              <i class="bi" [ngClass]="propertiesCollapsed ? 'bi-chevron-right' : 'bi-chevron-down'"></i>
+              Propiedades de la Acción
+            </h5>
+            <div *ngIf="propertiesCollapsed" class="text-muted small">
+              {{ actionName || 'Sin nombre' }} - {{ actionDescription | slice:0:50 }}{{ actionDescription.length > 50 ? '...' : '' }}
             </div>
-            <div class="card-body">
-              <div class="mb-4">
+            <button *ngIf="hasChanges()" (click)="$event.stopPropagation(); saveDefinition()" 
+                    class="btn btn-primary btn-sm shadow-sm fw-bold">
+              Guardar Cambios
+            </button>
+          </div>
+          <div class="card-body border-top" [hidden]="propertiesCollapsed">
+            <div class="row">
+              <div class="col-md-5">
                 <label class="form-label small fw-bold text-uppercase text-muted">Nombre de la Acción / Pantalla</label>
-                <input type="text" class="form-control form-control-lg" [(ngModel)]="actionName" 
+                <input type="text" class="form-control" [(ngModel)]="actionName" 
                        placeholder="Ej: Alta de Nuevo País">
                 <div class="form-text">Este nombre se usará como título en la interfaz generada.</div>
               </div>
-
-              <div class="mb-4">
+              <div class="col-md-7">
                 <label class="form-label small fw-bold text-uppercase text-muted">Descripción del Proceso</label>
-                <textarea class="form-control" rows="3" [(ngModel)]="actionDescription"
+                <textarea class="form-control" rows="2" [(ngModel)]="actionDescription"
                           placeholder="Describe brevemente qué hace esta acción..."></textarea>
               </div>
-
-              <div class="alert alert-info border-0 bg-info bg-opacity-10 small mb-4">
-                <div class="d-flex gap-2">
-                  <i class="bi bi-info-circle-fill"></i>
-                  <span>Al guardar, el middleware registrará estos metadatos para la generación automática de la UI.</span>
-                </div>
-              </div>
-
-              <button (click)="saveDefinition()" class="btn btn-primary btn-lg w-100 shadow-sm fw-bold mt-2">
-                Guardar Definición de Acción
-              </button>
             </div>
           </div>
         </div>
 
-        <!-- Columna Derecha: Análisis de DTOs -->
-        <div class="col-lg-7">
-          <div class="card shadow-sm border-0">
-            <div class="card-header bg-white p-0 overflow-hidden">
-              <ul class="nav nav-tabs border-bottom-0">
-                <li class="nav-item">
-                  <button class="nav-link py-3 px-4 fw-bold" [class.active]="activeTab === 'params'" (click)="activeTab = 'params'">PARÁMETROS</button>
-                </li>
-                <li class="nav-item">
-                  <button class="nav-link py-3 px-4 fw-bold" [class.active]="activeTab === 'request'" (click)="changeMainTab('request')">REQUEST DTO</button>
-                </li>
-                <li class="nav-item">
-                  <button class="nav-link py-3 px-4 fw-bold" [class.active]="activeTab === 'response'" (click)="changeMainTab('response')">RESPONSE DTO</button>
-                </li>
-                <li class="nav-item ms-auto me-2 d-flex align-items-center">
-                  <button class="btn btn-sm btn-outline-info fw-bold px-3 shadow-sm" 
-                          [class.active]="activeTab === 'preview'"
-                          (click)="activeTab = 'preview'">
-                    <i class="bi bi-eye-fill me-1"></i> VISTA PREVIA UI
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div class="card-body p-4">
-              <!-- Vista Previa UI (SERIALIZADO) -->
-              <div *ngIf="activeTab === 'preview'" class="animate-in">
+        <!-- Contenedor Principal: DTOs y Preview -->
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-white p-0 overflow-hidden">
+            <ul class="nav nav-tabs border-bottom-0">
+              <li class="nav-item">
+                <button class="nav-link py-3 px-4 fw-bold" [class.active]="activeTab === 'params'" (click)="activeTab = 'params'">PARÁMETROS</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link py-3 px-4 fw-bold" [class.active]="activeTab === 'request'" (click)="changeMainTab('request')">REQUEST DTO</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link py-3 px-4 fw-bold" [class.active]="activeTab === 'response'" (click)="changeMainTab('response')">RESPONSE DTO</button>
+              </li>
+              <li class="nav-item ms-auto me-2 d-flex align-items-center gap-2">
+                <button *ngIf="hasChanges()" (click)="saveDefinition()" class="btn btn-sm btn-primary fw-bold shadow-sm px-3">
+                  <i class="bi bi-save me-1"></i> GUARDAR DEFINICIÓN
+                </button>
+                <button class="btn btn-sm btn-outline-info fw-bold px-3 shadow-sm" 
+                        [class.active]="activeTab === 'preview'"
+                        (click)="activeTab = 'preview'">
+                  <i class="bi bi-eye-fill me-1"></i> VISTA PREVIA UI
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body p-4">
+            <!-- Vista Previa UI (SERIALIZADO) -->
+            <div *ngIf="activeTab === 'preview'" class="animate-in">
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                   <h6 class="fw-bold mb-0 text-uppercase text-info">Previsualización del Componente Generado</h6>
                   <span class="badge bg-info-subtle text-info border border-info">Modo: {{ getComponentType() }}</span>
@@ -171,7 +172,10 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                            <h5 class="fw-bold mb-4">{{ method === 'POST' ? 'Crear' : 'Editar' }} {{ actionName || 'Entidad' }}</h5>
                            <div class="row g-3">
                              <div *ngFor="let prop of getFormFields()" class="col-md-6">
-                               <label class="form-label small fw-bold text-muted">{{ prop.key | titlecase }}</label>
+                               <label class="form-label small fw-bold text-muted">
+                                 {{ prop.key | titlecase }}
+                                 <span *ngIf="getFieldConfig(prop.key, 'request').required" class="text-danger">*</span>
+                               </label>
                                
                                <!-- Campo con Referencia: Se muestra como SELECT -->
                                <div *ngIf="getFieldConfig(prop.key, 'request').refService" class="input-group input-group-sm">
@@ -252,6 +256,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                <th class="text-center">ORDEN</th>
                                <th class="text-center">VISUALIZAR</th>
                                <th class="text-center">EDITABLE</th>
+                               <th class="text-center">OBLIG.</th>
                              </tr>
                            </thead>
                            <tbody>
@@ -277,6 +282,11 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                <td class="text-center">
                                  <div class="form-check form-switch d-inline-block">
                                    <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').editable">
+                                 </div>
+                               </td>
+                               <td class="text-center">
+                                 <div class="form-check form-switch d-inline-block">
+                                   <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').required">
                                  </div>
                                </td>
                              </tr>
@@ -315,9 +325,11 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                    <tr>
                                      <th class="ps-3">ATRIBUTO</th>
                                      <th>TIPO</th>
-                                     <th class="text-center" style="width: 100px">ORDEN</th>
-                                     <th class="text-center" style="width: 100px">VISUALIZAR</th>
-                                     <th class="text-center" style="width: 100px" *ngIf="activeTab === 'request'">EDITABLE</th>
+                                     <th class="text-center" style="width: 80px">ORDEN</th>
+                                     <th class="text-center" style="width: 80px">VISUALIZAR</th>
+                                     <th class="text-center" style="width: 80px" *ngIf="activeTab === 'request'">EDITABLE</th>
+                                     <th class="text-center" style="width: 80px" *ngIf="activeTab === 'request'">OBLIG.</th>
+                                     <th class="text-center" style="width: 80px" *ngIf="activeTab === 'request'">ÚNICO</th>
                                      <th style="width: 250px">REFERENCIA EXTERNA (DEPENDE DE)</th>
                                    </tr>
                                  </thead>
@@ -346,6 +358,18 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                        <div class="form-check form-switch d-inline-block">
                                          <input class="form-check-input" type="checkbox" 
                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).editable">
+                                       </div>
+                                     </td>
+                                     <td class="text-center" *ngIf="activeTab === 'request'">
+                                       <div class="form-check form-switch d-inline-block">
+                                         <input class="form-check-input" type="checkbox" 
+                                                [(ngModel)]="getFieldConfig(prop.key, activeTab).required">
+                                       </div>
+                                     </td>
+                                     <td class="text-center" *ngIf="activeTab === 'request'">
+                                       <div class="form-check form-switch d-inline-block">
+                                         <input class="form-check-input" type="checkbox" 
+                                                [(ngModel)]="getFieldConfig(prop.key, activeTab).unique">
                                        </div>
                                      </td>
                                      <td>
@@ -404,7 +428,6 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
           </div>
         </div>
       </div>
-    </div>
   `
 })
 export class ActionDefinitionComponent implements OnInit {
@@ -429,6 +452,10 @@ export class ActionDefinitionComponent implements OnInit {
   activeDtoId: string = '';
   availableActions = { create: false, edit: false, delete: false };
   showCode = false;
+  propertiesCollapsed = true;
+
+  // Change Detection
+  initialState: string = '';
 
   ngOnInit() {
     this.serviceId = this.route.snapshot.paramMap.get('id') || '';
@@ -475,6 +502,8 @@ export class ActionDefinitionComponent implements OnInit {
           this.availableActions.create = data.endpoints.some((e: any) => e.is_enabled && e.method === 'POST');
           this.availableActions.edit = data.endpoints.some((e: any) => e.is_enabled && (e.method === 'PUT' || e.method === 'PATCH'));
           this.availableActions.delete = data.endpoints.some((e: any) => e.is_enabled && e.method === 'DELETE');
+
+          this.captureInitialState();
         } else {
           this.error = "No se encontró la definición del endpoint solicitado.";
         }
@@ -485,6 +514,23 @@ export class ActionDefinitionComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  captureInitialState() {
+    this.initialState = JSON.stringify({
+      name: this.actionName,
+      desc: this.actionDescription,
+      config: this.endpoint?.configuracion_ui?.fields_config
+    });
+  }
+
+  hasChanges(): boolean {
+    const currentState = JSON.stringify({
+      name: this.actionName,
+      desc: this.actionDescription,
+      config: this.endpoint?.configuracion_ui?.fields_config
+    });
+    return this.initialState !== currentState;
   }
 
   getPropertyConfig(propKey: string, type: 'params' | 'request' | 'response' | string): any {
@@ -503,9 +549,18 @@ export class ActionDefinitionComponent implements OnInit {
       const existingFields = Object.values(config[category]) as any[];
       const maxOrder = existingFields.reduce((max, f) => Math.max(max, f.order || 0), 0);
       
+      // Intentar detectar si el DTO original marca el campo como único o requerido
+      let isUniqueFromDto = false;
+      const dto = category === 'request' ? this.endpoint?.request_dto : this.endpoint?.response_dto;
+      if (dto && dto.properties && dto.properties[propKey]) {
+        isUniqueFromDto = !!dto.properties[propKey].unique;
+      }
+
       config[category][propKey] = {
         show: true,
         editable: category !== 'response',
+        required: category === 'request' && !propKey.includes('id'), // Por defecto id no es obligatorio si es autogenerado
+        unique: isUniqueFromDto || propKey.toLowerCase() === 'id', // Por defecto ID es único
         order: maxOrder + 1,
         refService: null,
         refDisplay: 'id',
@@ -612,6 +667,8 @@ export class ActionDefinitionComponent implements OnInit {
     this.middlewareService.toggleEndpointMapping(mapping).subscribe({
       next: () => {
         alert('Definición guardada correctamente');
+        // Actualizar el estado inicial después de guardar
+        this.captureInitialState();
         this.router.navigate(['/inspect', this.serviceId]);
       },
       error: (err) => alert('Error al guardar: ' + err.message)
@@ -656,7 +713,7 @@ export class ActionDefinitionComponent implements OnInit {
       .slice(0, 5);
   }
 
-  getFormFields(): { key: string, type: string, editable: boolean }[] {
+  getFormFields(): { key: string, type: string, editable: boolean, required: boolean, unique: boolean }[] {
     const ep = this.endpoint;
     if (!ep) return [];
 
@@ -670,6 +727,8 @@ export class ActionDefinitionComponent implements OnInit {
           key: k,
           type: v.type || 'string',
           editable: config[k]?.editable !== false,
+          required: config[k]?.required === true,
+          unique: config[k]?.unique === true,
           order: config[k]?.order || 0
         }))
         .filter(f => !['fecha_alta_creacion', 'fecha_alta_modificacion'].includes(f.key)) // Auditoría siempre fuera
@@ -677,9 +736,8 @@ export class ActionDefinitionComponent implements OnInit {
         .sort((a, b) => a.order - b.order); // Ordenar por propiedad order
     }
     return [
-      { key: 'id', type: 'string', editable: true }, 
-      { key: 'descripcion', type: 'string', editable: true }
+      { key: 'id', type: 'string', editable: true, required: true, unique: true }, 
+      { key: 'descripcion', type: 'string', editable: true, required: true, unique: false }
     ];
   }
 }
-

@@ -5,7 +5,7 @@ from config.database import Base
 class LocalidadModel(Base):
     __tablename__ = "localidades"
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, unique=True)
     descripcion = Column(String, nullable=False)
     id_pais = Column(String, nullable=False)
     id_provincia = Column(String, nullable=False)

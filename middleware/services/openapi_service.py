@@ -118,4 +118,7 @@ class OpenApiService:
                 "name": f"Array<{item_schema.get('name', 'any')}>"
             }
         
-        return prop_val
+        res = prop_val.copy()
+        if "unique" in prop_val:
+            res["unique"] = prop_val["unique"]
+        return res
