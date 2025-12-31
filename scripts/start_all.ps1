@@ -9,111 +9,107 @@ Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
 # --- FASE 1: BAJADA DE SERVICIOS EXISTENTES ---
-Write-Host "[0/3] Bajando procesos existentes (Python/Node)..." -ForegroundColor Yellow
+Write-Host "[0/3] Bajando procesos existentes..." -ForegroundColor Yellow
 
-# Detener procesos hijos persistentes
 $processes = Get-Process | Where-Object { $_.Name -match "python" -or $_.Name -match "node" }
 if ($processes) {
     $processes | Stop-Process -Force -ErrorAction SilentlyContinue
-    Write-Host "  ✓ $($processes.Count) procesos detenidos." -ForegroundColor Green
+    Write-Host "  Procesos detenidos." -ForegroundColor Green
 } else {
-    Write-Host "  ✓ No se encontraron procesos activos." -ForegroundColor Gray
+    Write-Host "  No se encontraron procesos activos." -ForegroundColor Gray
 }
 
-# Detener Jobs de PowerShell previos
 Get-Job | Stop-Job -ErrorAction SilentlyContinue
 Get-Job | Remove-Job -ErrorAction SilentlyContinue
 
-# Esperar a que los puertos se liberen
-Write-Host "  Esperando liberación de puertos..." -ForegroundColor Gray
+Write-Host "  Esperando liberacion de puertos..." -ForegroundColor Gray
 Start-Sleep -Seconds 2
-
 Write-Host ""
 
-# --- FASE 2: LEVANTADO DE SERVICIOS ---
+# --- FUNCION DE ESPERA ---
+function Wait-ForUrl($url, $name) {
+    Write-Host "  Esperando a $name en $url..." -ForegroundColor Gray
+    for ($i = 1; $i -le 20; $i++) {
+        try {
+            $resp = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 2 -ErrorAction SilentlyContinue
+            if ($resp.StatusCode -eq 200) {
+                Write-Host "  [OK] $name ONLINE." -ForegroundColor Green
+                return $true
+            }
+        } catch { }
+        Start-Sleep -Seconds 2
+    }
+    Write-Host "  [WAIT] $name aun no responde." -ForegroundColor Yellow
+    return $false
+}
 
-# Obtener la ruta del directorio de scripts
+# --- FASE 2: LEVANTADO DE SERVICIOS ---
 $scriptsDir = $PSScriptRoot
 
-# Iniciar servicios backend
-Write-Host "[1/3] Iniciando servicios backend..." -ForegroundColor Cyan
+Write-Host "[1/3] Iniciando backend..." -ForegroundColor Cyan
 $backendJob = Start-Job -ScriptBlock {
     param($scriptPath)
     Set-Location (Split-Path $scriptPath)
     & "$scriptPath\start_backend.ps1"
 } -ArgumentList $scriptsDir
 
-Start-Sleep -Seconds 5
+Wait-ForUrl "http://localhost:8000/openapi.json" "Pais"
+Wait-ForUrl "http://localhost:8001/openapi.json" "Provincia"
+Wait-ForUrl "http://localhost:8002/openapi.json" "Localidad"
+Wait-ForUrl "http://localhost:8003/openapi.json" "Corporacion"
+Wait-ForUrl "http://localhost:8004/openapi.json" "Empresa"
 
-# Iniciar middleware
 Write-Host "[2/3] Iniciando middleware..." -ForegroundColor Cyan
 $middlewareJob = Start-Job -ScriptBlock {
     param($scriptPath)
+    Set-Location (Split-Path $scriptPath)
     & "$scriptPath\start_middleware.ps1"
 } -ArgumentList $scriptsDir
 
-# Esperar a que el middleware levante la base de datos y el socket
-Start-Sleep -Seconds 5
+Wait-ForUrl "http://localhost:9000/api/v1/config/backend-services" "Middleware"
 
-# Iniciar microfrontends
-Write-Host "[3/3] Iniciando microfrontends..." -ForegroundColor Cyan
+Write-Host "[3/3] Iniciando frontend..." -ForegroundColor Cyan
 $frontendJob = Start-Job -ScriptBlock {
     param($scriptPath)
+    Set-Location (Split-Path $scriptPath)
     & "$scriptPath\start_frontend.ps1"
 } -ArgumentList $scriptsDir
 
-Start-Sleep -Seconds 5
+Wait-ForUrl "http://localhost:4200" "Frontend"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "  Todos los Procesos Reiniciados" -ForegroundColor Magenta
+Write-Host "  ECOSISTEMA LISTO" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
-Write-Host "  Servicios Backend: http://127.0.0.1:8000+" -ForegroundColor Green
-Write-Host "  Middleware:        http://127.0.0.1:9000" -ForegroundColor Green
-Write-Host "  Frontend (UI):     http://127.0.0.1:4200" -ForegroundColor Green
+Write-Host "BACKEND MICROSERVICIOS:" -ForegroundColor Cyan
+Write-Host "  -> PAIS:        http://localhost:8000/docs" -ForegroundColor Green
+Write-Host "  -> PROVINCIA:   http://localhost:8001/docs" -ForegroundColor Green
+Write-Host "  -> LOCALIDAD:   http://localhost:8002/docs" -ForegroundColor Green
+Write-Host "  -> CORPORACION: http://localhost:8003/docs" -ForegroundColor Green
+Write-Host "  -> EMPRESA:     http://localhost:8004/docs" -ForegroundColor Green
 Write-Host ""
-Write-Host "Presiona Ctrl+C para detener todos los servicios" -ForegroundColor Yellow
+Write-Host "MIDDLEWARE:" -ForegroundColor Cyan
+Write-Host "  -> API:         http://localhost:9000/docs" -ForegroundColor Green
+Write-Host ""
+Write-Host "FRONTEND:" -ForegroundColor Cyan
+Write-Host "  -> DESIGNER UI: http://localhost:4200" -ForegroundColor Green
 Write-Host ""
 
-# Función para limpiar procesos al salir
-function Cleanup {
-    Write-Host "`nDeteniendo todos los procesos..." -ForegroundColor Yellow
-    
-    Stop-Job -Job $backendJob -ErrorAction SilentlyContinue
-    Stop-Job -Job $middlewareJob -ErrorAction SilentlyContinue
-    Stop-Job -Job $frontendJob -ErrorAction SilentlyContinue
-    
-    Remove-Job -Job $backendJob -ErrorAction SilentlyContinue
-    Remove-Job -Job $middlewareJob -ErrorAction SilentlyContinue
-    Remove-Job -Job $frontendJob -ErrorAction SilentlyContinue
-    
+function Final-Cleanup {
+    Write-Host "Deteniendo procesos..." -ForegroundColor Yellow
+    Get-Job | Stop-Job -ErrorAction SilentlyContinue
+    Get-Job | Remove-Job -ErrorAction SilentlyContinue
     Get-Process | Where-Object { $_.Name -match "python" -or $_.Name -match "node" } | Stop-Process -Force -ErrorAction SilentlyContinue
-    
-    Write-Host "Todos los procesos detenidos." -ForegroundColor Green
 }
 
-# Monitoreo de salud
 try {
     while ($true) {
         Start-Sleep -Seconds 5
-        
-        if ($backendJob.State -eq "Failed") {
-            Write-Host "Error: El proceso de Backend fallo." -ForegroundColor Red
-            Receive-Job -Job $backendJob
-            break
-        }
-        if ($middlewareJob.State -eq "Failed") {
-            Write-Host "Error: El proceso de Middleware fallo." -ForegroundColor Red
-            Receive-Job -Job $middlewareJob
-            break
-        }
-        if ($frontendJob.State -eq "Failed") {
-            Write-Host "Error: El proceso de Frontend fallo." -ForegroundColor Red
-            Receive-Job -Job $frontendJob
-            break
-        }
+        if ($backendJob.State -eq "Failed") { Write-Host "Backend Fallo"; break }
+        if ($middlewareJob.State -eq "Failed") { Write-Host "Middleware Fallo"; break }
+        if ($frontendJob.State -eq "Failed") { Write-Host "Frontend Fallo"; break }
     }
 } finally {
-    Cleanup
+    Final-Cleanup
 }

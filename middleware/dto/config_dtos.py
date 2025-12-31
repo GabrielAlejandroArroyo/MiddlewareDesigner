@@ -25,8 +25,13 @@ class BackendServiceResponse(BackendServiceBase):
     nombre: str
     host: str
     puerto: int
+    swagger_hash: Optional[str] = None
+    swagger_last_updated: Optional[str] = None
+    has_swagger_changes: Optional[bool] = None
     class Config:
         from_attributes = True
+        # Permitir que los campos opcionales sean None sin validación estricta
+        populate_by_name = True
 
 # DTOs para Mappings
 class BackendMappingBase(BaseModel):

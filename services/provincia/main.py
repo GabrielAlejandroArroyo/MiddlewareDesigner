@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
 from config.database import engine, Base
 from entity.provincia_model import ProvinciaModel
@@ -28,12 +29,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(provincia_routes.router, prefix="/api/v1")
-
-@app.get("/", tags=["health"])
+@app.get("/", include_in_schema=False)
 async def root():
-    return {
-        "service": "Microservicio de Provincia",
-        "version": "1.0.0",
-        "status": "running"
-    }
+    return RedirectResponse(url="/docs")
+
+app.include_router(provincia_routes.router, prefix="/api/v1")

@@ -1,5 +1,6 @@
-from sqlalchemy import String, Boolean, JSON, Integer
+from sqlalchemy import String, Boolean, JSON, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import func
 from typing import Optional, Dict
 from config.database import Base
 
@@ -15,6 +16,9 @@ class BackendService(Base):
     descripcion: Mapped[Optional[str]] = mapped_column(String(500))
     baja_logica: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    swagger_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, default=None)
+    swagger_last_updated: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    swagger_spec_cached: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True, default=None)
 
 class FrontendService(Base):
     """Representa un microfrontend o módulo de UI configurado"""

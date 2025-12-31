@@ -11,6 +11,9 @@ export interface BackendService {
   descripcion: string;
   is_active: boolean;
   baja_logica: boolean;
+  swagger_hash?: string;
+  swagger_last_updated?: string;
+  has_swagger_changes?: boolean;
 }
 
 export interface Endpoint {
@@ -64,5 +67,17 @@ export class MiddlewareService {
       frontend_service_id: 'default'
     };
     return this.http.delete(`${this.apiUrl}/mappings`, { params });
+  }
+
+  checkSwaggerChanges(serviceId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/backend-services/${serviceId}/check-changes`);
+  }
+
+  refreshSwagger(serviceId: string, preserveConfig: boolean = true): Observable<any> {
+    return this.http.post(`${this.apiUrl}/backend-services/${serviceId}/refresh-swagger?preserve_config=${preserveConfig}`, {});
+  }
+
+  getBackendServicesWithChanges(includeDeleted: boolean = false): Observable<BackendService[]> {
+    return this.http.get<BackendService[]>(`${this.apiUrl}/backend-services?include_deleted=${includeDeleted}&check_changes=true`);
   }
 }

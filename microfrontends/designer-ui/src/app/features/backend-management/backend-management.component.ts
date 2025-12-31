@@ -53,20 +53,28 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
         </li>
       </ul>
 
+      <!-- Indicador de carga -->
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-3 text-muted">Cargando microservicios...</p>
+      </div>
+
       <!-- Estado vacío (Solo para Activos y Todos) -->
-      <div *ngIf="services.length === 0 && filterTab !== 'inactive'" class="text-center py-5 bg-light rounded-4 border-dashed">
+      <div *ngIf="!loading && services.length === 0 && filterTab !== 'inactive'" class="text-center py-5 bg-light rounded-4 border-dashed">
         <h4 class="text-muted">No hay microservicios registrados</h4>
         <p class="text-muted mb-4">Comienza registrando tu primer backend haciendo clic en el botón superior.</p>
         <button (click)="showRegisterModal = true" class="btn btn-primary">Registrar mi primer Backend</button>
       </div>
 
       <!-- Estado vacío específico para Inactivos -->
-      <div *ngIf="services.length === 0 && filterTab === 'inactive'" class="text-center py-5">
+      <div *ngIf="!loading && services.length === 0 && filterTab === 'inactive'" class="text-center py-5">
         <p class="text-muted italic">No hay microservicios en baja lógica actualmente.</p>
       </div>
 
       <!-- Vista de Tarjetas (Cards) -->
-      <div *ngIf="services.length > 0 && viewMode === 'cards'" class="row g-4">
+      <div *ngIf="!loading && services.length > 0 && viewMode === 'cards'" class="row g-4">
         <div *ngFor="let svc of services" class="col-12 col-md-6 col-lg-4 col-xl-3">
           <div class="card h-100 shadow-sm border-0 service-card" [class.opacity-75]="svc.baja_logica">
             <div class="card-body">
@@ -86,6 +94,12 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
               <h5 class="card-title mb-1 fw-bold">{{ svc.nombre }}</h5>
               <p class="card-text text-muted small mb-3 text-truncate-2">{{ svc.descripcion || 'Sin descripción' }}</p>
               
+              <!-- Indicador de cambios en Swagger -->
+              <div *ngIf="svc.has_swagger_changes && !svc.baja_logica" class="alert alert-warning py-2 px-3 mb-3 small">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Cambios detectados</strong> en el Swagger
+              </div>
+              
               <div class="mt-auto border-top pt-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
                   <div class="icon-circle bg-light">
@@ -93,9 +107,16 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
                   </div>
                   <code class="small text-primary text-truncate">{{ svc.host }}:{{ svc.puerto }}</code>
                 </div>
-                <button *ngIf="!svc.baja_logica" [routerLink]="['/inspect', svc.id]" class="btn btn-outline-primary w-100">
-                  Inspeccionar Contrato
-                </button>
+                <div *ngIf="!svc.baja_logica" class="d-flex flex-column gap-2">
+                  <button [routerLink]="['/inspect', svc.id]" class="btn btn-outline-primary w-100">
+                    Inspeccionar Contrato
+                  </button>
+                  <button *ngIf="svc.has_swagger_changes" 
+                          (click)="refreshSwagger(svc.id)" 
+                          class="btn btn-warning w-100 btn-sm">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Actualizar Swagger
+                  </button>
+                </div>
                 <div *ngIf="svc.baja_logica" class="alert alert-secondary py-2 px-3 mb-0 small text-center">
                   Servicio Inactivo
                 </div>
@@ -106,7 +127,7 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
       </div>
 
       <!-- Vista de Lista -->
-      <div *ngIf="services.length > 0 && viewMode === 'list'" class="card shadow-sm border-0">
+      <div *ngIf="!loading && services.length > 0 && viewMode === 'list'" class="card shadow-sm border-0">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
@@ -224,6 +245,7 @@ export class BackendManagementComponent implements OnInit {
   serviceToDelete: BackendService | null = null;
   viewMode: 'cards' | 'list' = 'cards';
   filterTab: 'active' | 'inactive' | 'all' = 'active';
+  loading = false;
 
   ngOnInit() {
     this.loadServices();
@@ -235,10 +257,43 @@ export class BackendManagementComponent implements OnInit {
   }
 
   loadServices() {
-    // Siempre pedimos con include_deleted=true para poder filtrar localmente en los tabs
-    this.service.getBackendServices(true).subscribe(data => {
-      this.allServicesRaw = data;
-      this.applyFilter();
+    this.loading = true;
+    // Usar el endpoint que verifica cambios automáticamente
+    this.service.getBackendServicesWithChanges(true).subscribe({
+      next: (data) => {
+        this.allServicesRaw = data;
+        this.applyFilter();
+        this.loading = false;
+      },
+      error: () => {
+        // Fallback al endpoint normal si falla
+        this.service.getBackendServices(true).subscribe({
+          next: (data) => {
+            this.allServicesRaw = data;
+            this.applyFilter();
+            this.loading = false;
+          },
+          error: () => {
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
+
+  refreshSwagger(serviceId: string) {
+    if (!confirm('¿Deseas actualizar el Swagger conservando la configuración actual de endpoints?')) {
+      return;
+    }
+
+    this.service.refreshSwagger(serviceId, true).subscribe({
+      next: (res) => {
+        alert(`Swagger actualizado correctamente.\n${res.preserved_mappings ? `Mapeos preservados: ${res.preserved_mappings}` : ''}\n${res.removed_endpoints ? `Endpoints removidos: ${res.removed_endpoints}` : ''}`);
+        this.loadServices();
+      },
+      error: (err) => {
+        alert('Error al actualizar Swagger: ' + (err.error?.detail || err.message));
+      }
     });
   }
 
@@ -259,11 +314,15 @@ export class BackendManagementComponent implements OnInit {
     }
 
     this.service.registerBackend(this.newService).subscribe({
-      next: () => {
+      next: (response) => {
         this.loadServices();
         this.newService = {};
         this.showRegisterModal = false;
-        alert('Servicio registrado correctamente.');
+        // Verificar si fue una actualización o un registro nuevo
+        const message = response.swagger_hash ? 
+          'Servicio actualizado correctamente. El Swagger ha sido refrescado.' : 
+          'Servicio registrado correctamente.';
+        alert(message);
       },
       error: (err) => {
         console.error('Error detallado:', err);

@@ -7,10 +7,14 @@ import { BackendManagementComponent } from './app/features/backend-management/ba
 import { EndpointInspectorComponent } from './app/features/endpoint-inspector/endpoint-inspector.component';
 import { ActionDefinitionComponent } from './app/features/action-definition/action-definition.component';
 import { PreviewComponent } from './app/features/preview/preview.component';
+import { CustomPageDesignerComponent } from './app/features/custom-page-designer/custom-page-designer.component';
+import { DashboardComponent } from './app/features/dashboard/dashboard.component';
 
 const routes: Routes = [
-  { path: '', component: BackendManagementComponent },
+  { path: '', component: DashboardComponent },
+  { path: 'backends', component: BackendManagementComponent },
   { path: 'preview', component: PreviewComponent },
+  { path: 'custom-designer', component: CustomPageDesignerComponent },
   { path: 'inspect/:id', component: EndpointInspectorComponent },
   { path: 'inspect/:id/action-definition', component: ActionDefinitionComponent },
   { path: '**', redirectTo: '' }
@@ -43,6 +47,14 @@ const routes: Routes = [
               <a class="nav-link d-flex align-items-center rounded-3 p-3 transition-all" 
                  routerLink="/" routerLinkActive="active bg-info bg-opacity-10 text-info shadow-sm" 
                  [routerLinkActiveOptions]="{exact: true}"
+                 [title]="isCollapsed ? 'Dashboard' : ''">
+                <i class="bi bi-grid-1x2-fill fs-5" [class.me-3]="!isCollapsed"></i>
+                <span class="text-nowrap" *ngIf="!isCollapsed">Panel Principal</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center rounded-3 p-3 transition-all" 
+                 routerLink="/backends" routerLinkActive="active bg-info bg-opacity-10 text-info shadow-sm"
                  [title]="isCollapsed ? 'Gestión' : ''">
                 <i class="bi bi-gear-fill fs-5" [class.me-3]="!isCollapsed"></i>
                 <span class="text-nowrap" *ngIf="!isCollapsed">Gestión Backends</span>
@@ -54,6 +66,14 @@ const routes: Routes = [
                  [title]="isCollapsed ? 'Previsualización' : ''">
                 <i class="bi bi-eye-fill fs-5" [class.me-3]="!isCollapsed"></i>
                 <span class="text-nowrap" *ngIf="!isCollapsed">Previsualización</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center rounded-3 p-3 transition-all" 
+                 routerLink="/custom-designer" routerLinkActive="active bg-info bg-opacity-10 text-info shadow-sm"
+                 [title]="isCollapsed ? 'Creación de Página Customizadas' : ''">
+                <i class="bi bi-layout-text-window-reverse fs-5" [class.me-3]="!isCollapsed"></i>
+                <span class="text-nowrap" *ngIf="!isCollapsed">Diseño de Flujos</span>
               </a>
             </li>
           </ul>

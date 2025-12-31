@@ -37,6 +37,8 @@ $servicePorts = @{
     "pais" = 8000
     "provincia" = 8001
     "localidad" = 8002
+    "corporacion" = 8003
+    "empresa" = 8004
 }
 
 $jobs = @()
@@ -49,10 +51,13 @@ foreach ($service in $services) {
     if ($servicePorts.ContainsKey($serviceName)) {
         $port = $servicePorts[$serviceName]
     } else {
-        $port = $basePort + $portIndex
+        # Si no esta en el mapeo, usar el siguiente puerto disponible desde 8004
+        $port = 8004
         while ($servicePorts.ContainsValue($port)) {
             $port++
         }
+        # Agregar al mapeo para evitar conflictos
+        $servicePorts[$serviceName] = $port
     }
     
     Write-Host "Iniciando servicio: $serviceName en puerto $port" -ForegroundColor Yellow
@@ -96,8 +101,6 @@ foreach ($service in $services) {
         }
         Write-Host "  [OK] Servicio $serviceName iniciado en puerto $port" -ForegroundColor Green
     }
-    
-    $portIndex++
 }
 
 Write-Host ""

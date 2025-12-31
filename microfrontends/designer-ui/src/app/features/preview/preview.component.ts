@@ -332,6 +332,55 @@ import { HttpClient } from '@angular/common/http';
           </div>
         </div>
       </div>
+
+      <!-- Modal Contextual de Visualización -->
+      <div *ngIf="activeSubTest && activeSubTest.type === 'view'" class="custom-modal-overlay" (click)="activeSubTest = null">
+        <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in" (click)="$event.stopPropagation()" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+          <div class="p-4 border-bottom bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-0 fw-bold text-info">
+                <i class="bi bi-eye me-2"></i>
+                Visualizar Registro
+              </h4>
+              <p class="mb-0 small text-muted mt-1">
+                {{ activeSubTest.ep?.configuracion_ui?.label || activeSubTest.ep?.summary || 'Detalles del registro' }}
+              </p>
+            </div>
+            <button (click)="activeSubTest = null" class="btn-close"></button>
+          </div>
+          <div class="p-4">
+            <div *ngIf="getViewFields().length === 0" class="text-center py-5 text-muted">
+              <i class="bi bi-info-circle fs-1 d-block mb-3 opacity-25"></i>
+              No hay campos configurados para visualizar.
+            </div>
+            <div *ngIf="getViewFields().length > 0" class="row g-4">
+              <div *ngFor="let field of getViewFields()" class="col-md-6">
+                <label class="form-label fw-bold text-secondary mb-2 d-flex align-items-center">
+                  {{ field.label }}
+                  <span *ngIf="field.refService" class="badge bg-info-subtle text-info ms-2 small" [title]="'Referencia a: ' + field.refService">
+                    <i class="bi bi-link-45deg me-1"></i>{{ field.refService }}
+                  </span>
+                  <span class="text-muted small ms-2" [title]="'Atributo técnico: ' + field.key">({{ field.key }})</span>
+                </label>
+                <div class="form-control bg-light border-0 py-3 d-flex align-items-center" [title]="'Atributo técnico: ' + field.key">
+                  <span *ngIf="field.value !== null && field.value !== undefined" class="flex-grow-1">
+                    {{ field.value }}
+                  </span>
+                  <span *ngIf="field.value === null || field.value === undefined" class="text-muted fst-italic flex-grow-1">
+                    Sin valor
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 pt-4 border-top d-flex justify-content-end">
+              <button class="btn btn-primary px-5 py-2 fw-bold shadow-sm" (click)="activeSubTest = null">
+                <i class="bi bi-check-lg me-2"></i>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `
 })
@@ -360,6 +409,9 @@ export class PreviewComponent implements OnInit {
 
   // Sub-Tester State (para navegación desde grilla)
   activeSubTest: { type: 'create' | 'update' | 'delete' | 'view', ep: any, data?: any } | null = null;
+  
+  // Guardar el endpoint GET original (grilla) cuando se abre un formulario de edición
+  originalGridEndpoint: any = null;
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -390,11 +442,16 @@ export class PreviewComponent implements OnInit {
     });
   }
 
-  openTester(ep: any) {
+  openTester(ep: any, preserveFormData: boolean = false) {
     this.activeTest = ep;
     this.testData = [];
-    this.formData = {};
-    this.selectedId = '';
+    
+    // Solo limpiar formData y selectedId si no se debe preservar (para edición)
+    if (!preserveFormData) {
+      this.formData = {};
+      this.selectedId = '';
+    }
+    
     this.testResponse = null;
     
     // Pre-calcular columnas y campos
@@ -402,7 +459,10 @@ export class PreviewComponent implements OnInit {
     this.testerFields = this.calculateFields(ep);
 
     // Auto-generar valores para campos ÚNICOS (como ID) si es un POST
-    this.generateUniqueIds();
+    // Solo si no estamos preservando datos (no es edición)
+    if (!preserveFormData) {
+      this.generateUniqueIds();
+    }
 
     // Cargar datos para referencias externas si existen
     this.testerFields.forEach(f => {
@@ -415,9 +475,10 @@ export class PreviewComponent implements OnInit {
       if (c.refService) this.fetchRefData(c.refService);
     });
 
-    // AUTO-LISTAR: Si es un GET (Grilla), ejecutar la consulta automáticamente al abrir
-    if (ep.method === 'GET') {
-      // Pequeño delay para asegurar que el componente esté listo si hay parámetros
+    // AUTO-LISTAR: Si es un GET sin parámetros (Grilla), ejecutar la consulta automáticamente al abrir
+    // Si tiene parámetros, no ejecutar automáticamente (se ejecutará desde openSubTester si es necesario)
+    if (ep.method === 'GET' && !ep.path.includes('{')) {
+      // Pequeño delay para asegurar que el componente esté listo
       setTimeout(() => this.executeGet(), 100);
     }
   }
@@ -537,20 +598,53 @@ export class PreviewComponent implements OnInit {
     let baseUrl = this.selectedServiceRaw.host;
     if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
     
-    const url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    let url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
+    
+    // Si el path tiene parámetros (como {pais_id}), reemplazarlos con selectedId o formData
+    if (url.includes('{')) {
+      // Primero intentar con formData (para casos donde el parámetro tiene un nombre específico)
+      Object.keys(this.formData).forEach(key => {
+        if (this.formData[key]) {
+          url = url.replace(`{${key}}`, this.formData[key]);
+          url = url.replace(`{${key}_id}`, this.formData[key]);
+        }
+      });
+      
+      // Si aún hay parámetros sin reemplazar, usar selectedId
+      if (url.includes('{') && this.selectedId) {
+        url = url.replace(/\{.*?\}/, this.selectedId);
+      }
+      
+      // Si aún hay parámetros, intentar extraer el nombre del parámetro del path
+      if (url.includes('{')) {
+        const paramMatch = this.activeTest.path.match(/\{(\w+)\}/);
+        if (paramMatch && this.formData[paramMatch[1]]) {
+          url = url.replace(/\{.*?\}/, this.formData[paramMatch[1]]);
+        }
+      }
+    }
     
     this.http.get<any>(url).subscribe({
       next: (res) => {
-        if (res && typeof res === 'object') {
-          const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
-          this.testData = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
+        // Si es un GET por ID (tiene parámetros en el path), mostrar como objeto único
+        if (this.activeTest.path.includes('{')) {
+          // Para visualización, mostrar el objeto directamente
+          this.testData = Array.isArray(res) ? res : [res];
+          this.testResponse = { success: true, data: res };
+        } else {
+          // GET de lista: procesar como array
+          if (res && typeof res === 'object') {
+            const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
+            this.testData = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
+          }
+          this.testResponse = { success: true, data: res };
         }
-        this.testResponse = { success: true, data: res };
       },
       error: (err) => {
         console.error('Error en GET:', err);
         const errorMsg = err.error?.detail || err.message || 'Error de conexión con el microservicio';
         this.testResponse = { success: false, data: errorMsg };
+        this.testData = [];
       }
     });
   }
@@ -565,13 +659,30 @@ export class PreviewComponent implements OnInit {
     
     // Reemplazar parámetros de ruta dinámicamente si existen
     if (url.includes('{')) {
+      // Primero intentar con formData (para casos donde el parámetro tiene un nombre específico)
       Object.keys(this.formData).forEach(key => {
-        url = url.replace(`{${key}}`, this.formData[key]);
+        if (this.formData[key] !== null && this.formData[key] !== undefined) {
+          url = url.replace(`{${key}}`, String(this.formData[key]));
+          url = url.replace(`{${key}_id}`, String(this.formData[key]));
+        }
       });
       
       // Intentar con selectedId si aún hay llaves (esto cubre el estándar de pasar el ID a la ruta)
       if (url.includes('{') && this.selectedId) {
         url = url.replace(/\{.*?\}/, this.selectedId);
+      }
+      
+      // Si aún hay parámetros, intentar extraer el nombre del parámetro del path
+      if (url.includes('{')) {
+        const paramMatch = this.activeTest.path.match(/\{(\w+)\}/);
+        if (paramMatch) {
+          // Intentar con el nombre del parámetro desde formData
+          if (this.formData[paramMatch[1]]) {
+            url = url.replace(/\{.*?\}/, String(this.formData[paramMatch[1]]));
+          } else if (this.selectedId) {
+            url = url.replace(/\{.*?\}/, this.selectedId);
+          }
+        }
       }
     }
     
@@ -582,9 +693,22 @@ export class PreviewComponent implements OnInit {
     obs.subscribe({
       next: (res) => {
         this.testResponse = { success: true, data: res };
+        
         if (this.activeTest.method === 'POST') {
           this.formData = {}; // Limpiar form tras éxito
           this.generateUniqueIds(); // Regenerar IDs para la siguiente carga
+        } else if ((this.activeTest.method === 'PUT' || this.activeTest.method === 'PATCH') && this.originalGridEndpoint) {
+          // Si es una actualización y tenemos el endpoint original de la grilla, volver a la grilla
+          setTimeout(() => {
+            // Cerrar el formulario de edición
+            this.activeTest = null;
+            this.formData = {};
+            this.selectedId = '';
+            
+            // Volver a abrir la grilla original y ejecutar el GET
+            this.openTester(this.originalGridEndpoint, false);
+            this.originalGridEndpoint = null; // Limpiar referencia
+          }, 500); // Pequeño delay para que el usuario vea el mensaje de éxito
         }
       },
       error: (err) => {
@@ -649,12 +773,31 @@ export class PreviewComponent implements OnInit {
     const linkedActions = this.activeTest.configuracion_ui?.linked_actions;
     if (!linkedActions) return;
 
+    // Para visualización, mostrar directamente en modal contextual sin hacer GET
+    if (type === 'view' && rowData) {
+      let targetPath = linkedActions.view;
+      if (!targetPath) return;
+
+      // Encontrar el endpoint de visualización para obtener su configuración
+      const targetEp = this.inspectionData.endpoints.find((e: any) => e.path === targetPath && e.method === 'GET');
+      
+      if (targetEp) {
+        // Establecer activeSubTest con los datos del registro para mostrar en modal
+        this.activeSubTest = {
+          type: 'view',
+          ep: targetEp,
+          data: rowData
+        };
+      }
+      return;
+    }
+
+    // Para create, update, delete: usar la lógica original
     let targetPath = '';
     switch(type) {
       case 'create': targetPath = linkedActions.create; break;
       case 'update': targetPath = linkedActions.edit; break;
       case 'delete': targetPath = linkedActions.delete; break;
-      case 'view': targetPath = linkedActions.view; break;
     }
 
     if (!targetPath) return;
@@ -663,23 +806,100 @@ export class PreviewComponent implements OnInit {
     const targetEp = this.inspectionData.endpoints.find((e: any) => e.path === targetPath && 
       (type === 'create' ? e.method === 'POST' : 
        type === 'update' ? (e.method === 'PUT' || e.method === 'PATCH') :
-       type === 'delete' ? e.method === 'DELETE' :
-       e.method === 'GET'));
+       e.method === 'DELETE'));
 
     if (targetEp) {
       const idField = this.activeTest.configuracion_ui?.linked_actions?.id_field || 'id';
       
-      this.openTester(targetEp);
-      
       // Capturar el ID de la fila según el campo configurado como Primary Key
       if (rowData) {
-        this.selectedId = rowData[idField];
+        // Establecer selectedId primero
+        this.selectedId = String(rowData[idField] || rowData['id'] || '');
         
-        // Si es edición o visualización, también cargar todos los datos en formData
-        if (type === 'update' || type === 'view') {
-          this.formData = { ...rowData };
+        // Si es edición, cargar todos los datos en formData ANTES de abrir el tester
+        if (type === 'update') {
+          // Guardar el endpoint GET original (grilla) para volver después de actualizar
+          this.originalGridEndpoint = this.activeTest;
+          
+          // Cargar todos los datos del registro en formData
+          // Asegurar que todos los valores sean strings o números según corresponda
+          const formDataCopy: any = {};
+          Object.keys(rowData).forEach(key => {
+            const value = rowData[key];
+            // Preservar el tipo original pero convertir null/undefined a string vacío si es necesario
+            formDataCopy[key] = value !== null && value !== undefined ? value : '';
+          });
+          this.formData = formDataCopy;
+          
+          // Abrir el tester preservando los datos del formulario
+          this.openTester(targetEp, true);
+        } else {
+          // Para create y delete, abrir normalmente sin preservar datos
+          this.openTester(targetEp, false);
         }
+      } else {
+        // Si no hay rowData, abrir normalmente
+        this.openTester(targetEp, false);
       }
     }
+  }
+
+  getViewFields(): { key: string, label: string, value: any, refService?: string, refDisplay?: string }[] {
+    if (!this.activeSubTest || this.activeSubTest.type !== 'view' || !this.activeSubTest.ep) return [];
+    
+    const ep = this.activeSubTest.ep;
+    const responseDto = ep.response_dto;
+    if (!responseDto || !responseDto.properties) return [];
+
+    const fields: { key: string, label: string, value: any, refService?: string, refDisplay?: string }[] = [];
+    const fieldsConfig = ep.configuracion_ui?.fields_config?.response || {};
+
+    Object.keys(responseDto.properties).forEach(key => {
+      const prop = responseDto.properties[key];
+      const config = fieldsConfig[key] || {};
+      
+      // Solo mostrar campos que están configurados para mostrarse
+      if (config.show !== false) {
+        const visualName = config.visualName || key;
+        let displayValue = this.activeSubTest?.data?.[key];
+        
+        // Si tiene referencia a otro servicio, obtener el valor descriptivo
+        if (config.refService && displayValue) {
+          displayValue = this.getRefValue(displayValue, config.refService, config.refDisplay || 'desc');
+        }
+        
+        // Formatear valores especiales
+        if (displayValue !== null && displayValue !== undefined) {
+          if (typeof displayValue === 'boolean') {
+            displayValue = displayValue ? 'Sí' : 'No';
+          } else if (displayValue instanceof Date || (typeof displayValue === 'string' && displayValue.match(/^\d{4}-\d{2}-\d{2}/))) {
+            // Intentar formatear como fecha
+            try {
+              const date = new Date(displayValue);
+              displayValue = date.toLocaleString('es-AR');
+            } catch (e) {
+              // Mantener el valor original si no es una fecha válida
+            }
+          }
+        }
+        
+        fields.push({
+          key: key,
+          label: visualName,
+          value: displayValue,
+          refService: config.refService,
+          refDisplay: config.refDisplay
+        });
+      }
+    });
+
+    // Ordenar por el orden configurado si existe
+    fields.sort((a, b) => {
+      const orderA = fieldsConfig[a.key]?.order || 999;
+      const orderB = fieldsConfig[b.key]?.order || 999;
+      return orderA - orderB;
+    });
+
+    return fields;
   }
 }

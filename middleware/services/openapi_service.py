@@ -1,8 +1,16 @@
 import httpx
-from typing import Dict, List, Any
+import hashlib
+import json
+from typing import Dict, List, Any, Optional
 
 class OpenApiService:
     """Servicio para leer y parsear especificaciones OpenAPI de los microservicios"""
+    
+    def calculate_swagger_hash(self, spec: Dict[str, Any]) -> str:
+        """Calcula un hash MD5 del Swagger para detectar cambios"""
+        # Normalizar el JSON (ordenar claves) para que el hash sea consistente
+        spec_str = json.dumps(spec, sort_keys=True, separators=(',', ':'))
+        return hashlib.md5(spec_str.encode('utf-8')).hexdigest()
     
     async def fetch_spec_by_url(self, url: str) -> Dict[str, Any]:
         """Obtiene el JSON de OpenAPI desde una URL completa"""
