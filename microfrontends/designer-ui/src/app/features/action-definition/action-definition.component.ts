@@ -119,14 +119,16 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
 
                        <!-- Caso GET: Grilla Dinámica -->
-                       <div *ngIf="method === 'GET'">
+                       <div *ngIf="hasGridData()">
                          <div class="card border shadow-none bg-light mb-3">
                            <div class="card-body py-2 d-flex justify-content-between align-items-center">
                              <div class="d-flex gap-2">
                                <input type="text" class="form-control form-control-sm" style="width: 200px" placeholder="Buscar...">
                                <button class="btn btn-sm btn-primary">Filtrar</button>
                              </div>
-                             <button *ngIf="availableActions.create" class="btn btn-sm btn-success">+ Nuevo Registro</button>
+                             <button *ngIf="endpoint?.configuracion_ui?.linked_actions?.create" class="btn btn-sm btn-success shadow-sm fw-bold">
+                               <i class="bi bi-plus-lg me-1"></i> Crear Nuevo Registro
+                             </button>
                            </div>
                          </div>
                          <div class="table-responsive rounded-3 border">
@@ -134,7 +136,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                              <thead class="table-light">
                                <tr>
                                  <th *ngFor="let prop of getPreviewTableColumns()" class="small text-uppercase ps-3">{{ prop.label }}</th>
-                                 <th *ngIf="availableActions.edit || availableActions.delete" class="text-end pe-3 small text-uppercase">Acciones</th>
+                                 <th *ngIf="endpoint?.configuracion_ui?.linked_actions?.edit || endpoint?.configuracion_ui?.linked_actions?.delete || endpoint?.configuracion_ui?.linked_actions?.view" class="text-end pe-3 small text-uppercase">Acciones</th>
                                </tr>
                              </thead>
                              <tbody>
@@ -151,10 +153,17 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                       <span *ngIf="prop.key !== 'id'">Dato de ejemplo {{ row }}</span>
                                    </div>
                                  </td>
-                                 <td *ngIf="availableActions.edit || availableActions.delete" class="text-end pe-3 py-2">
-                                   <div class="btn-group">
-                                     <button *ngIf="availableActions.edit" class="btn btn-xs btn-outline-primary py-0 px-2" title="Editar"><i class="bi bi-pencil"></i></button>
-                                     <button *ngIf="availableActions.delete" class="btn btn-xs btn-outline-danger py-0 px-2" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                 <td *ngIf="endpoint?.configuracion_ui?.linked_actions?.edit || endpoint?.configuracion_ui?.linked_actions?.delete || endpoint?.configuracion_ui?.linked_actions?.view" class="text-end pe-3 py-2">
+                                   <div class="btn-group shadow-sm">
+                                     <button *ngIf="endpoint?.configuracion_ui?.linked_actions?.view" class="btn btn-xs btn-outline-info py-0 px-2" title="Visualizar (Solo Lectura)">
+                                       <i class="bi bi-eye"></i>
+                                     </button>
+                                     <button *ngIf="endpoint?.configuracion_ui?.linked_actions?.edit" class="btn btn-xs btn-outline-primary py-0 px-2" title="Editar / Actualizar">
+                                       <i class="bi bi-pencil"></i>
+                                     </button>
+                                     <button *ngIf="endpoint?.configuracion_ui?.linked_actions?.delete" class="btn btn-xs btn-outline-danger py-0 px-2" title="Eliminar Registro">
+                                       <i class="bi bi-trash"></i>
+                                     </button>
                                    </div>
                                  </td>
                                </tr>
@@ -172,10 +181,12 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                   </div>
                 </div>
 
-                       <!-- Caso POST/PUT/PATCH: Formulario Dinámico -->
-                       <div *ngIf="method === 'POST' || method === 'PUT' || method === 'PATCH'">
+                       <!-- Caso POST/PUT/PATCH/GET(Individual): Formulario Dinámico -->
+                       <div *ngIf="method !== 'GET' || (method === 'GET' && !hasGridData())">
                          <div class="card border-0 bg-white shadow-sm rounded-4 p-4">
-                           <h5 class="fw-bold mb-4">{{ method === 'POST' ? 'Crear' : 'Editar' }} {{ actionName || 'Entidad' }}</h5>
+                           <h5 class="fw-bold mb-4">
+                             {{ method === 'POST' ? 'Crear' : (method === 'GET' ? 'Consultar' : 'Editar') }} {{ actionName || 'Entidad' }}
+                           </h5>
                            <div class="row g-3">
                              <div *ngFor="let prop of getFormFields()" class="col-md-6">
                                <label class="form-label small fw-bold text-muted">
@@ -251,49 +262,51 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
                      <!-- Contenido Pestaña: Parámetros -->
                      <div *ngIf="activeTab === 'params'">
-                       <div *ngIf="!endpoint?.parameters || endpoint?.parameters?.length === 0" class="text-center py-5 text-muted">
-                         <p class="mb-0 italic">No se detectaron parámetros de entrada (query/path).</p>
+                       <!-- ... existing content ... -->
+                     </div>
+
+
+                     <!-- Contenido Pestaña: Parámetros (Path/Query) -->
+                     <div *ngIf="activeTab === 'params'" class="animate-in">
+                       <div *ngIf="endpoint?.parameters?.length === 0" class="text-center py-5 text-muted bg-light rounded-3">
+                         <i class="bi bi-info-circle fs-2 d-block mb-3 opacity-50"></i>
+                         <p class="mb-0">Este endpoint no requiere parámetros adicionales en la URL.</p>
                        </div>
-                       <div class="table-responsive" *ngIf="endpoint?.parameters && endpoint?.parameters!.length > 0">
-                         <table class="table table-sm align-middle">
-                           <thead>
-                             <tr class="small text-muted uppercase">
-                               <th>PARÁMETRO</th>
+                       
+                       <div *ngIf="endpoint?.parameters?.length! > 0" class="table-responsive border rounded-3 overflow-hidden">
+                         <table class="table table-hover align-middle mb-0">
+                           <thead class="table-dark small">
+                             <tr>
+                               <th class="ps-3">NOMBRE</th>
                                <th>UBICACIÓN</th>
+                               <th>TIPO</th>
+                               <th>REQUERIDO</th>
                                <th class="text-center">ORDEN</th>
-                               <th class="text-center">VISUALIZAR</th>
-                               <th class="text-center">EDITABLE</th>
-                               <th class="text-center">OBLIG.</th>
+                               <th class="text-center">MOSTRAR</th>
                              </tr>
                            </thead>
-                           <tbody>
-                             <tr *ngFor="let p of endpoint?.parameters">
-                               <td>
-                                 <strong class="text-dark">{{ p.name }}</strong>
-                                 <div class="x-small text-muted font-monospace">{{ p.schema?.type || 'string' }}</div>
+                           <tbody class="small">
+                             <tr *ngFor="let param of endpoint?.parameters">
+                               <td class="ps-3">
+                                 <span class="fw-bold">{{ param.name }}</span>
+                                 <div class="x-small text-muted">{{ param.description }}</div>
                                </td>
-                               <td><span class="badge bg-light text-dark border">{{ p.in }}</span></td>
+                               <td><span class="badge bg-secondary-subtle text-secondary border uppercase">{{ param.in }}</span></td>
+                               <td><span class="text-primary">{{ param.schema?.type || 'string' }}</span></td>
+                               <td>
+                                 <span *ngIf="param.required" class="badge bg-danger-subtle text-danger border">SÍ</span>
+                                 <span *ngIf="!param.required" class="badge bg-light text-muted border">NO</span>
+                               </td>
                                <td class="text-center">
                                  <input type="number" class="form-control form-control-sm text-center mx-auto" 
                                         style="width: 60px"
-                                        [(ngModel)]="getFieldConfig(p.name, 'params').order"
-                                        placeholder="0">
+                                        [(ngModel)]="getFieldConfig(param.name, 'params').order">
                                </td>
                                <td class="text-center">
                                  <div class="form-check form-switch d-inline-block">
                                    <input class="form-check-input" type="checkbox" 
-                                          [(ngModel)]="getFieldConfig(p.name, 'params').show"
-                                          (ngModelChange)="toggleVisibility(p.name, 'params')">
-                                 </div>
-                               </td>
-                               <td class="text-center">
-                                 <div class="form-check form-switch d-inline-block">
-                                   <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').editable">
-                                 </div>
-                               </td>
-                               <td class="text-center">
-                                 <div class="form-check form-switch d-inline-block">
-                                   <input class="form-check-input" type="checkbox" [(ngModel)]="getFieldConfig(p.name, 'params').required">
+                                          [(ngModel)]="getFieldConfig(param.name, 'params').show"
+                                          (ngModelChange)="toggleVisibility(param.name, 'params')">
                                  </div>
                                </td>
                              </tr>
@@ -420,6 +433,68 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                </table>
                              </div>
                              
+                             <!-- SECCIÓN VINCULAR ACCIONES (Solo en Response DTO y para Grillas/Objetos) -->
+                             <div *ngIf="activeTab === 'response' && activeDtoId === dto.name" class="card border-0 bg-light shadow-sm rounded-4 mt-5 p-4">
+                               <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                                 <div class="icon-circle bg-primary text-white me-3 shadow-sm" style="width: 45px; height: 45px; font-size: 1.2rem">
+                                   <i class="bi bi-link-45deg"></i>
+                                 </div>
+                                 <div>
+                                   <h5 class="fw-bold mb-0">Vinculación de Acciones sobre {{ dto.name }}</h5>
+                                   <p class="text-muted small mb-0">Configura acciones que operan sobre los datos visualizados en la grilla o detalle.</p>
+                                 </div>
+                               </div>
+
+                               <!-- Configuración de Campo ID (Crucial para acciones vinculadas) -->
+                               <div class="row align-items-center mb-4 px-2 bg-white rounded-3 border p-3">
+                                 <div class="col-md-7">
+                                   <h6 class="fw-bold mb-1"><i class="bi bi-key-fill me-2 text-warning"></i>Identificador Principal (Primary Key)</h6>
+                                   <p class="text-muted x-small mb-0">Selecciona el atributo técnico que identifica unívocamente al registro para poder Editar, Eliminar o Ver Detalle.</p>
+                                 </div>
+                                 <div class="col-md-5">
+                                   <select class="form-select fw-bold border-warning shadow-sm" [(ngModel)]="endpoint!.configuracion_ui.linked_actions.id_field">
+                                     <option *ngFor="let prop of (dto.properties | keyvalue)" [value]="prop.key">
+                                       {{ prop.key }} ({{ getSimplePropType(prop.value) }})
+                                     </option>
+                                   </select>
+                                   <div *ngIf="!endpoint!.configuracion_ui.linked_actions.id_field" class="text-danger x-small mt-1 fw-bold animate-in">
+                                     <i class="bi bi-exclamation-triangle me-1"></i> Se requiere un ID para habilitar acciones.
+                                   </div>
+                                 </div>
+                               </div>
+
+                               <div class="row g-4">
+                                 <div class="col-md-3">
+                                   <label class="form-label x-small text-muted fw-bold mb-1 text-uppercase">Crear (POST)</label>
+                                   <select class="form-select form-select-sm" [(ngModel)]="endpoint!.configuracion_ui.linked_actions.create">
+                                     <option [value]="null">Deshabilitado</option>
+                                     <option *ngFor="let ep of getEndpointsByMethod('POST')" [value]="ep.path">{{ ep.path }}</option>
+                                   </select>
+                                 </div>
+                                 <div class="col-md-3">
+                                   <label class="form-label x-small text-muted fw-bold mb-1 text-uppercase">Editar (PUT/PATCH)</label>
+                                   <select class="form-select form-select-sm" [(ngModel)]="endpoint!.configuracion_ui.linked_actions.edit">
+                                     <option [value]="null">Deshabilitado</option>
+                                     <option *ngFor="let ep of getEndpointsByMethod(['PUT', 'PATCH'])" [value]="ep.path">{{ ep.path }}</option>
+                                   </select>
+                                 </div>
+                                 <div class="col-md-3">
+                                   <label class="form-label x-small text-muted fw-bold mb-1 text-uppercase">Eliminar (DELETE)</label>
+                                   <select class="form-select form-select-sm" [(ngModel)]="endpoint!.configuracion_ui.linked_actions.delete">
+                                     <option [value]="null">Deshabilitado</option>
+                                     <option *ngFor="let ep of getEndpointsByMethod('DELETE')" [value]="ep.path">{{ ep.path }}</option>
+                                   </select>
+                                 </div>
+                                 <div class="col-md-3">
+                                   <label class="form-label x-small text-muted fw-bold mb-1 text-uppercase">Ver (GET BY ID)</label>
+                                   <select class="form-select form-select-sm" [(ngModel)]="endpoint!.configuracion_ui.linked_actions.view">
+                                     <option [value]="null">Deshabilitado</option>
+                                     <option *ngFor="let ep of getEndpointsByMethod('GET', true)" [value]="ep.path">{{ ep.path }}</option>
+                                   </select>
+                                 </div>
+                               </div>
+                             </div>
+
                              <!-- Vista Código (Opcional/Colapsable) -->
                              <div class="mt-3">
                                <button class="btn btn-sm btn-link p-0 text-decoration-none x-small" (click)="showCode = !showCode">
@@ -437,7 +512,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                          </div>
                        </div>
                      </div>
-            </div>
+                   </div>
           </div>
         </div>
       </div>
@@ -453,6 +528,7 @@ export class ActionDefinitionComponent implements OnInit {
   method: string = '';
   
   endpoint: Endpoint | null = null;
+  serviceEndpoints: Endpoint[] = []; // Todos los endpoints del servicio para vinculación
   allServices: any[] = [];
   loading = true;
   error: string | null = null;
@@ -495,13 +571,15 @@ export class ActionDefinitionComponent implements OnInit {
     this.loading = true;
     this.middlewareService.inspectService(this.serviceId).subscribe({
       next: (data) => {
+        this.serviceEndpoints = data.endpoints || [];
         const found = data.endpoints.find((e: Endpoint) => e.path === this.path && e.method === this.method);
         if (found) {
           this.endpoint = found;
+          this.serviceEndpoints = data.endpoints; // Guardar todos los endpoints
           this.actionName = found.configuracion_ui?.label || found.summary || '';
           this.actionDescription = found.configuracion_ui?.description || '';
           
-          // Asegurar que exista la configuración de campos
+          // Asegurar que exista la configuración de campos y acciones vinculadas
           if (!found.configuracion_ui) found.configuracion_ui = {};
           if (!found.configuracion_ui.fields_config) {
             found.configuracion_ui.fields_config = {
@@ -509,6 +587,23 @@ export class ActionDefinitionComponent implements OnInit {
               request: {},
               response: {}
             };
+          }
+
+          if (!found.configuracion_ui.linked_actions) {
+            found.configuracion_ui.linked_actions = {
+              create: null,
+              edit: null,
+              delete: null,
+              view: null,
+              id_field: 'id'
+            };
+
+            // Intentar encontrar un ID mejor si 'id' no existe en las propiedades de la respuesta
+            const itemProps = this.getItemProperties();
+            if (itemProps && !itemProps['id']) {
+              const idLike = Object.keys(itemProps).find(k => k.toLowerCase().includes('id'));
+              if (idLike) found.configuracion_ui.linked_actions.id_field = idLike;
+            }
           }
 
           // Detectar otras acciones activas en el mismo microservicio
@@ -533,7 +628,8 @@ export class ActionDefinitionComponent implements OnInit {
     this.initialState = JSON.stringify({
       name: this.actionName,
       desc: this.actionDescription,
-      config: this.endpoint?.configuracion_ui?.fields_config
+      config: this.endpoint?.configuracion_ui?.fields_config,
+      linked: this.endpoint?.configuracion_ui?.linked_actions
     });
   }
 
@@ -541,7 +637,8 @@ export class ActionDefinitionComponent implements OnInit {
     const currentState = JSON.stringify({
       name: this.actionName,
       desc: this.actionDescription,
-      config: this.endpoint?.configuracion_ui?.fields_config
+      config: this.endpoint?.configuracion_ui?.fields_config,
+      linked: this.endpoint?.configuracion_ui?.linked_actions
     });
     return this.initialState !== currentState;
   }
@@ -628,6 +725,29 @@ export class ActionDefinitionComponent implements OnInit {
     }
   }
 
+  // Helpers para DTOs
+  hasGridData(): boolean {
+    if (this.method !== 'GET') return false;
+    const responseDto = this.endpoint?.response_dto;
+    if (!responseDto || !responseDto.properties) return false;
+    // Buscar si alguna propiedad es un array (patrón de lista de entidades)
+    return Object.values(responseDto.properties).some((p: any) => p.type === 'array');
+  }
+
+  getItemProperties(): any {
+    const responseDto = this.endpoint?.response_dto;
+    if (!responseDto || !responseDto.properties) return {};
+
+    // Si es una grilla (lista), buscar la propiedad que es un array
+    const listProp: any = Object.values(responseDto.properties).find((p: any) => p.type === 'array');
+    
+    if (listProp && listProp.items && listProp.items.properties) {
+      return listProp.items.properties;
+    }
+    
+    return responseDto.properties;
+  }
+
   getSimplePropType(prop: any): string {
     if (prop.type === 'array') {
       const itemName = prop.items?.name || prop.items?.type || 'any';
@@ -674,6 +794,20 @@ export class ActionDefinitionComponent implements OnInit {
 
   getMethodClass(method: string): string {
     return `badge-${method}`;
+  }
+
+  // Helper para filtrar endpoints por método
+  getEndpointsByMethod(methods: string | string[], mustHavePathParams: boolean = false): Endpoint[] {
+    const methodList = Array.isArray(methods) ? methods : [methods];
+    return this.serviceEndpoints.filter(ep => {
+      const matchMethod = methodList.includes(ep.method);
+      if (!matchMethod) return false;
+      
+      if (mustHavePathParams) {
+        return ep.path.includes('{');
+      }
+      return true;
+    });
   }
 
   // Lógica para Vista Previa UI
