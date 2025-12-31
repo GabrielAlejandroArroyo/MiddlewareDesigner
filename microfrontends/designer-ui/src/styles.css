@@ -47,6 +47,17 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; overflow: h
 .custom-modal { background: white; border-radius: 1rem; overflow: hidden; }
 .scrollable-modal-content { max-height: 70vh; overflow-y: auto; }
 
+/* --- FULL SCREEN OVERLAY --- */
+.full-screen-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: white; z-index: 10000 !important;
+  display: flex; flex-direction: column;
+}
+.full-screen-container { width: 100%; height: 100%; }
+
+.cursor-help { cursor: help; }
+.ref-underline { border-bottom: 1px dotted #0d6efd; }
+
 /* --- ANIMACIONES --- */
 .animate-in { animation: fadeIn 0.3s ease-out; }
 

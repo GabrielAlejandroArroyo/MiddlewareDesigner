@@ -107,121 +107,161 @@ import { HttpClient } from '@angular/common/http';
       </div>
     </div>
 
-    <!-- Modal de Pruebas (Tester Funcional) -->
-    <div *ngIf="activeTest" class="custom-modal-overlay">
-      <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in">
-        <div class="p-3 border-bottom bg-dark text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold"><i class="bi bi-terminal me-2 text-info"></i> Probar: {{ activeTest.configuracion_ui?.label }}</h5>
-          <button (click)="activeTest = null" class="btn-close btn-close-white"></button>
+    <!-- Modal de Pruebas (Tester Funcional) - PANTALLA COMPLETA -->
+    <div *ngIf="activeTest" class="full-screen-overlay animate-in">
+      <div class="full-screen-container bg-white shadow-lg d-flex flex-column">
+        <!-- Header -->
+        <div class="p-3 border-bottom bg-dark text-white d-flex justify-content-between align-items-center flex-shrink-0">
+          <div class="d-flex align-items-center">
+            <div class="icon-circle bg-primary me-3" style="width: 40px; height: 40px; font-size: 1.2rem">
+              <i class="bi bi-terminal"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-bold">Probar: {{ activeTest.configuracion_ui?.label }}</h5>
+              <div class="d-flex gap-2 align-items-center mt-1">
+                <span class="badge" [ngClass]="getMethodClass(activeTest.method)">{{ activeTest.method }}</span>
+                <code class="text-info x-small">{{ activeTest.path }}</code>
+              </div>
+            </div>
+          </div>
+          <button (click)="activeTest = null" class="btn btn-outline-light border-0 rounded-circle p-2" style="width: 40px; height: 40px">
+            <i class="bi bi-x-lg"></i>
+          </button>
         </div>
         
-        <div class="p-4 scrollable-modal-content">
-          <!-- Alerta de Respuesta -->
-          <div *ngIf="testResponse" class="alert shadow-sm border-0 mb-4 animate-in" 
-               [ngClass]="testResponse.success ? 'alert-success' : 'alert-danger'">
-            <div class="d-flex justify-content-between">
-              <strong class="small text-uppercase">{{ testResponse.success ? 'Éxito' : 'Error' }}</strong>
-              <button class="btn-close btn-close-sm" (click)="testResponse = null"></button>
-            </div>
-            <div class="mb-0 mt-2 small overflow-auto" style="max-height: 150px">
-              <pre *ngIf="isObject(testResponse.data)" class="mb-0">{{ testResponse.data | json }}</pre>
-              <div *ngIf="!isObject(testResponse.data)" class="fw-bold">{{ testResponse.data }}</div>
-            </div>
-          </div>
-
-          <!-- Caso GET: Listado Real -->
-          <div *ngIf="activeTest.method === 'GET'">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="fw-bold mb-0">Datos del Backend</h6>
-              <button class="btn btn-sm btn-outline-primary" (click)="executeGet()">Ejecutar Consulta</button>
-            </div>
-            <div class="table-responsive border rounded-3 bg-light" style="max-height: 300px">
-              <table class="table table-sm mb-0">
-                <thead class="table-dark small">
-                  <tr>
-                    <th *ngFor="let col of testerColumns" class="ps-3">{{ col }}</th>
-                  </tr>
-                </thead>
-                <tbody class="small">
-                  <tr *ngFor="let row of testData">
-                    <td *ngFor="let col of testerColumns" class="ps-3 py-2">
-                      <div *ngIf="activeTest.configuracion_ui?.fields_config?.response?.[col]?.refService" class="d-flex align-items-center gap-1">
-                        <span class="badge bg-info-subtle text-info x-small border border-info border-opacity-25">
-                          {{ activeTest.configuracion_ui.fields_config.response[col].refService }}
-                        </span>
-                        <span>{{ getRefValue(row[col], activeTest.configuracion_ui.fields_config.response[col].refService, activeTest.configuracion_ui.fields_config.response[col].refDisplay) }}</span>
-                      </div>
-                      <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col]?.refService">{{ row[col] }}</span>
-                    </td>
-                  </tr>
-                  <tr *ngIf="testData.length === 0">
-                    <td [attr.colspan]="testerColumns.length" class="text-center py-4 text-muted">
-                      No hay datos o pulsa "Ejecutar Consulta"
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Caso POST/PUT/PATCH: Formulario Real -->
-          <div *ngIf="['POST', 'PUT', 'PATCH'].includes(activeTest.method)">
-            <h6 class="fw-bold mb-3">Formulario de Entrada</h6>
-            <div class="row g-3">
-              <div *ngFor="let prop of testerFields" class="col-md-6">
-                <label class="form-label small fw-bold text-muted">
-                  {{ prop.key }}
-                  <span *ngIf="prop.required" class="text-danger">*</span>
-                </label>
-                
-                <!-- Caso REFERENCIA: Selector Desplegable Real -->
-                <div *ngIf="prop.refService" class="input-group input-group-sm">
-                  <span class="input-group-text bg-info-subtle text-info border-info border-opacity-25 x-small">
-                    <i class="bi bi-link-45deg"></i>
-                  </span>
-                  <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable">
-                    <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
-                    <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn)" [value]="opt.id">
-                      {{ opt.descripcion || opt.nombre || opt.id }} (ID: {{ opt.id }})
-                    </option>
-                  </select>
+        <!-- Contenido principal -->
+        <div class="flex-grow-1 overflow-auto bg-light p-4 p-md-5">
+          <div class="container-xxl">
+            <!-- Alerta de Respuesta -->
+            <div *ngIf="testResponse" class="alert shadow-sm border-0 mb-4 animate-in" 
+                 [ngClass]="testResponse.success ? 'alert-success' : 'alert-danger'">
+              <div class="d-flex justify-content-between">
+                <strong class="small text-uppercase">{{ testResponse.success ? 'Resultado de la Operación' : 'Error en la Operación' }}</strong>
+                <button class="btn-close btn-close-sm" (click)="testResponse = null"></button>
+              </div>
+              <div class="mb-0 mt-2">
+                <div *ngIf="isObject(testResponse.data)" class="bg-dark bg-opacity-10 p-3 rounded-3 overflow-auto" style="max-height: 200px">
+                  <pre class="mb-0 small">{{ testResponse.data | json }}</pre>
                 </div>
-                <div *ngIf="prop.dependsOn && !formData[prop.dependsOn]" class="x-small text-warning mt-1">
-                  <i class="bi bi-exclamation-triangle"></i> Debe seleccionar <strong>{{ prop.dependsOn }}</strong> primero.
-                </div>
+                <div *ngIf="!isObject(testResponse.data)" class="fw-bold">{{ testResponse.data }}</div>
+              </div>
+            </div>
 
-                <!-- Caso ESTÁNDAR -->
-                <input *ngIf="!prop.refService" [type]="prop.type === 'integer' ? 'number' : 'text'" 
-                       [(ngModel)]="formData[prop.key]"
-                       class="form-control form-control-sm" 
-                       [placeholder]="'Valor para ' + prop.key"
-                       [disabled]="!prop.editable"
-                       [class.bg-light]="!prop.editable"
-                       [class.border-info]="prop.unique">
-                <div *ngIf="prop.unique" class="x-small text-info mt-1">
-                  <i class="bi bi-magic"></i> Valor autogenerado por ser campo <strong>único</strong>
+            <!-- Caso GET: Listado Real -->
+            <div *ngIf="activeTest.method === 'GET'">
+              <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                  <h6 class="fw-bold mb-0 text-secondary">REGISTROS RECUPERADOS DEL BACKEND</h6>
+                  <button class="btn btn-primary px-4 fw-bold shadow-sm" (click)="executeGet()">
+                    <i class="bi bi-arrow-repeat me-2"></i> Ejecutar Consulta
+                  </button>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                      <tr>
+                        <th *ngFor="let col of testerColumns" class="ps-4 py-3" [title]="'Atributo técnico: ' + col.key">
+                          {{ col.label }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of testData">
+                        <td *ngFor="let col of testerColumns" class="ps-4 py-3">
+                          <div *ngIf="activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">
+                            <span class="fw-medium ref-underline cursor-help" 
+                                  [title]="'Referencia a servicio: ' + activeTest.configuracion_ui.fields_config.response[col.key].refService">
+                              {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay) }}
+                            </span>
+                          </div>
+                          <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">{{ row[col.key] }}</span>
+                        </td>
+                      </tr>
+                      <tr *ngIf="testData.length === 0">
+                        <td [attr.colspan]="testerColumns.length" class="text-center py-5 text-muted">
+                          <i class="bi bi-cloud-download fs-1 d-block mb-3 opacity-25"></i>
+                          No hay datos disponibles. Presiona "Ejecutar Consulta" para cargar.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-            <div class="mt-4 pt-3 border-top d-flex gap-2">
-              <button class="btn btn-light border flex-grow-1" (click)="activeTest = null">Cancelar</button>
-              <button class="btn btn-primary flex-grow-1 fw-bold" (click)="executeMutation()">
-                {{ activeTest.method === 'POST' ? 'Crear Registro' : 'Actualizar Registro' }}
-              </button>
-            </div>
-          </div>
 
-          <!-- Caso DELETE -->
-          <div *ngIf="activeTest.method === 'DELETE'" class="text-center py-3">
-            <i class="bi bi-trash3 text-danger fs-1 mb-3"></i>
-            <h5 class="fw-bold">Eliminar por ID</h5>
-            <p class="text-muted small">Ingresa el identificador único para procesar la baja.</p>
-            <div class="input-group mb-4" style="max-width: 300px; margin: 0 auto">
-              <input type="text" [(ngModel)]="deleteId" class="form-control text-center" placeholder="ID del registro">
+            <!-- Caso POST/PUT/PATCH: Formulario Real -->
+            <div *ngIf="['POST', 'PUT', 'PATCH'].includes(activeTest.method)">
+              <div class="row justify-content-center">
+                <div class="col-lg-8">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                    <h4 class="fw-bold mb-4 text-primary">Formulario de Configuración</h4>
+                    <div class="row g-4">
+                      <div *ngFor="let prop of testerFields" class="col-md-6">
+                        <label class="form-label fw-bold text-secondary mb-2">
+                          {{ prop.label }}
+                          <span *ngIf="prop.required" class="text-danger">*</span>
+                        </label>
+                        
+                        <!-- Caso REFERENCIA: Selector Desplegable Real -->
+                        <div *ngIf="prop.refService" class="input-group">
+                          <span class="input-group-text bg-light">
+                            <i class="bi bi-link-45deg"></i>
+                          </span>
+                          <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable" [title]="'Atributo técnico: ' + prop.key">
+                            <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
+                            <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn)" [value]="opt.id">
+                              {{ opt.descripcion || opt.nombre || opt.id }} (ID: {{ opt.id }})
+                            </option>
+                          </select>
+                        </div>
+                        <div *ngIf="prop.dependsOn && !formData[prop.dependsOn]" class="small text-warning mt-2 d-flex align-items-center">
+                          <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ prop.dependsOn }}</strong> primero.
+                        </div>
+
+                        <!-- Caso ESTÁNDAR -->
+                        <input *ngIf="!prop.refService" [type]="prop.type === 'integer' ? 'number' : 'text'" 
+                               [(ngModel)]="formData[prop.key]"
+                               class="form-control" 
+                               [placeholder]="'Valor para ' + prop.label"
+                               [disabled]="!prop.editable"
+                               [class.bg-light]="!prop.editable"
+                               [class.border-info]="prop.unique"
+                               [title]="'Atributo técnico: ' + prop.key">
+                        <div *ngIf="prop.unique" class="small text-info mt-2">
+                          <i class="bi bi-magic me-2"></i> Valor autogenerado (Campo único)
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-5 pt-4 border-top d-flex gap-3">
+                      <button class="btn btn-light border flex-grow-1 py-3 fw-bold" (click)="activeTest = null">Cancelar</button>
+                      <button class="btn btn-primary flex-grow-1 py-3 fw-bold shadow-sm" (click)="executeMutation()">
+                        <i class="bi bi-cloud-upload me-2"></i>
+                        {{ activeTest.method === 'POST' ? 'CREAR REGISTRO' : 'ACTUALIZAR REGISTRO' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="d-flex gap-2 justify-content-center">
-              <button class="btn btn-light border px-4" (click)="activeTest = null">Cancelar</button>
-              <button class="btn btn-danger px-4 fw-bold" (click)="executeDelete()">Eliminar Definitivamente</button>
+
+            <!-- Caso DELETE -->
+            <div *ngIf="activeTest.method === 'DELETE'" class="row justify-content-center">
+              <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+                  <div class="icon-circle bg-danger text-white mx-auto mb-4" style="width: 100px; height: 100px; font-size: 3rem">
+                    <i class="bi bi-trash3"></i>
+                  </div>
+                  <h3 class="fw-bold mb-3">Eliminar por ID</h3>
+                  <p class="text-muted mb-4">Ingresa el identificador único del registro que deseas eliminar permanentemente.</p>
+                  <div class="input-group input-group-lg mb-5" style="max-width: 400px; margin: 0 auto">
+                    <input type="text" [(ngModel)]="deleteId" class="form-control text-center fw-bold" placeholder="ID DEL REGISTRO">
+                  </div>
+                  <div class="d-flex gap-3 justify-content-center">
+                    <button class="btn btn-light border px-5 py-3 fw-bold" (click)="activeTest = null">CANCELAR</button>
+                    <button class="btn btn-danger px-5 py-3 fw-bold shadow-sm" (click)="executeDelete()">ELIMINAR DEFINITIVAMENTE</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -249,8 +289,8 @@ export class PreviewComponent implements OnInit {
   formData: any = {};
   deleteId: string = '';
   testResponse: any = null;
-  testerColumns: string[] = [];
-  testerFields: {key: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, dependsOn?: string}[] = [];
+  testerColumns: { key: string, label: string }[] = [];
+  testerFields: {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, dependsOn?: string}[] = [];
 
   ngOnInit() {
     this.loadEnabledServices();
@@ -365,9 +405,12 @@ export class PreviewComponent implements OnInit {
     return data.filter(item => String(item[dependsOn]) === String(this.formData[dependsOn]));
   }
 
-  calculateColumns(ep: any): string[] {
+  calculateColumns(ep: any): { key: string, label: string }[] {
     const responseDto = ep.response_dto;
-    if (!responseDto || !responseDto.properties) return ['id', 'descripcion'];
+    if (!responseDto || !responseDto.properties) return [
+      { key: 'id', label: 'ID' },
+      { key: 'descripcion', label: 'Descripción' }
+    ];
 
     // Buscamos dinámicamente la propiedad que sea un array (lista de resultados)
     const listProp: any = Object.values(responseDto.properties).find((p: any) => p.type === 'array');
@@ -383,10 +426,13 @@ export class PreviewComponent implements OnInit {
     return Object.keys(properties)
       .filter(col => config[col]?.show !== false)
       .sort((a, b) => (config[a]?.order || 0) - (config[b]?.order || 0))
-      .slice(0, 5);
+      .map(col => ({
+        key: col,
+        label: config[col]?.visualName || col
+      }));
   }
 
-  calculateFields(ep: any): {key: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string}[] {
+  calculateFields(ep: any): {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string}[] {
     const props = ep.request_dto?.properties || ep.response_dto?.properties;
     if (!props) return [];
 
@@ -394,6 +440,7 @@ export class PreviewComponent implements OnInit {
     return Object.entries(props)
       .map(([k, v]: any) => ({ 
         key: k, 
+        label: config[k]?.visualName || k,
         type: v.type,
         editable: config[k]?.editable !== false,
         required: config[k]?.required === true,
