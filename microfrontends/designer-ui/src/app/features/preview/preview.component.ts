@@ -12,7 +12,15 @@ import { HttpClient } from '@angular/common/http';
   template: `
     <div class="container-fluid px-4 py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0 fw-bold">Previsualización de Aplicación</h2>
+        <div>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+              <li class="breadcrumb-item"><a routerLink="/">Gestión</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Previsualización</li>
+            </ol>
+          </nav>
+          <h2 class="mb-0 fw-bold">Previsualización de Aplicación</h2>
+        </div>
         <button class="btn btn-light border shadow-sm" (click)="loadEnabledServices()">
           Actualizar Datos
         </button>
@@ -117,6 +125,13 @@ import { HttpClient } from '@angular/common/http';
               <i class="bi bi-terminal"></i>
             </div>
             <div>
+              <nav aria-label="breadcrumb" class="tester-breadcrumb">
+                <ol class="breadcrumb mb-0">
+                  <li class="breadcrumb-item small"><a class="text-info text-decoration-none" (click)="activeTest = null">Previsualización</a></li>
+                  <li class="breadcrumb-item small text-white-50">{{ selectedServiceId }}</li>
+                  <li class="breadcrumb-item small active text-white" aria-current="page">{{ activeTest.configuracion_ui?.label }}</li>
+                </ol>
+              </nav>
               <h5 class="mb-0 fw-bold">Probar: {{ activeTest.configuracion_ui?.label }}</h5>
               <div class="d-flex gap-2 align-items-center mt-1">
                 <span class="badge" [ngClass]="getMethodClass(activeTest.method)">{{ activeTest.method }}</span>

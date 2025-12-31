@@ -58,6 +58,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; overflow: h
 .cursor-help { cursor: help; }
 .ref-underline { border-bottom: 1px dotted #0d6efd; }
 
+.tester-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  color: rgba(255, 255, 255, 0.3);
+}
+
 /* --- ANIMACIONES --- */
 .animate-in { animation: fadeIn 0.3s ease-out; }
 
