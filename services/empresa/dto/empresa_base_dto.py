@@ -41,3 +41,8 @@ class EmpresaDeleteDTO(BaseModel):
     id: int = Field(..., description="ID de la empresa eliminada", example=1)
     success: bool = Field(..., description="Indica si la operación fue exitosa", example=True)
     message: str = Field(..., description="Mensaje descriptivo del resultado", example="Empresa dada de baja lógicamente")
+
+class EmpresaListDTO(BaseModel):
+    """Objeto contenedor para listados (Patrón RORO)"""
+    empresas: List[EmpresaReadDTO] = Field(..., description="Lista de empresas encontradas")
+    total: int = Field(..., description="Cantidad total de registros que coinciden con la búsqueda")

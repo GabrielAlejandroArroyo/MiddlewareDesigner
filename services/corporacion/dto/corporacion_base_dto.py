@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 # --- DTOs de Corporación ---
@@ -34,3 +34,8 @@ class CorporacionUpdateDTO(BaseModel):
     """DTO para actualizar los datos de una corporación"""
     descripcion: Optional[str] = Field(None, description="Nueva descripción de la corporación", example="Corporación de Tecnología S.A. - Actualizada")
     baja_logica: Optional[bool] = Field(None, description="Estado de baja lógica", example=False)
+
+class CorporacionListDTO(BaseModel):
+    """Objeto contenedor para listados (Patrón RORO)"""
+    corporaciones: List[CorporacionReadDTO] = Field(..., description="Lista de corporaciones encontradas")
+    total: int = Field(..., description="Cantidad total de registros que coinciden con la búsqueda")

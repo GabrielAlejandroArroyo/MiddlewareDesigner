@@ -1,40 +1,44 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
 from config.database import get_db
-from dto.empresa_base_dto import EmpresaCreateDTO, EmpresaReadDTO, EmpresaUpdateDTO, EmpresaDeleteDTO
+from dto.empresa_base_dto import EmpresaCreateDTO, EmpresaReadDTO, EmpresaUpdateDTO, EmpresaDeleteDTO, EmpresaListDTO
 from services import empresa_service
 
 router = APIRouter(
     prefix="/empresas", 
-    tags=["Empresas"],
+    tags=["empresas"],
     responses={404: {"description": "Empresa no encontrada"}}
 )
 
 @router.get(
     "/", 
-    response_model=List[EmpresaReadDTO],
-    summary="Listar todas las empresas activas",
-    description="Obtiene una lista de todas las empresas que no están dadas de baja lógicamente, incluyendo sus asociaciones con corporaciones"
+    response_model=EmpresaListDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Listar todas las empresas",
+    response_description="Listado de empresas con contador total"
 )
-async def read_empresas(db: AsyncSession = Depends(get_db)):
-    """Listar todas las empresas activas"""
-    return await empresa_service.get_all_empresas(db)
+async def listar_empresas(include_baja_logica: bool = True, db: AsyncSession = Depends(get_db)):
+    """
+    Obtiene el listado completo de empresas registradas.
+    Implementa el patrón RORO devolviendo un objeto con la lista y el total.
+    """
+    return await empresa_service.get_all_empresas(db, include_baja_logica=include_baja_logica)
 
 @router.get(
     "/{empresa_id}", 
     response_model=EmpresaReadDTO,
-    summary="Obtener empresa por ID",
-    description="Obtiene el detalle completo de una empresa específica por su ID, incluyendo las corporaciones asociadas"
+    status_code=status.HTTP_200_OK,
+    summary="Obtener una empresa por ID",
+    response_description="Datos detallados de la empresa solicitada"
 )
-async def read_empresa(
-    empresa_id: int = Path(..., description="ID único de la empresa", example=1, gt=0),
-    db: AsyncSession = Depends(get_db)
-):
-    """Obtener detalle de una empresa activa"""
+async def obtener_empresa(empresa_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Busca una empresa específica por su identificador.
+    Retorna el DTO de lectura completo incluyendo datos de auditoría y corporaciones asociadas.
+    """
     emp = await empresa_service.get_empresa_by_id(db, empresa_id)
     if not emp:
-        raise HTTPException(status_code=404, detail="Empresa no encontrada")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
     return emp
 
 @router.post(
@@ -44,45 +48,36 @@ async def read_empresa(
     summary="Crear nueva empresa",
     description="Crea una nueva empresa con los datos proporcionados y la asocia con las corporaciones especificadas"
 )
-async def create_empresa(
-    empresa_data: EmpresaCreateDTO, 
-    db: AsyncSession = Depends(get_db)
-):
+async def crear_empresa(empresa_data: EmpresaCreateDTO, db: AsyncSession = Depends(get_db)):
     """Alta de Empresa y asociación con corporaciones"""
     return await empresa_service.create_empresa(db, empresa_data)
 
 @router.put(
     "/{empresa_id}", 
     response_model=EmpresaReadDTO,
-    summary="Actualizar empresa",
-    description="Actualiza los datos de una empresa existente y sus asociaciones con corporaciones. Solo se actualizan los campos proporcionados."
+    status_code=status.HTTP_200_OK,
+    summary="Actualizar empresa completa",
+    description="Actualización completa (PUT) - Todos los campos son obligatorios"
 )
-async def update_empresa(
-    empresa_id: int = Path(..., description="ID único de la empresa a actualizar", example=1, gt=0),
-    empresa_data: EmpresaUpdateDTO = ...,
-    db: AsyncSession = Depends(get_db)
-):
+async def actualizar_empresa_completa(empresa_id: int, empresa_data: EmpresaUpdateDTO, db: AsyncSession = Depends(get_db)):
     """Actualizar datos de empresa y sus asociaciones"""
     emp = await empresa_service.update_empresa(db, empresa_id, empresa_data)
     if not emp:
-        raise HTTPException(status_code=404, detail="Empresa no encontrada")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
     return emp
 
 @router.delete(
     "/{empresa_id}", 
     response_model=EmpresaDeleteDTO,
+    status_code=status.HTTP_200_OK,
     summary="Eliminar empresa",
-    description="Elimina una empresa. Por defecto realiza una baja lógica. Si hard_delete es true, elimina definitivamente del sistema junto con sus asociaciones."
+    description="Elimina una empresa. Por defecto realiza una baja lógica. Si hard_delete es true, elimina definitivamente del sistema."
 )
-async def delete_empresa(
-    empresa_id: int = Path(..., description="ID único de la empresa a eliminar", example=1, gt=0),
-    hard_delete: bool = Query(False, description="Si es true, elimina definitivamente del sistema. Por defecto realiza baja lógica."),
-    db: AsyncSession = Depends(get_db)
-):
+async def eliminar_empresa(empresa_id: int, hard_delete: bool = False, db: AsyncSession = Depends(get_db)):
     """Baja de empresa (lógica por defecto)"""
     success = await empresa_service.delete_empresa(db, empresa_id, hard_delete)
     if not success:
-        raise HTTPException(status_code=404, detail="Empresa no encontrada")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Empresa no encontrada")
     
     msg = "Empresa eliminada definitivamente" if hard_delete else "Empresa dada de baja lógicamente"
     return {"id": empresa_id, "success": True, "message": msg}

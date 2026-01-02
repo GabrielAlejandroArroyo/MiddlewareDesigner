@@ -2,11 +2,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete, insert
 from entity.empresa_model import Empresa, empresa_corporacion
-from dto.empresa_base_dto import EmpresaCreateDTO, EmpresaUpdateDTO, EmpresaReadDTO
+from dto.empresa_base_dto import EmpresaCreateDTO, EmpresaUpdateDTO, EmpresaReadDTO, EmpresaListDTO
 from typing import List, Optional
 
-async def get_all_empresas(db: AsyncSession) -> List[EmpresaReadDTO]:
-    result = await db.execute(select(Empresa).where(Empresa.baja_logica == False))
+async def get_all_empresas(db: AsyncSession, include_baja_logica: bool = True) -> EmpresaListDTO:
+    query = select(Empresa)
+    if not include_baja_logica:
+        query = query.where(Empresa.baja_logica == False)
+    
+    result = await db.execute(query)
     empresas = result.scalars().all()
     
     output = []
@@ -26,7 +30,8 @@ async def get_all_empresas(db: AsyncSession) -> List[EmpresaReadDTO]:
             corporaciones_ids=corp_ids
         )
         output.append(emp_dto)
-    return output
+    
+    return EmpresaListDTO(empresas=output, total=len(output))
 
 async def get_empresa_by_id(db: AsyncSession, empresa_id: int) -> Optional[EmpresaReadDTO]:
     result = await db.execute(

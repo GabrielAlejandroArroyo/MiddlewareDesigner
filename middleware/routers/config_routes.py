@@ -105,7 +105,7 @@ async def create_backend_service(data: BackendServiceCreate):
                 
                 await session.commit()
                 await session.refresh(existing)
-                return existing
+                return _service_to_dto(existing)
             else:
                 # Servicio activo: actualizar Swagger y datos si la URL cambió
                 try:
@@ -135,7 +135,7 @@ async def create_backend_service(data: BackendServiceCreate):
                 
                 await session.commit()
                 await session.refresh(existing)
-                return existing
+                return _service_to_dto(existing)
 
         try:
             parsed_url = urlparse(data.openapi_url)
@@ -166,7 +166,7 @@ async def create_backend_service(data: BackendServiceCreate):
         session.add(new_svc)
         await session.commit()
         await session.refresh(new_svc)
-        return new_svc
+        return _service_to_dto(new_svc)
 
 @router.get("/backend-services", response_model=List[BackendServiceResponse])
 async def list_backend_services(include_deleted: bool = False, check_changes: bool = Query(False, description="Verificar cambios en Swagger para cada servicio")):
