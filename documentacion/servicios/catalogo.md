@@ -24,6 +24,12 @@ El monorepo contiene microservicios desarrollados con **FastAPI** y **SQLAlchemy
 - **Responsabilidad**: Gestión de corporaciones.
 - **Contrato**: `/api/v1/corporaciones/`
 
+## 5. Servicio de Empresa (`/services/empresa`)
+- **Puerto predeterminado**: 8004
+- **Responsabilidad**: Gestión de empresas.
+- **Dependencias**: Consume el servicio de Corporación para validación de integridad referencial.
+- **Contrato**: `/api/v1/empresas/`
+
 ---
 
 ## Patrones Comunes de Implementación

@@ -16,6 +16,7 @@ graph TD
         SVC_PR[Servicio Provincia]
         SVC_L[Servicio Localidad]
         SVC_C[Servicio Corporación]
+        SVC_E[Servicio Empresa]
     end
 
     User --> MFE
@@ -25,6 +26,7 @@ graph TD
     MW -.->|Inspección Resiliente OpenAPI| SVC_PR
     MW -.->|Inspección Resiliente OpenAPI| SVC_L
     MW -.->|Inspección Resiliente OpenAPI| SVC_C
+    MW -.->|Inspección Resiliente OpenAPI| SVC_E
 ```
 
 ## 2. Componentes Críticos

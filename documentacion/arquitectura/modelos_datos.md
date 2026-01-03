@@ -39,6 +39,14 @@ erDiagram
         datetime fecha_alta_creacion
         datetime fecha_alta_modificacion
     }
+    EMPRESA {
+        string id PK
+        string descripcion
+        string id_corporacion FK
+        boolean baja_logica
+        datetime fecha_alta_creacion
+        datetime fecha_alta_modificacion
+    }
 ```
 
 ## 2. Base de Datos del Middleware (`middleware_config.db`)
