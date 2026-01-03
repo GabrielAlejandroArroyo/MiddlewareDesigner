@@ -76,18 +76,21 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
       <!-- Vista de Tarjetas (Cards) -->
       <div *ngIf="!loading && services.length > 0 && viewMode === 'cards'" class="row g-4">
         <div *ngFor="let svc of services" class="col-12 col-md-6 col-lg-4 col-xl-3">
-          <div class="card h-100 shadow-sm border-0 service-card" [class.opacity-75]="svc.baja_logica">
-            <div class="card-body">
+          <div class="card h-100 shadow-sm border-0 service-card" [class.opacity-75]="svc.baja_logica" style="min-height: 280px;">
+            <div class="card-body d-flex flex-column">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <span class="badge px-2 py-1" [ngClass]="svc.baja_logica ? 'bg-secondary' : 'bg-info bg-opacity-10 text-info'">
                   {{ svc.id }} {{ svc.baja_logica ? '(INACTIVO)' : '' }}
                 </span>
                 <div class="dropdown">
-                  <button *ngIf="!svc.baja_logica" class="btn btn-link p-0 text-muted" type="button" (click)="confirmDelete(svc)">
-                    <span class="text-danger small">Eliminar</span>
+                  <button *ngIf="!svc.baja_logica" class="btn btn-link p-0 text-muted me-2" type="button" (click)="openEditModal(svc)" title="Editar información">
+                    <i class="bi bi-pencil-square text-primary"></i>
                   </button>
-                  <button *ngIf="svc.baja_logica" class="btn btn-link p-0 text-muted" type="button" (click)="reactivate(svc.id)">
-                    <span class="text-success small fw-bold">Activar</span>
+                  <button *ngIf="!svc.baja_logica" class="btn btn-link p-0 text-muted" type="button" (click)="confirmDelete(svc)" title="Eliminar servicio">
+                    <i class="bi bi-trash3 text-danger"></i>
+                  </button>
+                  <button *ngIf="svc.baja_logica" class="btn btn-link p-0 text-muted" type="button" (click)="reactivate(svc.id)" title="Activar servicio">
+                    <i class="bi bi-check-circle text-success"></i>
                   </button>
                 </div>
               </div>
@@ -108,8 +111,8 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
                   <code class="small text-primary text-truncate">{{ svc.host }}:{{ svc.puerto }}</code>
                 </div>
                 <div *ngIf="!svc.baja_logica" class="d-flex flex-column gap-2">
-                  <button [routerLink]="['/inspect', svc.id]" class="btn btn-outline-primary w-100">
-                    Inspeccionar Contrato
+                  <button [routerLink]="['/inspect', svc.id]" class="btn btn-primary w-100 py-2 shadow-sm" title="Inspeccionar Contrato">
+                    <i class="bi bi-search fs-5"></i>
                   </button>
                   <button *ngIf="svc.has_swagger_changes" 
                           (click)="refreshSwagger(svc.id)" 
@@ -154,10 +157,21 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
                 <td><code class="small">{{ svc.host }}:{{ svc.puerto }}</code></td>
                 <td class="text-end pe-4">
                   <div class="btn-group">
-                    <button *ngIf="!svc.baja_logica" [routerLink]="['/inspect', svc.id]" class="btn btn-sm btn-outline-primary">Inspeccionar</button>
-                    <button *ngIf="!svc.baja_logica" (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                    <button *ngIf="svc.baja_logica" (click)="reactivate(svc.id)" class="btn btn-sm btn-outline-success">Activar</button>
-                    <button *ngIf="svc.baja_logica" (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger">Eliminar Definitivo</button>
+                    <button *ngIf="!svc.baja_logica" (click)="openEditModal(svc)" class="btn btn-sm btn-outline-secondary" title="Editar">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button *ngIf="!svc.baja_logica" [routerLink]="['/inspect', svc.id]" class="btn btn-sm btn-outline-primary" title="Inspeccionar Contrato">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <button *ngIf="!svc.baja_logica" (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                    <button *ngIf="svc.baja_logica" (click)="reactivate(svc.id)" class="btn btn-sm btn-outline-success" title="Activar">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button *ngIf="svc.baja_logica" (click)="confirmDelete(svc)" class="btn btn-sm btn-outline-danger" title="Eliminar Definitivo">
+                      <i class="bi bi-trash3-fill"></i>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -196,6 +210,38 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
           <div class="d-flex gap-2">
             <button (click)="showRegisterModal = false" class="btn btn-light border flex-grow-1 py-2">Cancelar</button>
             <button (click)="register()" class="btn btn-primary flex-grow-1 py-2 shadow-sm fw-bold">Registrar Backend</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Edición -->
+    <div *ngIf="editingService" class="custom-modal-overlay">
+      <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in">
+        <div class="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+          <h4 class="mb-0 fw-bold text-primary">Editar Backend: {{ editingService.id }}</h4>
+          <button (click)="editingService = null" class="btn-close"></button>
+        </div>
+        <div class="p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Nombre del Servicio</label>
+            <input type="text" [(ngModel)]="editingService.nombre" class="form-control fs-6" 
+                   placeholder="ej: Microservicio de Países">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">URL completa del openapi.json</label>
+            <input type="text" [(ngModel)]="editingService.openapi_url" class="form-control fs-6" 
+                   placeholder="http://127.0.0.1:8000/openapi.json">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold small">Descripción</label>
+            <textarea [(ngModel)]="editingService.descripcion" class="form-control fs-6" rows="2" 
+                      placeholder="Breve descripción del propósito del servicio"></textarea>
+          </div>
+          
+          <div class="d-flex gap-2">
+            <button (click)="editingService = null" class="btn btn-light border flex-grow-1 py-2">Cancelar</button>
+            <button (click)="update()" class="btn btn-primary flex-grow-1 py-2 shadow-sm fw-bold">Guardar Cambios</button>
           </div>
         </div>
       </div>
@@ -241,6 +287,7 @@ export class BackendManagementComponent implements OnInit {
   services: BackendService[] = [];
   allServicesRaw: BackendService[] = [];
   newService: Partial<BackendService> = {};
+  editingService: Partial<BackendService> | null = null;
   showRegisterModal = false;
   serviceToDelete: BackendService | null = null;
   viewMode: 'cards' | 'list' = 'cards';
@@ -335,6 +382,30 @@ export class BackendManagementComponent implements OnInit {
           msg = err.message;
         }
         alert('Error al registrar:\n' + msg);
+      }
+    });
+  }
+
+  openEditModal(svc: BackendService) {
+    // Clonar para no modificar la referencia original hasta guardar
+    this.editingService = { ...svc };
+  }
+
+  update() {
+    if (!this.editingService || !this.editingService.id || !this.editingService.openapi_url) {
+      alert('Datos incompletos para actualizar');
+      return;
+    }
+
+    this.service.registerBackend(this.editingService).subscribe({
+      next: () => {
+        this.loadServices();
+        this.editingService = null;
+        alert('Servicio actualizado correctamente');
+      },
+      error: (err) => {
+        const msg = err.error?.detail || err.message;
+        alert('Error al actualizar:\n' + (typeof msg === 'string' ? msg : JSON.stringify(msg)));
       }
     });
   }
