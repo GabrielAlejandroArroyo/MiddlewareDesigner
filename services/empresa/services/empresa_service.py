@@ -48,6 +48,7 @@ async def create_empresa(db: AsyncSession, data: EmpresaCreateDTO) -> EmpresaMod
     new_empresa = EmpresaModel(
         id=data.id,
         descripcion=data.descripcion,
+        identificador_fiscal=data.identificador_fiscal,
         id_corporacion=data.id_corporacion
     )
     db.add(new_empresa)

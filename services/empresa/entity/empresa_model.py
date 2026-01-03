@@ -9,6 +9,7 @@ class EmpresaModel(Base):
 
     id: Mapped[str] = mapped_column(String(50), primary_key=True, unique=True)
     descripcion: Mapped[str] = mapped_column(String(255), nullable=False)
+    identificador_fiscal: Mapped[str] = mapped_column(String(20), nullable=False) # CUIT, NIT, NIF, etc.
     id_corporacion: Mapped[str] = mapped_column(String(50), nullable=False) # Referencia al microservicio Corporación
     baja_logica: Mapped[bool] = mapped_column(Boolean, default=False)
     fecha_alta_creacion: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
