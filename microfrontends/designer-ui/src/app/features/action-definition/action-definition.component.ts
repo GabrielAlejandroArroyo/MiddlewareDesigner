@@ -362,9 +362,15 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                    </tr>
                                  </thead>
                                  <tbody class="small">
-                                    <tr *ngFor="let prop of (dto.properties | keyvalue); trackBy: trackByProp">
+                                    <tr *ngFor="let prop of getSortedProps(dto); let i = index; trackBy: trackByProp"
+                                        draggable="true" 
+                                        (dragstart)="onDragStart($event, i)" 
+                                        (dragover)="onDragOver($event)" 
+                                        (drop)="onDrop($event, i, dto)"
+                                        class="drag-row">
                                       <td class="ps-3" style="min-width: 250px; background-color: #ffffff;">
                                         <div class="d-flex align-items-center mb-1">
+                                          <i class="bi bi-grip-vertical me-2 text-muted cursor-move"></i>
                                           <i class="bi bi-tag-fill me-2 text-primary opacity-75"></i>
                                           <span class="fw-bold text-dark">{{ prop.key }}</span>
                                         </div>
@@ -530,6 +536,13 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
           </div>
         </div>
       </div>
+    <style>
+      .cursor-move { cursor: move; }
+      .drag-row { transition: all 0.2s ease; cursor: default; }
+      .drag-row:hover { background-color: rgba(var(--bs-primary-rgb), 0.05) !important; }
+      .drag-row:active { opacity: 0.7; border: 2px dashed #0d6efd; }
+      .drag-row td { vertical-align: middle; }
+    </style>
   `
 })
 export class ActionDefinitionComponent implements OnInit {
@@ -557,6 +570,9 @@ export class ActionDefinitionComponent implements OnInit {
   availableActions = { create: false, edit: false, delete: false };
   showCode = false;
   propertiesCollapsed = true;
+
+  // Drag and Drop State
+  draggedIndex: number | null = null;
 
   // Change Detection
   initialState: string = '';
@@ -891,6 +907,57 @@ export class ActionDefinitionComponent implements OnInit {
 
   trackByProp(index: number, item: any): string {
     return item.key;
+  }
+
+  getSortedProps(dto: any): any[] {
+    if (!dto || !dto.properties) return [];
+    
+    // Convertir objeto a array para poder ordenar
+    const propsArray = Object.entries(dto.properties).map(([key, value]) => ({
+      key,
+      value
+    }));
+
+    // Ordenar según la configuración actual
+    return propsArray.sort((a, b) => {
+      const configA = this.getFieldConfig(a.key, this.activeTab);
+      const configB = this.getFieldConfig(b.key, this.activeTab);
+      return (configA.order || 0) - (configB.order || 0);
+    });
+  }
+
+  onDragStart(event: DragEvent, index: number) {
+    this.draggedIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDrop(event: DragEvent, targetIndex: number, dto: any) {
+    event.preventDefault();
+    if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
+
+    const sortedProps = this.getSortedProps(dto);
+    const draggedItem = sortedProps[this.draggedIndex];
+
+    // Reordenar el array
+    sortedProps.splice(this.draggedIndex, 1);
+    sortedProps.splice(targetIndex, 0, draggedItem);
+
+    // Actualizar el atributo 'order' de cada campo basándose en su nueva posición
+    sortedProps.forEach((prop, index) => {
+      const config = this.getFieldConfig(prop.key, this.activeTab);
+      config.order = index + 1; // Orden de 1 a N
+    });
+
+    this.draggedIndex = null;
   }
 
   asAny(val: any): any {

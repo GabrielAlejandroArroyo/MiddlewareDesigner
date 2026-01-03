@@ -15,6 +15,7 @@ Monitoreo en tiempo real del estado de salud de todos los microservicios.
 ### 2. Definición de Acción (Action Designer)
 La pantalla más crítica del sistema, donde se transforman datos técnicos en experiencia de usuario:
 - **Pestaña Request/Response**: Permite ver la jerarquía completa de DTOs.
+- **Ordenación Drag & Drop**: Los atributos técnicos pueden ser reordenados arrastrándolos directamente en la tabla. El sistema actualiza automáticamente el atributo técnico `order` (de 1 a N), lo cual se refleja inmediatamente en la **Preview UI**.
 - **Botón "Limpiar Caché Swagger"**: Permite al administrador forzar una re-lectura del contrato desde el microservicio sin salir de la pantalla de configuración.
 - **Preview UI**: Renderiza formularios y grillas en tiempo real según la configuración de visibilidad y orden definida.
 
