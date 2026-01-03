@@ -6,6 +6,7 @@ $services = @(
     @{ name="Provincia"; port=8001; url="http://localhost:8001/openapi.json" },
     @{ name="Localidad"; port=8002; url="http://localhost:8002/openapi.json" },
     @{ name="Corporación"; port=8003; url="http://localhost:8003/openapi.json" },
+    @{ name="Empresa"; port=8004; url="http://localhost:8004/openapi.json" },
     @{ name="Middleware"; port=9000; url="http://localhost:9000/api/v1/config/backend-services" }
 )
 
