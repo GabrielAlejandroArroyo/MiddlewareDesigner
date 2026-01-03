@@ -1,28 +1,24 @@
-# Middleware Designer - Orquestador
+# Middleware Designer - Orquestador Inteligente
 
-El Middleware es el corazón del sistema. Actúa como un servidor proxy inteligente que gestiona los metadatos de los servicios backend.
+El Middleware actúa como un proxy de metadatos y orquestador del ecosistema, transformando contratos técnicos crudos en definiciones amigables para el usuario.
 
-## Tecnologías
-- **Framework**: FastAPI
-- **Base de Datos**: SQLite (configuración)
-- **ORM**: SQLAlchemy 2.0 (Async)
-- **Parser**: httpx para lectura de contratos remotos.
+## Tecnologías y Seguridad
+- **Framework**: FastAPI (Asíncrono).
+- **Resolución de Modelos**: Motor personalizado de recursividad para esquemas OpenAPI 3.1.
+- **Sanitización**: Procesamiento de strings para eliminar ruidos de codificación (No-ASCII).
 
-## Endpoints Clave
+## Lógica de Resolución de DTOs (Resiliencia)
+El servicio `OpenApiService` implementa un motor de resolución de esquemas avanzado:
 
-### Gestión de Servicios (`/api/v1/config/backend-services`)
-- `POST /`: Registra un nuevo microservicio.
-- `GET /`: Lista servicios activos y verifica cambios en sus Swagger (comparando hashes).
-- `GET /{id}/inspect`: Realiza el análisis profundo del contrato y devuelve endpoints + DTOs estructurados.
-- `POST /{id}/refresh-swagger`: Fuerza la limpieza de caché y re-análisis del contrato.
+1.  **Aplanamiento de Herencia (`allOf`)**: Pydantic utiliza `allOf` para la herencia de clases. El middleware fusiona recursivamente las propiedades de todas las ramas, garantizando que campos como `id` o `descripcion` de las clases base siempre estén presentes en el DTO final.
+2.  **Manejo de Opcionales (`anyOf` / `oneOf`)**: Detecta automáticamente el tipo principal en uniones (como `String | null`) para presentar el tipo de dato correcto al diseñador.
+3.  **Recursividad Segura**: Soporta modelos anidados y arrays de objetos con un límite de profundidad de 20 niveles para evitar ciclos infinitos.
+4.  **Limpieza de Metadatos**: Todos los títulos (`title`) y descripciones (`description`) son limpiados de caracteres especiales que podrían romper el renderizado en el navegador.
 
-### Gestión de Mapeos (`/api/v1/config/mappings`)
-- `POST /toggle`: Habilita/Deshabilita un endpoint para la UI y guarda su configuración de labels y orden.
-- `DELETE /`: Elimina un mapeo existente.
+## Gestión de Caché y Estado
+- **Invalidez de Caché**: Implementa una política de limpieza total (`UPDATE backend_services SET swagger_spec_cached = NULL`) para forzar re-inspecciones ante errores críticos.
+- **Hash de Integridad**: Compara el hash del Swagger remoto contra la versión local para alertar sobre cambios pendientes de aplicar.
 
-## Lógica de Resolución de DTOs
-El servicio `OpenApiService` es responsable de:
-1. Resolver referencias `$ref` de forma recursiva.
-2. Identificar tipos de datos (string, integer, boolean, date-time).
-3. Detectar estructuras de colecciones (arrays) y extraer sus modelos internos.
-4. Normalizar los nombres de los tipos para la visualización en el frontend (ej: `PaisReadDTO[]`).
+## Endpoints de Configuración
+- `GET /inspect`: Devuelve la estructura plana de todos los endpoints, diferenciando entre DTOs de Request y Response.
+- `POST /refresh-swagger`: Descarta la copia local y realiza una nueva inspección profunda del microservicio.

@@ -1,39 +1,34 @@
 # Documentación del Proyecto: Middleware Designer
 
-Bienvenido a la documentación técnica del monorepo **Middleware Designer**. Este sistema permite la orquestación dinámica de microservicios mediante la inspección de contratos OpenAPI y la generación automática de interfaces de usuario.
+Este monorepo es un ecosistema completo para el diseño de interfaces dinámicas basado en microservicios y contratos **OpenAPI**.
 
-## 📂 Estructura de Documentación
+## 📊 Estado del Ecosistema
+- **Estado**: ✅ OPERATIVO Y ESTABLE
+- **Backend**: Python (FastAPI) + SQLAlchemy 2.0
+- **Middleware**: Motor de Resolución Resiliente de OpenAPI
+- **Frontend**: Angular 17+ (Diseño Basado en Metadatos)
+
+## 📂 Guía de Navegación
 
 ### 🏛️ [Arquitectura General](arquitectura/general.md)
-Descripción de la topología del sistema, diagramas C4 y componentes principales (Microservicios, Middleware y Frontend).
+Diagramas C4 y de secuencia. Explica el flujo de datos desde el microservicio hasta la UI y el proceso de aplanamiento de herencia.
 
 ### 📊 [Modelos de Datos](arquitectura/modelos_datos.md)
-Diagramas de Entidad-Relación (ERD) de los microservicios y de la base de datos central de configuración del Middleware.
+Diagramas de Entidad-Relación (ERD) de los microservicios (`pais`, `provincia`, `localidad`, `corporacion`) y del orquestador central.
 
 ### 🔌 [Catálogo de Servicios](servicios/catalogo.md)
-Detalle de cada microservicio backend (`pais`, `provincia`, `localidad`, `corporacion`), sus responsabilidades y patrones de diseño (RORO, DTOs, Auditoría).
+Detalle de endpoints, puertos y responsabilidades de cada microservicio. Incluye la guía de implementación del patrón RORO.
 
 ### ⚙️ [Middleware Designer](middleware/README.md)
-Documentación del orquestador, lógica de parseo de contratos y API de configuración.
+Detalle técnico del orquestador, su motor de recursividad para DTOs y la lógica de limpieza de metadatos técnicos.
 
 ### 🎨 [Microfrontend Designer UI](frontend/README.md)
-Guía sobre la aplicación Angular, funcionalidades del diseñador de acciones y previsualización.
+Guía de uso del diseñador de acciones, blindaje de renderizado y monitoreo de salud (Heartbeat).
 
 ---
 
-## 🚀 Inicio Rápido
-
-Para levantar el ecosistema completo, utiliza los scripts de la raíz:
-
-- **Windows (PowerShell)**: `.\scripts\start_all.ps1`
-- **Linux/macOS (Bash)**: `./scripts/start_all.sh`
-
-Para verificar el estado de los servicios: `.\scripts\check_status.ps1`
-
----
-
-## 🛠️ Tecnologías Principales
-- **Backend**: Python 3.10+, FastAPI, SQLAlchemy 2.0, Pydantic v2.
-- **Middleware**: Python, FastAPI, httpx (OpenAPI Parser).
-- **Frontend**: Angular 17+, Bootstrap 5, RxJS.
-- **Base de Datos**: SQLite (motores asíncronos `aiosqlite`).
+## 🛠️ Características Principales
+1.  **Aplanamiento de Herencia**: Fusión automática de campos base (`allOf`) en contratos OpenAPI.
+2.  **Sanitización Automática**: Limpieza de ruidos de codificación en títulos y descripciones.
+3.  **Monitoreo Real-time**: Panel de control integrado con chequeo de estado asíncrono.
+4.  **Diseño Resiliente**: La interfaz es capaz de auto-repararse e inyectar fallbacks ante datos de contrato incompletos.

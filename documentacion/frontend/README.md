@@ -1,28 +1,22 @@
 # Designer UI - Microfrontend Angular
 
-La interfaz administrativa que permite "dibujar" las aplicaciones finales a partir de los microservicios.
+La interfaz administrativa diseñada para la resiliencia y el diseño dinámico de aplicaciones.
 
-## Características
-- **Arquitectura Standalone**: Utiliza componentes independientes sin módulos pesados.
-- **Routing Dinámico**: Basado en el ID del servicio para inspección.
-- **Bootstrap 5 + Icons**: Para un diseño limpio y profesional.
+## Características de Diseño Robusto
+- **Blindaje de Renderizado**: Los componentes de configuración inyectan automáticamente valores por defecto si un metadato técnico está ausente o corrupto, asegurando que el administrador siempre pueda ver y editar los campos.
+- **Visualización Detallada**: Muestra el nombre técnico, el tipo de dato (con formato) y la descripción original del Swagger para facilitar la personalización.
 
-## Funcionalidades Principales
+## Funcionalidades de Gestión
 
-### 1. Dashboard
-Visualización rápida del estado del ecosistema (servicios online/offline).
+### 1. Panel de Control del Ecosistema (Dashboard)
+Monitoreo en tiempo real del estado de salud de todos los microservicios.
+- **Heartbeat**: Realiza peticiones asíncronas a cada servicio. Requiere que los servicios tengan CORS habilitado y respondan con un estado válido.
 
-### 2. Gestión de Backends
-CRUD para el registro de nuevos microservicios mediante su URL de OpenAPI.
-
-### 3. Inspector de Endpoints
-Permite navegar por todos los métodos (GET, POST, etc.) que expone un servicio y habilitarlos mediante un switch.
-
-### 4. Definición de Acción (El Diseñador)
-Pantalla crítica donde se configuran los metadatos de la UI:
-- **Pestaña Parámetros**: Configura filtros de URL.
-- **Pestaña Request/Response**: Permite cambiar nombres técnicos por visuales, ocultar campos y establecer relaciones entre servicios (ej: que un ID de país abra un buscador del servicio País).
-- **Preview**: Renderiza en tiempo real cómo se vería la grilla o el formulario generado.
+### 2. Definición de Acción (Action Designer)
+La pantalla más crítica del sistema, donde se transforman datos técnicos en experiencia de usuario:
+- **Pestaña Request/Response**: Permite ver la jerarquía completa de DTOs.
+- **Botón "Limpiar Caché Swagger"**: Permite al administrador forzar una re-lectura del contrato desde el microservicio sin salir de la pantalla de configuración.
+- **Preview UI**: Renderiza formularios y grillas en tiempo real según la configuración de visibilidad y orden definida.
 
 ## Servicios Core
-- `MiddlewareService`: Centraliza todas las llamadas HTTP al middleware.
+- `MiddlewareService`: Centraliza la comunicación con el orquestador. Utiliza RxJS para el manejo de flujos de datos complejos y concurrencia en los chequeos de salud.

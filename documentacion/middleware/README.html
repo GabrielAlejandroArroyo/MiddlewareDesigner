@@ -13,7 +13,8 @@
         .nav-link { color: #adb5bd; }
         .nav-link:hover { color: white; }
         .nav-link.active { color: #0dcaf0; font-weight: bold; }
-        pre { background: #212529; color: #f1f1f1; padding: 15px; border-radius: 8px; }
+        pre { background: #212529; color: #f1f1f1; padding: 15px; border-radius: 8px; font-size: 0.9rem; }
+        .feature-box { border-left: 4px solid #198754; background: white; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0; }
     </style>
 </head>
 <body>
@@ -29,40 +30,36 @@
         </ul>
     </div>
     <div class="content">
-        <h1 class="mb-4">Middleware Designer - Orquestador</h1>
-        <p class="lead">El Middleware es el corazón del sistema. Actúa como un servidor proxy inteligente que gestiona los metadatos de los servicios backend.</p>
+        <h1 class="mb-4">Middleware - Orquestador Inteligente</h1>
+        <p class="lead">El motor de resolución que transforma especificaciones técnicas en metadatos para la UI.</p>
+
+        <h2 class="mt-5 mb-3 text-secondary">Lógica de Resolución Resiliente</h2>
+        
+        <div class="feature-box shadow-sm">
+            <h6 class="fw-bold text-success"><i class="bi bi-layers me-2"></i>Aplanamiento de Herencia (allOf)</h6>
+            <p class="mb-0 small text-muted">Combina recursivamente todas las propiedades de las clases base y derivadas, asegurando que campos heredados (como el ID) nunca se pierdan en la inspección.</p>
+        </div>
+
+        <div class="feature-box shadow-sm">
+            <h6 class="fw-bold text-success"><i class="bi bi-shield-check me-2"></i>Manejo de anyOf / oneOf</h6>
+            <p class="mb-0 small text-muted">Detecta y selecciona el tipo de dato principal en definiciones múltiples (ej: String | null), garantizando tipos consistentes para el diseñador.</p>
+        </div>
+
+        <div class="feature-box shadow-sm">
+            <h6 class="fw-bold text-success"><i class="bi bi-magic me-2"></i>Sanitización Automática</h6>
+            <p class="mb-0 small text-muted">Limpia metadatos (titles, descriptions) de caracteres no-ASCII y ruidos de codificación para evitar errores de parseo en el frontend.</p>
+        </div>
+
+        <h2 class="mt-5 mb-3 text-secondary">Gestión de Caché</h2>
+        <p>El sistema implementa una política de <strong>Hard Reset</strong> mediante la limpieza de la base de datos central, obligando a los servicios a re-publicar sus contratos ante cambios estructurales.</p>
+        <pre>UPDATE backend_services SET swagger_spec_cached = NULL, swagger_hash = NULL;</pre>
 
         <h2 class="mt-5 mb-3 text-secondary">Tecnologías</h2>
         <ul>
-            <li><strong>Framework</strong>: FastAPI</li>
-            <li><strong>Base de Datos</strong>: SQLite (configuración)</li>
-            <li><strong>ORM</strong>: SQLAlchemy 2.0 (Async)</li>
-            <li><strong>Parser</strong>: httpx para lectura de contratos remotos.</li>
+            <li><strong>FastAPI</strong>: Para el manejo asíncrono de peticiones.</li>
+            <li><strong>SQLAlchemy 2.0</strong>: Con motor asíncrono para la persistencia de configuraciones.</li>
+            <li><strong>OpenAPI 3.1 Parser</strong>: Motor propio de resolución recursiva de modelos.</li>
         </ul>
-
-        <h2 class="mt-5 mb-3 text-secondary">Endpoints Clave</h2>
-        <h3 class="h5 mt-4">Gestión de Servicios (<code>/api/v1/config/backend-services</code>)</h3>
-        <ul>
-            <li><code>POST /</code>: Registra un nuevo microservicio.</li>
-            <li><code>GET /</code>: Lista servicios activos y verifica cambios en sus Swagger (comparando hashes).</li>
-            <li><code>GET /{id}/inspect</code>: Realiza el análisis profundo del contrato y devuelve endpoints + DTOs estructurados.</li>
-            <li><code>POST /{id}/refresh-swagger</code>: Fuerza la limpieza de caché y re-análisis del contrato.</li>
-        </ul>
-
-        <h3 class="h5 mt-4">Gestión de Mapeos (<code>/api/v1/config/mappings</code>)</h3>
-        <ul>
-            <li><code>POST /toggle</code>: Habilita/Deshabilita un endpoint para la UI y guarda su configuración de labels y orden.</li>
-            <li><code>DELETE /</code>: Elimina un mapeo existente.</li>
-        </ul>
-
-        <h2 class="mt-5 mb-3 text-secondary">Lógica de Resolución de DTOs</h2>
-        <p>El servicio <code>OpenApiService</code> es responsable de:</p>
-        <ol>
-            <li>Resolver referencias <code>$ref</code> de forma recursiva.</li>
-            <li>Identificar tipos de datos (string, integer, boolean, date-time).</li>
-            <li>Detectar estructuras de colecciones (arrays) y extraer sus modelos internos.</li>
-            <li>Normalizar los nombres de los tipos para la visualización en el frontend (ej: <code>PaisReadDTO[]</code>).</li>
-        </ol>
     </div>
 </body>
 </html>

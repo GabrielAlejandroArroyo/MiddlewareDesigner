@@ -33,8 +33,8 @@
         </ul>
     </div>
     <div class="content">
-        <h1 class="mb-4">Arquitectura del Monorepo - Middleware Designer</h1>
-        <p class="lead">Este documento describe la arquitectura general del sistema, flujos de datos y componentes principales.</p>
+        <h1 class="mb-4 text-dark">Arquitectura General del Sistema</h1>
+        <p class="lead">Este documento describe la arquitectura técnica, flujos de datos y componentes robustos del ecosistema <strong>Middleware Designer</strong>.</p>
 
         <h2 class="mt-5 mb-3">1. Visión General (C4 Model - Nivel 1)</h2>
         <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
@@ -45,7 +45,7 @@
                     MW[Middleware Designer]
                     DB_MW[(Middleware Config DB)]
                     
-                    subgraph Microservicios Backend
+                    subgraph Microservicios Backend (FastAPI)
                         SVC_P[Servicio País]
                         SVC_PR[Servicio Provincia]
                         SVC_L[Servicio Localidad]
@@ -55,34 +55,35 @@
                     User --> MFE
                     MFE --> MW
                     MW --> DB_MW
-                    MW -.->|Inspecciona OpenAPI| SVC_P
-                    MW -.->|Inspecciona OpenAPI| SVC_PR
-                    MW -.->|Inspecciona OpenAPI| SVC_L
-                    MW -.->|Inspecciona OpenAPI| SVC_C
+                    MW -.->|Inspección Resiliente OpenAPI| SVC_P
+                    MW -.->|Inspección Resiliente OpenAPI| SVC_PR
+                    MW -.->|Inspección Resiliente OpenAPI| SVC_L
+                    MW -.->|Inspección Resiliente OpenAPI| SVC_C
             </div>
         </div>
 
-        <h2 class="mt-5 mb-3">2. Componentes</h2>
-        <h3 class="h5 text-primary">2.1 Microservicios (Capa de Datos)</h3>
-        <p>Cada microservicio es independiente, desarrollado en <strong>FastAPI</strong> y expone su propio contrato <strong>OpenAPI</strong>.</p>
-        <ul>
-            <li><strong>País</strong>: Gestión de países.</li>
-            <li><strong>Provincia</strong>: Gestión de provincias (depende de País).</li>
-            <li><strong>Localidad</strong>: Gestión de localidades (depende de Provincia y País).</li>
-            <li><strong>Corporación</strong>: Gestión de corporaciones.</li>
-        </ul>
-
-        <h3 class="h5 text-primary mt-4">2.2 Middleware (Capa de Orquestación)</h3>
-        <p>Actúa como un puente inteligente. Sus funciones son:</p>
-        <ol>
-            <li><strong>Registro</strong>: Almacena las URLs de los microservicios activos.</li>
-            <li><strong>Inspección</strong>: Lee y parsea los archivos <code>openapi.json</code> de los servicios.</li>
-            <li><strong>Mapeo</strong>: Permite configurar qué atributos técnicos se muestran, su orden y labels visuales.</li>
-            <li><strong>Caché</strong>: Almacena versiones locales de los contratos para evitar latencia.</li>
-        </ol>
-
-        <h3 class="h5 text-primary mt-4">2.3 Microfrontend (Capa de Presentación)</h3>
-        <p>Desarrollado en <strong>Angular</strong>, proporciona la interfaz para que los administradores diseñen sus pantallas a partir de los contratos técnicos.</p>
+        <h2 class="mt-5 mb-3">2. Componentes Críticos</h2>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card h-100 p-3 border-0 shadow-sm">
+                    <h5 class="text-primary fw-bold">Microservicios</h5>
+                    <p class="small text-muted">Exponen contratos <strong>OpenAPI</strong> con soporte para monitoreo en tiempo real y CORS permisivo.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-3 border-0 shadow-sm">
+                    <h5 class="text-success fw-bold">Orquestador (Middleware)</h5>
+                    <p class="small text-muted">Parser resiliente que aplana jerarquías de herencia (<code>allOf</code>) y sanitiza metadatos automáticamente.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 p-3 border-0 shadow-sm">
+                    <h5 class="text-info fw-bold">Microfrontend</h5>
+                    <p class="small text-muted">UI robusta en Angular con blindaje de renderizado ante contratos incompletos.</p>
+                </div>
+            </div>
+        </div>
 
         <h2 class="mt-5 mb-3">3. Flujo de Configuración de UI</h2>
         <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
@@ -96,13 +97,13 @@
                     Admin->>MFE: Registra URL de Microservicio
                     MFE->>MW: POST /backend-services
                     MW->>SVC: GET /openapi.json
-                    SVC-->>MW: Contrato OpenAPI
-                    MW-->>MFE: Confirmación y Análisis
-                    Admin->>MFE: Selecciona Endpoint a Habilitar
-                    Admin->>MFE: Configura Labels, Orden y Referencias
-                    MFE->>MW: POST /mappings/toggle
-                    MW->>MW: Guarda en backend_mappings
-                    Admin->>MFE: Visualiza Preview
+                    SVC-->>MW: Contrato OpenAPI (con herencia)
+                    MW->>MW: Aplana modelos y Limpia caracteres
+                    MW-->>MFE: DTOs Estructurados y Limpios
+                    Admin->>MFE: Customiza Atributos (Labels, Orden)
+                    Admin->>MFE: Pulsa "Limpiar Caché" si hay cambios
+                    MFE->>MW: Refresco forzado de metadatos
+                    MW-->>MFE: Atributos Técnicos Actualizados
             </div>
         </div>
     </div>

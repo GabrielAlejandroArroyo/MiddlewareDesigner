@@ -14,6 +14,7 @@
         .nav-link { color: #adb5bd; }
         .nav-link:hover { color: white; }
         .nav-link.active { color: #0dcaf0; font-weight: bold; }
+        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -47,49 +48,42 @@
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-5">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Bienvenido al Ecosistema Middleware Designer</h1>
+                    <div>
+                        <h1 class="h2 mb-0">Ecosistema Middleware Designer</h1>
+                        <span class="badge bg-success-subtle text-success border border-success status-badge mt-2">SISTEMA ESTABLE Y OPERATIVO</span>
+                    </div>
                 </div>
 
                 <div class="row mt-4">
                     <div class="col-md-4">
-                        <div class="card shadow-sm p-4 mb-4 text-center" onclick="window.location.href='servicios/catalogo.html'">
+                        <div class="card shadow-sm p-4 mb-4 text-center border-top border-5 border-primary" onclick="window.location.href='servicios/catalogo.html'">
                             <div class="display-4 text-primary mb-3"><i class="bi bi-box-seam"></i></div>
                             <h5 class="fw-bold text-primary">Microservicios</h5>
-                            <p class="text-muted small">Arquitectura distribuida en Python/FastAPI con contratos OpenAPI autogenerados.</p>
+                            <p class="text-muted small">Capa de datos en FastAPI con contratos OpenAPI resilientes y monitoreo Heartbeat.</p>
                             <a href="servicios/catalogo.html" class="btn btn-sm btn-outline-primary">Ver Catálogo</a>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card shadow-sm p-4 mb-4 text-center" onclick="window.location.href='middleware/README.html'">
+                        <div class="card shadow-sm p-4 mb-4 text-center border-top border-5 border-success" onclick="window.location.href='middleware/README.html'">
                             <div class="display-4 text-success mb-3"><i class="bi bi-cpu"></i></div>
-                            <h5 class="fw-bold text-success">Middleware</h5>
-                            <p class="text-muted small">Orquestador dinámico que transforma contratos técnicos en definiciones de UI.</p>
-                            <a href="middleware/README.html" class="btn btn-sm btn-outline-success">Ver Detalles</a>
+                            <h5 class="fw-bold text-success">Orquestador</h5>
+                            <p class="text-muted small">Motor inteligente que aplana herencias y sanitiza contratos técnicos automáticamente.</p>
+                            <a href="middleware/README.html" class="btn btn-sm btn-outline-success">Ver Lógica</a>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card shadow-sm p-4 mb-4 text-center" onclick="window.location.href='frontend/README.html'">
+                        <div class="card shadow-sm p-4 mb-4 text-center border-top border-5 border-info" onclick="window.location.href='frontend/README.html'">
                             <div class="display-4 text-info mb-3"><i class="bi bi-window-sidebar"></i></div>
-                            <h5 class="fw-bold text-info">Microfrontend</h5>
-                            <p class="text-muted small">Interfaz en Angular para el diseño y previsualización de pantallas dinámicas.</p>
+                            <h5 class="fw-bold text-info">Designer UI</h5>
+                            <p class="text-muted small">Interfaz en Angular con blindaje de renderizado para diseño dinámico de pantallas.</p>
                             <a href="frontend/README.html" class="btn btn-sm btn-outline-info">Explorar UI</a>
                         </div>
                     </div>
                 </div>
 
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card shadow-sm p-4 mb-4" onclick="window.location.href='arquitectura/general.html'">
-                            <h5 class="fw-bold"><i class="bi bi-diagram-3 me-2"></i>Arquitectura del Sistema</h5>
-                            <p class="text-muted">Visión general de cómo interactúan todos los componentes del monorepo.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card shadow-sm p-4 mb-4" onclick="window.location.href='arquitectura/modelos_datos.html'">
-                            <h5 class="fw-bold"><i class="bi bi-database me-2"></i>Modelos de Datos</h5>
-                            <p class="text-muted">Explora las entidades y relaciones de las bases de datos SQLite.</p>
-                        </div>
-                    </div>
+                <div class="alert alert-primary mt-4 border-0 shadow-sm rounded-4 p-4">
+                    <h5 class="alert-heading fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Estado de Integración Actual</h5>
+                    <p class="mb-0">Todos los servicios han sido normalizados con políticas de <strong>CORS permisivo</strong> y <strong>aplanamiento de modelos</strong>. El Panel de Control visualiza correctamente los atributos técnicos y sus descripciones directamente desde el Swagger.</p>
                 </div>
             </main>
         </div>
