@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación - Middleware Designer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background: #212529; min-height: 100vh; color: white; padding: 20px; position: fixed; width: 250px; }
+        .content { margin-left: 270px; padding: 40px; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: #0dcaf0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="mb-4 text-info">MD Docs</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2"><a class="nav-link active" href="README.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="arquitectura/general.html"><i class="bi bi-diagram-3 me-2"></i>Arquitectura</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="arquitectura/modelos_datos.html"><i class="bi bi-database me-2"></i>Modelos de Datos</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="servicios/catalogo.html"><i class="bi bi-box me-2"></i>Servicios</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="middleware/README.html"><i class="bi bi-cpu me-2"></i>Middleware</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="frontend/README.html"><i class="bi bi-window me-2"></i>Frontend</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <h1 class="mb-4">Documentación del Proyecto: Middleware Designer</h1>
+        <p class="lead text-muted">Bienvenido a la documentación técnica del monorepo <strong>Middleware Designer</strong>.</p>
+        <p>Este sistema permite la orquestación dinámica de microservicios mediante la inspección de contratos OpenAPI y la generación automática de interfaces de usuario.</p>
+
+        <h2 class="mt-5 mb-4">📂 Estructura de Documentación</h2>
+        <div class="list-group shadow-sm border-0 rounded-4 overflow-hidden">
+            <a href="arquitectura/general.html" class="list-group-item list-group-item-action py-3">
+                <h6 class="mb-1 fw-bold text-primary">🏛️ Arquitectura General</h6>
+                <p class="mb-0 text-muted small">Descripción de la topología del sistema, diagramas C4 y componentes principales.</p>
+            </a>
+            <a href="arquitectura/modelos_datos.html" class="list-group-item list-group-item-action py-3">
+                <h6 class="mb-1 fw-bold text-success">📊 Modelos de Datos</h6>
+                <p class="mb-0 text-muted small">Diagramas de Entidad-Relación (ERD) de los microservicios y del Middleware.</p>
+            </a>
+            <a href="servicios/catalogo.html" class="list-group-item list-group-item-action py-3">
+                <h6 class="mb-1 fw-bold text-info">🔌 Catálogo de Servicios</h6>
+                <p class="mb-0 text-muted small">Detalle de cada microservicio backend, sus responsabilidades y patrones.</p>
+            </a>
+            <a href="middleware/README.html" class="list-group-item list-group-item-action py-3">
+                <h6 class="mb-1 fw-bold text-warning">⚙️ Middleware Designer</h6>
+                <p class="mb-0 text-muted small">Documentación del orquestador, lógica de parseo y API.</p>
+            </a>
+            <a href="frontend/README.html" class="list-group-item list-group-item-action py-3">
+                <h6 class="mb-1 fw-bold text-danger">🎨 Microfrontend Designer UI</h6>
+                <p class="mb-0 text-muted small">Guía sobre la aplicación Angular y el diseñador de acciones.</p>
+            </a>
+        </div>
+
+        <h2 class="mt-5 mb-3">🚀 Inicio Rápido</h2>
+        <p>Para levantar el ecosistema completo, utiliza los scripts de la raíz:</p>
+        <ul>
+            <li><strong>Windows (PowerShell)</strong>: <code>.\scripts\start_all.ps1</code></li>
+            <li><strong>Linux/macOS (Bash)</strong>: <code>./scripts/start_all.sh</code></li>
+        </ul>
+
+        <h2 class="mt-5 mb-3">🛠️ Tecnologías Principales</h2>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card p-3 text-center border-0 shadow-sm">
+                    <i class="bi bi-code-square fs-2 text-primary"></i>
+                    <p class="mt-2 mb-0 small fw-bold">Python / FastAPI</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 text-center border-0 shadow-sm">
+                    <i class="bi bi-filetype-ts fs-2 text-info"></i>
+                    <p class="mt-2 mb-0 small fw-bold">Angular 17+</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 text-center border-0 shadow-sm">
+                    <i class="bi bi-database fs-2 text-success"></i>
+                    <p class="mt-2 mb-0 small fw-bold">SQLite / SQLA 2.0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 text-center border-0 shadow-sm">
+                    <i class="bi bi-bootstrap fs-2 text-purple" style="color: #712cf9"></i>
+                    <p class="mt-2 mb-0 small fw-bold">Bootstrap 5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

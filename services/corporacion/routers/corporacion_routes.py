@@ -1,86 +1,84 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from config.database import get_db
-from dto.corporacion_base_dto import (
-    CorporacionCreateDTO, CorporacionReadDTO, CorporacionUpdateDTO, CorporacionListDTO
-)
+from fastapi import APIRouter, HTTPException, status
+from typing import List, Union
+from dto.corporacion_create_dto import CorporacionCreateDTO
+from dto.corporacion_update_dto import CorporacionUpdateDTO
+from dto.corporacion_put_dto import CorporacionPutDTO
+from dto.corporacion_read_dto import CorporacionReadDTO, CorporacionListDTO
 from dto.corporacion_delete_dto import CorporacionDeleteDTO
-from services import corporacion_service
-
-router = APIRouter(
-    prefix="/corporaciones", 
-    tags=["corporaciones"],
-    responses={404: {"description": "Corporación no encontrada"}}
+from services.corporacion_service import (
+    get_corporacion_by_id,
+    get_all_corporaciones,
+    create_corporacion,
+    update_corporacion,
+    delete_corporacion,
+    baja_logica_corporacion,
+    alta_logica_corporacion
 )
 
-@router.get(
-    "/", 
-    response_model=CorporacionListDTO,
+router = APIRouter(prefix="/corporaciones", tags=["corporaciones"])
+
+@router.get("/", 
+    response_model=CorporacionListDTO, 
     status_code=status.HTTP_200_OK,
     summary="Listar todas las corporaciones",
-    response_description="Listado de corporaciones con contador total"
-)
-async def listar_corporaciones(include_baja_logica: bool = True, db: AsyncSession = Depends(get_db)):
+    response_description="Listado de corporaciones con contador total")
+async def listar_corporaciones(include_baja_logica: bool = True):
     """
     Obtiene el listado completo de corporaciones registradas.
     Implementa el patrón RORO devolviendo un objeto con la lista y el total.
     """
-    return await corporacion_service.get_all_corporaciones(db, include_baja_logica=include_baja_logica)
+    return await get_all_corporaciones(include_baja_logica=include_baja_logica)
 
-@router.get(
-    "/{corporacion_id}", 
-    response_model=CorporacionReadDTO,
+@router.get("/{corporacion_id}", 
+    response_model=CorporacionReadDTO, 
     status_code=status.HTTP_200_OK,
     summary="Obtener una corporación por ID",
-    response_description="Datos detallados de la corporación solicitada"
-)
-async def obtener_corporacion(corporacion_id: int, db: AsyncSession = Depends(get_db)):
+    response_description="Datos detallados de la corporación solicitada")
+async def obtener_corporacion(corporacion_id: str):
     """
-    Busca una corporación específica por su identificador.
+    Busca una corporación específica por su identificador alfanumérico.
     Retorna el DTO de lectura completo incluyendo datos de auditoría.
     """
-    corp = await corporacion_service.get_corporacion_by_id(db, corporacion_id)
-    if not corp:
+    corporacion = await get_corporacion_by_id(corporacion_id)
+    if not corporacion:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Corporación no encontrada")
-    return corp
+    return corporacion
 
-@router.post(
-    "/", 
-    response_model=CorporacionReadDTO, 
-    status_code=status.HTTP_201_CREATED,
-    summary="Crear nueva corporación",
-    description="Crea una nueva corporación con los datos proporcionados"
-)
-async def crear_corporacion(corporacion_data: CorporacionCreateDTO, db: AsyncSession = Depends(get_db)):
-    """Alta de Corporación"""
-    return await corporacion_service.create_corporacion(db, corporacion_data)
+@router.post("/", response_model=CorporacionReadDTO, status_code=status.HTTP_201_CREATED)
+async def crear_corporacion(corporacion_data: CorporacionCreateDTO):
+    if await get_corporacion_by_id(corporacion_data.id):
+        raise HTTPException(status.HTTP_409_CONFLICT, detail="El ID ya existe")
+    return await create_corporacion(corporacion_data)
 
-@router.put(
-    "/{corporacion_id}", 
-    response_model=CorporacionReadDTO,
-    status_code=status.HTTP_200_OK,
-    summary="Actualizar corporación completa",
-    description="Actualización completa (PUT) - Todos los campos son obligatorios"
-)
-async def actualizar_corporacion_completa(corporacion_id: int, corporacion_data: CorporacionUpdateDTO, db: AsyncSession = Depends(get_db)):
-    """Actualizar datos de una corporación"""
-    corp = await corporacion_service.update_corporacion(db, corporacion_id, corporacion_data)
-    if not corp:
+@router.put("/{corporacion_id}", response_model=CorporacionReadDTO, status_code=status.HTTP_200_OK)
+async def actualizar_corporacion_completa(corporacion_id: str, corporacion_data: CorporacionPutDTO):
+    """Actualización completa (PUT) - Todos los campos son obligatorios"""
+    if not await get_corporacion_by_id(corporacion_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Corporación no encontrada")
-    return corp
+    return await update_corporacion(corporacion_id, corporacion_data)
 
-@router.delete(
-    "/{corporacion_id}", 
-    response_model=CorporacionDeleteDTO,
-    status_code=status.HTTP_200_OK,
-    summary="Eliminar corporación",
-    description="Elimina una corporación. Por defecto realiza una baja lógica. Si hard_delete es true, elimina definitivamente del sistema."
-)
-async def eliminar_corporacion(corporacion_id: int, hard_delete: bool = False, db: AsyncSession = Depends(get_db)):
-    """Eliminar corporación (Baja lógica por defecto)"""
-    success = await corporacion_service.delete_corporacion(db, corporacion_id, hard_delete)
-    if not success:
+@router.patch("/{corporacion_id}", response_model=CorporacionReadDTO, status_code=status.HTTP_200_OK)
+async def actualizar_corporacion_parcial(corporacion_id: str, corporacion_data: CorporacionUpdateDTO):
+    """Actualización parcial (PATCH) - Campos opcionales"""
+    if not await get_corporacion_by_id(corporacion_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Corporación no encontrada")
-    
-    msg = "Corporación eliminada definitivamente" if hard_delete else "Corporación dada de baja lógicamente"
-    return {"id": corporacion_id, "success": True, "message": msg}
+    return await update_corporacion(corporacion_id, corporacion_data)
+
+@router.delete("/{corporacion_id}", response_model=CorporacionDeleteDTO, status_code=status.HTTP_200_OK)
+async def eliminar_corporacion(corporacion_id: str):
+    result = await delete_corporacion(corporacion_id)
+    if not result.success:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=result.mensaje)
+    return result
+
+@router.patch("/{corporacion_id}/baja-logica", response_model=CorporacionReadDTO)
+async def dar_baja_logica(corporacion_id: str):
+    if not await get_corporacion_by_id(corporacion_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Corporación no encontrada")
+    return await baja_logica_corporacion(corporacion_id)
+
+@router.patch("/{corporacion_id}/alta-logica", response_model=CorporacionReadDTO)
+async def dar_alta_logica(corporacion_id: str):
+    if not await get_corporacion_by_id(corporacion_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Corporación no encontrada")
+    return await alta_logica_corporacion(corporacion_id)

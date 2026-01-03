@@ -3,4 +3,5 @@ uvicorn
 sqlalchemy
 aiosqlite
 pydantic
-pydantic[email]
+pydantic-settings
+python-multipart

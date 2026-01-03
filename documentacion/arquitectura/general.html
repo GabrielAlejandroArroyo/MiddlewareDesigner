@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura General - Middleware Designer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background: #212529; min-height: 100vh; color: white; padding: 20px; position: fixed; width: 250px; }
+        .content { margin-left: 270px; padding: 40px; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: #0dcaf0; font-weight: bold; }
+        pre { background: #f1f1f1; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="mb-4 text-info">MD Docs</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2"><a class="nav-link" href="../index.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
+            <li class="nav-item mb-2"><a class="nav-link active" href="general.html"><i class="bi bi-diagram-3 me-2"></i>Arquitectura</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="modelos_datos.html"><i class="bi bi-database me-2"></i>Modelos de Datos</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../servicios/catalogo.html"><i class="bi bi-box me-2"></i>Servicios</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../middleware/README.html"><i class="bi bi-cpu me-2"></i>Middleware</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../frontend/README.html"><i class="bi bi-window me-2"></i>Frontend</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <h1 class="mb-4">Arquitectura del Monorepo - Middleware Designer</h1>
+        <p class="lead">Este documento describe la arquitectura general del sistema, flujos de datos y componentes principales.</p>
+
+        <h2 class="mt-5 mb-3">1. Visión General (C4 Model - Nivel 1)</h2>
+        <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+            <div class="mermaid">
+                graph TD
+                    User((Usuario Final))
+                    MFE[Microfrontend Designer UI]
+                    MW[Middleware Designer]
+                    DB_MW[(Middleware Config DB)]
+                    
+                    subgraph Microservicios Backend
+                        SVC_P[Servicio País]
+                        SVC_PR[Servicio Provincia]
+                        SVC_L[Servicio Localidad]
+                        SVC_C[Servicio Corporación]
+                    end
+
+                    User --> MFE
+                    MFE --> MW
+                    MW --> DB_MW
+                    MW -.->|Inspecciona OpenAPI| SVC_P
+                    MW -.->|Inspecciona OpenAPI| SVC_PR
+                    MW -.->|Inspecciona OpenAPI| SVC_L
+                    MW -.->|Inspecciona OpenAPI| SVC_C
+            </div>
+        </div>
+
+        <h2 class="mt-5 mb-3">2. Componentes</h2>
+        <h3 class="h5 text-primary">2.1 Microservicios (Capa de Datos)</h3>
+        <p>Cada microservicio es independiente, desarrollado en <strong>FastAPI</strong> y expone su propio contrato <strong>OpenAPI</strong>.</p>
+        <ul>
+            <li><strong>País</strong>: Gestión de países.</li>
+            <li><strong>Provincia</strong>: Gestión de provincias (depende de País).</li>
+            <li><strong>Localidad</strong>: Gestión de localidades (depende de Provincia y País).</li>
+            <li><strong>Corporación</strong>: Gestión de corporaciones.</li>
+        </ul>
+
+        <h3 class="h5 text-primary mt-4">2.2 Middleware (Capa de Orquestación)</h3>
+        <p>Actúa como un puente inteligente. Sus funciones son:</p>
+        <ol>
+            <li><strong>Registro</strong>: Almacena las URLs de los microservicios activos.</li>
+            <li><strong>Inspección</strong>: Lee y parsea los archivos <code>openapi.json</code> de los servicios.</li>
+            <li><strong>Mapeo</strong>: Permite configurar qué atributos técnicos se muestran, su orden y labels visuales.</li>
+            <li><strong>Caché</strong>: Almacena versiones locales de los contratos para evitar latencia.</li>
+        </ol>
+
+        <h3 class="h5 text-primary mt-4">2.3 Microfrontend (Capa de Presentación)</h3>
+        <p>Desarrollado en <strong>Angular</strong>, proporciona la interfaz para que los administradores diseñen sus pantallas a partir de los contratos técnicos.</p>
+
+        <h2 class="mt-5 mb-3">3. Flujo de Configuración de UI</h2>
+        <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+            <div class="mermaid">
+                sequenceDiagram
+                    participant Admin as Administrador
+                    participant MFE as Designer UI
+                    participant MW as Middleware
+                    participant SVC as Microservicio
+
+                    Admin->>MFE: Registra URL de Microservicio
+                    MFE->>MW: POST /backend-services
+                    MW->>SVC: GET /openapi.json
+                    SVC-->>MW: Contrato OpenAPI
+                    MW-->>MFE: Confirmación y Análisis
+                    Admin->>MFE: Selecciona Endpoint a Habilitar
+                    Admin->>MFE: Configura Labels, Orden y Referencias
+                    MFE->>MW: POST /mappings/toggle
+                    MW->>MW: Guarda en backend_mappings
+                    Admin->>MFE: Visualiza Preview
+            </div>
+        </div>
+    </div>
+</body>
+</html>

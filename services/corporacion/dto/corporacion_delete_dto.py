@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 class CorporacionDeleteDTO(BaseModel):
-    """DTO para la respuesta de eliminación de una corporación"""
-    id: int = Field(..., description="ID de la corporación eliminada", example=1)
-    success: bool = Field(..., description="Indica si la operación fue exitosa", example=True)
-    message: str = Field(..., description="Mensaje descriptivo del resultado", example="Corporación dada de baja lógicamente")
+    """DTO para la respuesta de eliminación"""
+    id: str = Field(..., description="ID del registro procesado")
+    success: bool = Field(..., description="Indica si la operación fue exitosa")
+    mensaje: str = Field(..., description="Mensaje informativo sobre el resultado")

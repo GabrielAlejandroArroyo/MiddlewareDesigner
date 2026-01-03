@@ -15,6 +15,6 @@ class PaisReadDTO(PaisBaseDTO):
 
 class PaisListDTO(BaseModel):
     """Objeto contenedor para listados (Patrón RORO)"""
-    paises: List[PaisReadDTO] = Field(..., description="Lista de países encontrados")
+    pais: List[PaisReadDTO] = Field(..., description="Lista de países encontrados")
     total: int = Field(..., description="Cantidad total de registros que coinciden con la búsqueda")
 

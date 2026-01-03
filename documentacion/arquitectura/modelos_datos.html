@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de Datos - Middleware Designer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background: #212529; min-height: 100vh; color: white; padding: 20px; position: fixed; width: 250px; }
+        .content { margin-left: 270px; padding: 40px; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: #0dcaf0; font-weight: bold; }
+        pre { background: #f1f1f1; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="mb-4 text-info">MD Docs</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2"><a class="nav-link" href="../index.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="general.html"><i class="bi bi-diagram-3 me-2"></i>Arquitectura</a></li>
+            <li class="nav-item mb-2"><a class="nav-link active" href="modelos_datos.html"><i class="bi bi-database me-2"></i>Modelos de Datos</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../servicios/catalogo.html"><i class="bi bi-box me-2"></i>Servicios</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../middleware/README.html"><i class="bi bi-cpu me-2"></i>Middleware</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../frontend/README.html"><i class="bi bi-window me-2"></i>Frontend</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <h1 class="mb-4 text-dark">Modelos de Datos y Entidad Relación</h1>
+
+        <h2 class="mt-5 mb-3">1. Base de Datos de Microservicios (Individuales)</h2>
+        <p>Cada microservicio (<code>pais</code>, <code>provincia</code>, <code>localidad</code>, <code>corporacion</code>) utiliza una base de datos <strong>SQLite</strong> independiente con una estructura normalizada de auditoría y baja lógica.</p>
+
+        <h3 class="h5 mt-4 mb-3">Estructura General de Entidades</h3>
+        <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+            <div class="mermaid">
+                erDiagram
+                    PAIS {
+                        string id PK
+                        string descripcion
+                        string sigla_pais
+                        boolean baja_logica
+                        datetime fecha_alta_creacion
+                        datetime fecha_alta_modificacion
+                    }
+                    PROVINCIA {
+                        string id PK
+                        string descripcion
+                        string id_pais FK
+                        boolean baja_logica
+                        datetime fecha_alta_creacion
+                        datetime fecha_alta_modificacion
+                    }
+                    LOCALIDAD {
+                        string id PK
+                        string descripcion
+                        string id_pais FK
+                        string id_provincia FK
+                        boolean baja_logica
+                        datetime fecha_alta_creacion
+                        datetime fecha_alta_modificacion
+                    }
+                    CORPORACION {
+                        string id PK
+                        string descripcion
+                        boolean baja_logica
+                        datetime fecha_alta_creacion
+                        datetime fecha_alta_modificacion
+                    }
+            </div>
+        </div>
+
+        <h2 class="mt-5 mb-3">2. Base de Datos del Middleware (<code>middleware_config.db</code>)</h2>
+        <p>Centraliza la configuración del ecosistema.</p>
+        <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+            <div class="mermaid">
+                erDiagram
+                    BACKEND_SERVICE ||--o{ BACKEND_MAPPING : "tiene"
+                    FRONTEND_SERVICE ||--o{ BACKEND_MAPPING : "consume"
+
+                    BACKEND_SERVICE {
+                        string id PK
+                        string nombre
+                        string host
+                        int puerto
+                        string openapi_url
+                        string swagger_hash
+                        json swagger_spec_cached
+                        boolean is_active
+                    }
+
+                    FRONTEND_SERVICE {
+                        string id PK
+                        string nombre
+                        boolean is_active
+                    }
+
+                    BACKEND_MAPPING {
+                        int id PK
+                        string frontend_service_id FK
+                        string backend_service_id FK
+                        string endpoint_path
+                        string metodo
+                        json configuracion_ui
+                    }
+            </div>
+        </div>
+
+        <h3 class="h5 mt-4 mb-3">Detalle de <code>configuracion_ui</code> (JSON)</h3>
+        <p>El campo <code>configuracion_ui</code> en <code>backend_mappings</code> es el más importante, ya que contiene:</p>
+        <ul>
+            <li><strong>label</strong>: Nombre legible del endpoint.</li>
+            <li><strong>fields_config</strong>: Diccionario donde las keys son los atributos técnicos y los valores contienen:
+                <ul>
+                    <li><code>visualName</code>: Label a mostrar en la UI.</li>
+                    <li><code>show</code>: Booleano de visibilidad.</li>
+                    <li><code>order</code>: Posición en la pantalla.</li>
+                    <li><code>refService</code>: (Opcional) Microservicio para búsqueda/combo.</li>
+                    <li><code>dependsOn</code>: (Opcional) Campo del que depende este filtro.</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

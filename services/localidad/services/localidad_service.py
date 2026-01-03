@@ -52,7 +52,7 @@ async def get_all_localidades(
         
         dtos = [LocalidadReadDTO.model_validate(l) for l in localidades]
         return LocalidadListDTO(
-            localidades=dtos,
+            localidad=dtos,
             total=len(dtos)
         )
 

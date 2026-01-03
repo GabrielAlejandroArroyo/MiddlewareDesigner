@@ -15,6 +15,6 @@ class ProvinciaReadDTO(ProvinciaBaseDTO):
 
 class ProvinciaListDTO(BaseModel):
     """Contenedor para listado de provincias (Patrón RORO)"""
-    provincias: List[ProvinciaReadDTO] = Field(..., description="Lista de provincias")
+    provincia: List[ProvinciaReadDTO] = Field(..., description="Lista de provincias")
     total: int = Field(..., description="Total de registros")
 

@@ -73,60 +73,109 @@ class OpenApiService:
 
     def _resolve_schema(self, schema_ref: Dict[str, Any], all_schemas: Dict[str, Any], depth: int = 0) -> Dict[str, Any]:
         """Resuelve una referencia $ref o devuelve el esquema si es inline, con soporte para anidamiento"""
-        if depth > 5: return {"name": "LimitReached", "properties": {}}
+        if depth > 20: return {"name": "LimitReached", "properties": {}, "type": "object"}
 
         # Caso 1: Es una referencia directa
         if "$ref" in schema_ref:
             ref_path = schema_ref["$ref"]
             schema_name = ref_path.split("/")[-1]
             schema_content = all_schemas.get(schema_name, {})
+            resolved = self._resolve_schema(schema_content, all_schemas, depth + 1)
+            resolved["name"] = schema_name
+            return resolved
+        
+        # Caso especial: allOf (Herencia) - FUSION TOTAL
+        if "allOf" in schema_ref:
+            combined_props = {}
+            combined_required = []
+            name = schema_ref.get("title") or schema_ref.get("name")
             
-            resolved_props = {}
-            for p_name, p_val in schema_content.get("properties", {}).items():
-                resolved_props[p_name] = self._resolve_property(p_val, all_schemas, depth + 1)
+            for sub_schema in schema_ref["allOf"]:
+                resolved_sub = self._resolve_schema(sub_schema, all_schemas, depth + 1)
+                if "properties" in resolved_sub:
+                    for k, v in resolved_sub["properties"].items():
+                        clean_key = str(k).strip()
+                        combined_props[clean_key] = v
+                if "required" in resolved_sub:
+                    combined_required.extend(resolved_sub["required"])
+                if not name and resolved_sub.get("name"):
+                    name = resolved_sub.get("name")
 
             return {
-                "name": schema_name,
-                "properties": resolved_props,
-                "required": schema_content.get("required", [])
+                "name": name or "ObjectDTO",
+                "type": "object",
+                "properties": combined_props,
+                "required": list(set(combined_required))
             }
-        
-        # Caso 2: Es un array
+
+        # Caso especial: anyOf / oneOf (Tomar el primero que no sea null)
+        for selector in ["anyOf", "oneOf"]:
+            if selector in schema_ref:
+                for opt in schema_ref[selector]:
+                    if opt.get("type") != "null":
+                        return self._resolve_schema(opt, all_schemas, depth + 1)
+
+        # Objeto estándar
+        if "properties" in schema_ref or schema_ref.get("type") == "object":
+            resolved_props = {}
+            props = schema_ref.get("properties", {})
+            for p_name, p_val in props.items():
+                clean_name = str(p_name).strip()
+                resolved_props[clean_name] = self._resolve_property(p_val, all_schemas, depth + 1)
+
+            return {
+                "name": schema_ref.get("title") or schema_ref.get("name") or "ObjectDTO",
+                "type": "object",
+                "properties": resolved_props,
+                "required": schema_ref.get("required", [])
+            }
+
+        # Array
         if schema_ref.get("type") == "array":
             items_ref = schema_ref.get("items", {})
             resolved_items = self._resolve_schema(items_ref, all_schemas, depth + 1)
             return {
-                "name": f"Array<{resolved_items.get('name', 'Items')}>",
+                "name": f"{resolved_items.get('name', 'Item')}[]",
                 "type": "array",
-                "items": resolved_items,
-                "properties": resolved_items.get("properties", {}) # Importante para que el frontend lo detecte como objeto
+                "items": resolved_items
             }
 
-        # Caso 3: Es un esquema inline
-        resolved_props = {}
-        for p_name, p_val in schema_ref.get("properties", {}).items():
-            resolved_props[p_name] = self._resolve_property(p_val, all_schemas, depth + 1)
-
+        # Tipo primitivo
         return {
-            "name": schema_ref.get("title", "InlineSchema"),
-            "properties": resolved_props,
-            "required": schema_ref.get("required", [])
+            "type": schema_ref.get("type", "string"),
+            "name": schema_ref.get("title") or schema_ref.get("name") or schema_ref.get("type", "string"),
+            "format": schema_ref.get("format"),
+            "description": schema_ref.get("description", "")
         }
 
     def _resolve_property(self, prop_val: Dict[str, Any], all_schemas: Dict[str, Any], depth: int) -> Dict[str, Any]:
         """Resuelve el tipo de una propiedad individual"""
+        if not isinstance(prop_val, dict):
+            return {"type": "any", "name": "any"}
+
         if "$ref" in prop_val:
             return self._resolve_schema(prop_val, all_schemas, depth)
         
+        # Caso especial: anyOf / oneOf en propiedades
+        for selector in ["anyOf", "oneOf"]:
+            if selector in prop_val:
+                for opt in prop_val[selector]:
+                    if opt.get("type") != "null":
+                        res = self._resolve_property(opt, all_schemas, depth)
+                        if "title" in prop_val: res["title"] = prop_val["title"]
+                        if "description" in prop_val: res["description"] = prop_val["description"]
+                        return res
+
         if prop_val.get("type") == "array":
             item_schema = self._resolve_schema(prop_val.get("items", {}), all_schemas, depth)
             return {
                 "type": "array",
                 "items": item_schema,
-                "name": f"Array<{item_schema.get('name', 'any')}>"
+                "name": f"{item_schema.get('name', 'any')}[]",
+                "title": prop_val.get("title"),
+                "description": prop_val.get("description")
             }
         
         res = prop_val.copy()
-        if "unique" in prop_val:
-            res["unique"] = prop_val["unique"]
+        res["name"] = res.get("title") or res.get("name") or res.get("type", "string")
         return res

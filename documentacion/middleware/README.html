@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Middleware Designer - Orquestador</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background: #212529; min-height: 100vh; color: white; padding: 20px; position: fixed; width: 250px; }
+        .content { margin-left: 270px; padding: 40px; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: #0dcaf0; font-weight: bold; }
+        pre { background: #212529; color: #f1f1f1; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="mb-4 text-info">MD Docs</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2"><a class="nav-link" href="../index.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../arquitectura/general.html"><i class="bi bi-diagram-3 me-2"></i>Arquitectura</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../arquitectura/modelos_datos.html"><i class="bi bi-database me-2"></i>Modelos de Datos</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../servicios/catalogo.html"><i class="bi bi-box me-2"></i>Servicios</a></li>
+            <li class="nav-item mb-2"><a class="nav-link active" href="README.html"><i class="bi bi-cpu me-2"></i>Middleware</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../frontend/README.html"><i class="bi bi-window me-2"></i>Frontend</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <h1 class="mb-4">Middleware Designer - Orquestador</h1>
+        <p class="lead">El Middleware es el corazón del sistema. Actúa como un servidor proxy inteligente que gestiona los metadatos de los servicios backend.</p>
+
+        <h2 class="mt-5 mb-3 text-secondary">Tecnologías</h2>
+        <ul>
+            <li><strong>Framework</strong>: FastAPI</li>
+            <li><strong>Base de Datos</strong>: SQLite (configuración)</li>
+            <li><strong>ORM</strong>: SQLAlchemy 2.0 (Async)</li>
+            <li><strong>Parser</strong>: httpx para lectura de contratos remotos.</li>
+        </ul>
+
+        <h2 class="mt-5 mb-3 text-secondary">Endpoints Clave</h2>
+        <h3 class="h5 mt-4">Gestión de Servicios (<code>/api/v1/config/backend-services</code>)</h3>
+        <ul>
+            <li><code>POST /</code>: Registra un nuevo microservicio.</li>
+            <li><code>GET /</code>: Lista servicios activos y verifica cambios en sus Swagger (comparando hashes).</li>
+            <li><code>GET /{id}/inspect</code>: Realiza el análisis profundo del contrato y devuelve endpoints + DTOs estructurados.</li>
+            <li><code>POST /{id}/refresh-swagger</code>: Fuerza la limpieza de caché y re-análisis del contrato.</li>
+        </ul>
+
+        <h3 class="h5 mt-4">Gestión de Mapeos (<code>/api/v1/config/mappings</code>)</h3>
+        <ul>
+            <li><code>POST /toggle</code>: Habilita/Deshabilita un endpoint para la UI y guarda su configuración de labels y orden.</li>
+            <li><code>DELETE /</code>: Elimina un mapeo existente.</li>
+        </ul>
+
+        <h2 class="mt-5 mb-3 text-secondary">Lógica de Resolución de DTOs</h2>
+        <p>El servicio <code>OpenApiService</code> es responsable de:</p>
+        <ol>
+            <li>Resolver referencias <code>$ref</code> de forma recursiva.</li>
+            <li>Identificar tipos de datos (string, integer, boolean, date-time).</li>
+            <li>Detectar estructuras de colecciones (arrays) y extraer sus modelos internos.</li>
+            <li>Normalizar los nombres de los tipos para la visualización en el frontend (ej: <code>PaisReadDTO[]</code>).</li>
+        </ol>
+    </div>
+</body>
+</html>

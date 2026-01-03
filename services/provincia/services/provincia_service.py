@@ -35,7 +35,7 @@ async def get_all_provincias(include_baja_logica: bool = True, id_pais: Optional
         provincias = result.scalars().all()
         
         return ProvinciaListDTO(
-            provincias=[ProvinciaReadDTO.model_validate(p) for p in provincias],
+            provincia=[ProvinciaReadDTO.model_validate(p) for p in provincias],
             total=len(provincias)
         )
 

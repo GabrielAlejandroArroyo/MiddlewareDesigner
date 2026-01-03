@@ -87,6 +87,13 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 <i class="bi bi-sliders2-vertical me-2 text-primary"></i>
                 Customización de Acción: Parámetros, Request y Response
               </h6>
+              <button class="btn btn-xs btn-outline-warning fw-bold ms-auto py-0 px-2" 
+                      (click)="refreshSwagger()" 
+                      [disabled]="loading || refreshingSwagger"
+                      title="Limpia caché y relee el contrato OpenAPI">
+                <i class="bi" [ngClass]="refreshingSwagger ? 'bi-arrow-repeat spin' : 'bi-trash-fill'"></i>
+                {{ refreshingSwagger ? 'REFRESCANDO...' : 'LIMPIAR CACHÉ SWAGGER' }}
+              </button>
             </div>
             <ul class="nav nav-tabs border-bottom-0">
               <li class="nav-item">
@@ -355,13 +362,20 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                    </tr>
                                  </thead>
                                  <tbody class="small">
-                                    <tr *ngFor="let prop of dto.properties | keyvalue">
-                                      <td class="ps-3">
-                                        <span class="fw-bold text-muted">{{ prop.key }}</span>
+                                    <tr *ngFor="let prop of (dto.properties | keyvalue); trackBy: trackByProp">
+                                      <td class="ps-3" style="min-width: 250px; background-color: #ffffff;">
+                                        <div class="d-flex align-items-center mb-1">
+                                          <i class="bi bi-tag-fill me-2 text-primary opacity-75"></i>
+                                          <span class="fw-bold text-dark">{{ prop.key }}</span>
+                                        </div>
+                                        <div class="x-small text-muted italic ps-4" *ngIf="asAny(prop.value).description">
+                                          {{ asAny(prop.value).description }}
+                                        </div>
                                       </td>
-                                      <td>
-                                        <input type="text" class="form-control form-control-sm" 
-                                               [(ngModel)]="getFieldConfig(prop.key, activeTab).visualName"
+                                      <td style="background-color: #ffffff;">
+                                        <input type="text" class="form-control form-control-sm border-info border-opacity-25" 
+                                               [ngModel]="getFieldConfig(prop.key, activeTab).visualName"
+                                               (ngModelChange)="getFieldConfig(prop.key, activeTab).visualName = $event"
                                                [placeholder]="prop.key">
                                       </td>
                                       <td>
@@ -531,6 +545,7 @@ export class ActionDefinitionComponent implements OnInit {
   serviceEndpoints: Endpoint[] = []; // Todos los endpoints del servicio para vinculación
   allServices: any[] = [];
   loading = true;
+  refreshingSwagger = false;
   error: string | null = null;
 
   // UI State
@@ -564,6 +579,24 @@ export class ActionDefinitionComponent implements OnInit {
   loadAllServices() {
     this.middlewareService.getBackendServices().subscribe(data => {
       this.allServices = data.filter(s => s.id !== this.serviceId); // No referenciarse a sí mismo
+    });
+  }
+
+  refreshSwagger() {
+    if (!this.serviceId || this.refreshingSwagger) return;
+    
+    this.refreshingSwagger = true;
+    this.middlewareService.refreshSwagger(this.serviceId, true).subscribe({
+      next: () => {
+        // Después de refrescar en el middleware, recargamos los detalles aquí
+        this.loadEndpointDetails();
+        this.refreshingSwagger = false;
+        // Opcional: mostrar notificación pequeña
+      },
+      error: (err) => {
+        alert('Error al refrescar caché: ' + (err.error?.detail || err.message));
+        this.refreshingSwagger = false;
+      }
     });
   }
 
@@ -643,22 +676,37 @@ export class ActionDefinitionComponent implements OnInit {
     return this.initialState !== currentState;
   }
 
-  getPropertyConfig(propKey: string, type: 'params' | 'request' | 'response' | string): any {
-    const config = this.endpoint?.configuracion_ui?.fields_config;
-    if (!config) return { show: true, editable: true, order: 0 };
+  getPropertyConfig(propKey: string, type: string): any {
+    if (!this.endpoint) return { show: true, editable: true, order: 0, visualName: propKey };
     
+    // Asegurar estructura básica de configuracion_ui
+    if (!this.endpoint.configuracion_ui) this.endpoint.configuracion_ui = {};
+    if (!this.endpoint.configuracion_ui.fields_config) {
+      this.endpoint.configuracion_ui.fields_config = { params: {}, request: {}, response: {} };
+    }
+
+    const config = this.endpoint.configuracion_ui.fields_config;
     const category = type === 'params' ? 'params' : (type === 'request' ? 'request' : 'response');
     
-    if (!config[category]) {
-      config[category] = {};
-    }
+    if (!config[category]) config[category] = {};
 
+    // Si el campo no existe en la configuración, lo inicializamos con valores seguros
     if (!config[category][propKey]) {
-      // ... (existing logic) ...
+      config[category][propKey] = {
+        show: true,
+        editable: true,
+        required: false,
+        unique: false,
+        order: 99,
+        visualName: propKey,
+        refService: null,
+        refDisplay: 'id',
+        dependsOn: null
+      };
     }
 
-    // Asegurar que visualName exista si no estaba en la configuración guardada
-    if (config[category][propKey] && !config[category][propKey].visualName) {
+    // Asegurar que siempre tenga un visualName para evitar campos vacíos
+    if (!config[category][propKey].visualName) {
       config[category][propKey].visualName = propKey;
     }
 
@@ -666,7 +714,7 @@ export class ActionDefinitionComponent implements OnInit {
   }
 
   getFieldConfig(propKey: any, type: string): any {
-    return this.getPropertyConfig(String(propKey), type);
+    return this.getPropertyConfig(String(propKey || 'unknown'), type);
   }
 
   toggleVisibility(propKey: any, type: string) {
@@ -703,25 +751,64 @@ export class ActionDefinitionComponent implements OnInit {
   }
 
   updateDetectedDtos() {
-    const rootDto = this.activeTab === 'request' ? this.endpoint?.request_dto : this.endpoint?.response_dto;
+    if (!this.endpoint) return;
+    
+    const rootDto = this.activeTab === 'request' ? this.endpoint.request_dto : this.endpoint.response_dto;
     this.detectedDtos = [];
+    
     if (rootDto) {
-      this.extractAllDtos(rootDto);
+      console.log('Procesando DTO Raíz:', rootDto);
+      this.extractAllDtos(rootDto, rootDto.name || 'DTO');
+      
       if (this.detectedDtos.length > 0) {
-        this.activeDtoId = this.detectedDtos[0].name;
+        // Seleccionamos el DTO que tenga propiedades
+        const withProps = this.detectedDtos.filter(d => d.properties && Object.keys(d.properties).length > 0);
+        if (withProps.length > 0) {
+          this.activeDtoId = withProps[0].name;
+        } else {
+          this.activeDtoId = this.detectedDtos[0].name;
+        }
       }
     }
   }
 
-  extractAllDtos(dto: any) {
-    if (!dto || !dto.name) return;
-    if (this.detectedDtos.find(d => d.name === dto.name)) return;
-    this.detectedDtos.push(dto);
+  extractAllDtos(dto: any, name: string) {
+    if (!dto || typeof dto !== 'object') return;
+    
+    const dtoName = dto.name || name;
+    if (this.detectedDtos.find(d => d.name === dtoName)) return;
+
+    // Caso de Objeto con Propiedades
     if (dto.properties) {
-      Object.values(dto.properties).forEach((prop: any) => {
-        if (prop.properties) this.extractAllDtos(prop);
-        else if (prop.type === 'array' && prop.items?.properties) this.extractAllDtos(prop.items);
+      const cleanProps: any = {};
+      Object.entries(dto.properties).forEach(([key, value]) => {
+        if (key && key !== 'null' && key !== 'undefined') {
+          cleanProps[key] = value;
+        }
       });
+
+      if (Object.keys(cleanProps).length > 0) {
+        this.detectedDtos.push({
+          name: dtoName,
+          type: 'object',
+          properties: cleanProps
+        });
+
+        // Recursión sobre las propiedades
+        Object.entries(cleanProps).forEach(([key, value]: [string, any]) => {
+          if (value && typeof value === 'object') {
+            if (value.properties) {
+              this.extractAllDtos(value, key);
+            } else if (value.type === 'array' && value.items) {
+              this.extractAllDtos(value.items, key);
+            }
+          }
+        });
+      }
+    } 
+    // Caso de Array (saltar al contenido)
+    else if (dto.type === 'array' && dto.items) {
+      this.extractAllDtos(dto.items, dtoName.replace('[]', ''));
     }
   }
 
@@ -749,11 +836,17 @@ export class ActionDefinitionComponent implements OnInit {
   }
 
   getSimplePropType(prop: any): string {
+    if (!prop) return 'unknown';
     if (prop.type === 'array') {
       const itemName = prop.items?.name || prop.items?.type || 'any';
       return `${itemName}[]`;
     }
-    return prop.name || prop.type || 'any';
+    if (prop.properties || prop.type === 'object') {
+      return prop.name || 'Object';
+    }
+    const type = prop.type || 'string';
+    const format = prop.format ? `(${prop.format})` : '';
+    return `${type}${format}`;
   }
 
   getPropColor(prop: any): string {
@@ -796,6 +889,14 @@ export class ActionDefinitionComponent implements OnInit {
     return `badge-${method}`;
   }
 
+  trackByProp(index: number, item: any): string {
+    return item.key;
+  }
+
+  asAny(val: any): any {
+    return val;
+  }
+
   // Helper para filtrar endpoints por método
   getEndpointsByMethod(methods: string | string[], mustHavePathParams: boolean = false): Endpoint[] {
     const methodList = Array.isArray(methods) ? methods : [methods];
@@ -825,8 +926,9 @@ export class ActionDefinitionComponent implements OnInit {
     
     let columns: string[] = [];
     if (responseDto && responseDto.properties) {
-      // Si es un listado (tipo RORO), buscamos las propiedades del item del array
-      const listProp: any = Object.values(responseDto.properties).find((p: any) => p.type === 'array');
+      // Buscar el primer array que no sea total
+      const listProp: any = Object.entries(responseDto.properties).find(([k, p]: [string, any]) => p.type === 'array' && k !== 'total')?.[1];
+      
       if (listProp && listProp.items && listProp.items.properties) {
         columns = Object.keys(listProp.items.properties);
       } else {
@@ -836,12 +938,15 @@ export class ActionDefinitionComponent implements OnInit {
     } else {
       columns = ['id', 'descripcion', 'estado'];
     }
+    
+    // Si no hay columnas detectadas, fallback
+    if (columns.length === 0) columns = ['id', 'descripcion'];
 
     // Filtrar según configuración de visibilidad y ordenar
     return columns
       .filter(col => config[col]?.show !== false)
       .sort((a, b) => (config[a]?.order || 0) - (config[b]?.order || 0))
-      .slice(0, 5)
+      .slice(0, 8) // Aumentamos de 5 a 8 para ver más
       .map(col => ({
         key: col,
         label: config[col]?.visualName || col
@@ -854,7 +959,9 @@ export class ActionDefinitionComponent implements OnInit {
 
     const dto = (this.method === 'POST' || this.method === 'PUT' || this.method === 'PATCH') 
                 ? ep.request_dto : ep.response_dto;
-    const config = ep.configuracion_ui?.fields_config?.request || {};
+    const config = (this.method === 'POST' || this.method === 'PUT' || this.method === 'PATCH') 
+                ? (ep.configuracion_ui?.fields_config?.request || {})
+                : (ep.configuracion_ui?.fields_config?.response || {});
     
     if (dto && dto.properties) {
       return Object.entries(dto.properties)
@@ -867,7 +974,7 @@ export class ActionDefinitionComponent implements OnInit {
           unique: config[k]?.unique === true,
           order: config[k]?.order || 0
         }))
-        .filter(f => !['fecha_alta_creacion', 'fecha_alta_modificacion'].includes(f.key)) // Auditoría siempre fuera
+        .filter(f => !['fecha_alta_creacion', 'fecha_alta_modificacion', 'baja_logica'].includes(f.key)) // Auditoría fuera del formulario
         .filter(f => config[f.key]?.show !== false) // Filtrar por visibilidad
         .sort((a, b) => a.order - b.order); // Ordenar por propiedad order
     }

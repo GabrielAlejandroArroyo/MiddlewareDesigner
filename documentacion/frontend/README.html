@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer UI - Microfrontend Angular</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background: #212529; min-height: 100vh; color: white; padding: 20px; position: fixed; width: 250px; }
+        .content { margin-left: 270px; padding: 40px; }
+        .nav-link { color: #adb5bd; }
+        .nav-link:hover { color: white; }
+        .nav-link.active { color: #0dcaf0; font-weight: bold; }
+        pre { background: #212529; color: #f1f1f1; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="mb-4 text-info">MD Docs</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2"><a class="nav-link" href="../index.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../arquitectura/general.html"><i class="bi bi-diagram-3 me-2"></i>Arquitectura</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../arquitectura/modelos_datos.html"><i class="bi bi-database me-2"></i>Modelos de Datos</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../servicios/catalogo.html"><i class="bi bi-box me-2"></i>Servicios</a></li>
+            <li class="nav-item mb-2"><a class="nav-link" href="../middleware/README.html"><i class="bi bi-cpu me-2"></i>Middleware</a></li>
+            <li class="nav-item mb-2"><a class="nav-link active" href="README.html"><i class="bi bi-window me-2"></i>Frontend</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <h1 class="mb-4">Designer UI - Microfrontend Angular</h1>
+        <p class="lead">La interfaz administrativa que permite "dibujar" las aplicaciones finales a partir de los microservicios.</p>
+
+        <h2 class="mt-5 mb-3 text-info">Características</h2>
+        <ul>
+            <li><strong>Arquitectura Standalone</strong>: Utiliza componentes independientes sin módulos pesados.</li>
+            <li><strong>Routing Dinámico</strong>: Basado en el ID del servicio para inspección.</li>
+            <li><strong>Bootstrap 5 + Icons</strong>: Para un diseño limpio y profesional.</li>
+        </ul>
+
+        <h2 class="mt-5 mb-3 text-info">Funcionalidades Principales</h2>
+        
+        <h3 class="h5 mt-4">1. Dashboard</h3>
+        <p>Visualización rápida del estado del ecosistema (servicios online/offline).</p>
+
+        <h3 class="h5 mt-4">2. Gestión de Backends</h3>
+        <p>CRUD para el registro de nuevos microservicios mediante su URL de OpenAPI.</p>
+
+        <h3 class="h5 mt-4">3. Inspector de Endpoints</h3>
+        <p>Permite navegar por todos los métodos (GET, POST, etc.) que expone un servicio y habilitarlos mediante un switch.</p>
+
+        <h3 class="h5 mt-4">4. Definición de Acción (El Diseñador)</h3>
+        <p>Pantalla crítica donde se configuran los metadatos de la UI:</p>
+        <ul>
+            <li><strong>Pestaña Parámetros</strong>: Configura filtros de URL.</li>
+            <li><strong>Pestaña Request/Response</strong>: Permite cambiar nombres técnicos por visuales, ocultar campos y establecer relaciones entre servicios (ej: que un ID de país abra un buscador del servicio País).</li>
+            <li><strong>Preview</strong>: Renderiza en tiempo real cómo se vería la grilla o el formulario generado.</li>
+        </ul>
+
+        <h3 class="h5 mt-4">Servicios Core</h3>
+        <ul>
+            <li><code>MiddlewareService</code>: Centraliza todas las llamadas HTTP al middleware.</li>
+        </ul>
+    </div>
+</body>
+</html>

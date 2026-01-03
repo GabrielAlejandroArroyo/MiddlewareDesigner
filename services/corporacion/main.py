@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -12,29 +11,28 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+    # Limpieza al cerrar si es necesario
     await engine.dispose()
 
 app = FastAPI(
-    title="Corporacion Microservice",
-    description="API para la gestión de corporaciones y empresas",
+    title="Corporación Service",
+    description="API para la gestión de corporaciones",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# Configuración de CORS robusta
+# Configuración de CORS ultra-permisiva para asegurar visualización en Panel
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex="http://(127\.0\.0\.1|localhost):[0-9]+",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/", include_in_schema=False)
-async def root():
-    return RedirectResponse(url="/docs")
-
+# Incluir rutas
 app.include_router(corporacion_router, prefix="/api/v1")
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8003, reload=True)
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"status": "ok", "service": "Corporación Service"}

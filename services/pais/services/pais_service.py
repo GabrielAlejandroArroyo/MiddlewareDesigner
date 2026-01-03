@@ -20,7 +20,7 @@ async def get_all_paises(include_baja_logica: bool = True) -> PaisListDTO:
         
         paises_dtos = [PaisReadDTO.model_validate(p) for p in paises_entities]
         return PaisListDTO(
-            paises=paises_dtos,
+            pais=paises_dtos,
             total=len(paises_dtos)
         )
 
