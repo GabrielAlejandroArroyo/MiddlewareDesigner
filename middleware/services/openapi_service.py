@@ -71,6 +71,18 @@ class OpenApiService:
                 })
         return endpoints
 
+    def _sanitize_text(self, text: Any) -> str:
+        """Limpia el texto de caracteres no ASCII para evitar problemas de encoding"""
+        if text is None:
+            return ""
+        if not isinstance(text, str):
+            return str(text)
+        # Reemplazar caracteres problemáticos comunes
+        text = text.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
+        text = text.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
+        text = text.replace("ñ", "n").replace("Ñ", "N")
+        return text.encode('ascii', 'ignore').decode('ascii')
+
     def _resolve_schema(self, schema_ref: Dict[str, Any], all_schemas: Dict[str, Any], depth: int = 0) -> Dict[str, Any]:
         """Resuelve una referencia $ref o devuelve el esquema si es inline, con soporte para anidamiento"""
         if depth > 20: return {"name": "LimitReached", "properties": {}, "type": "object"}
@@ -102,7 +114,7 @@ class OpenApiService:
                     name = resolved_sub.get("name")
 
             return {
-                "name": name or "ObjectDTO",
+                "name": self._sanitize_text(name or "ObjectDTO"),
                 "type": "object",
                 "properties": combined_props,
                 "required": list(set(combined_required))
@@ -124,7 +136,7 @@ class OpenApiService:
                 resolved_props[clean_name] = self._resolve_property(p_val, all_schemas, depth + 1)
 
             return {
-                "name": schema_ref.get("title") or schema_ref.get("name") or "ObjectDTO",
+                "name": self._sanitize_text(schema_ref.get("title") or schema_ref.get("name") or "ObjectDTO"),
                 "type": "object",
                 "properties": resolved_props,
                 "required": schema_ref.get("required", [])
@@ -143,9 +155,9 @@ class OpenApiService:
         # Tipo primitivo
         return {
             "type": schema_ref.get("type", "string"),
-            "name": schema_ref.get("title") or schema_ref.get("name") or schema_ref.get("type", "string"),
+            "name": self._sanitize_text(schema_ref.get("title") or schema_ref.get("name") or schema_ref.get("type", "string")),
             "format": schema_ref.get("format"),
-            "description": schema_ref.get("description", "")
+            "description": self._sanitize_text(schema_ref.get("description", ""))
         }
 
     def _resolve_property(self, prop_val: Dict[str, Any], all_schemas: Dict[str, Any], depth: int) -> Dict[str, Any]:
@@ -162,8 +174,8 @@ class OpenApiService:
                 for opt in prop_val[selector]:
                     if opt.get("type") != "null":
                         res = self._resolve_property(opt, all_schemas, depth)
-                        if "title" in prop_val: res["title"] = prop_val["title"]
-                        if "description" in prop_val: res["description"] = prop_val["description"]
+                        if "title" in prop_val: res["title"] = self._sanitize_text(prop_val["title"])
+                        if "description" in prop_val: res["description"] = self._sanitize_text(prop_val["description"])
                         return res
 
         if prop_val.get("type") == "array":
@@ -172,10 +184,12 @@ class OpenApiService:
                 "type": "array",
                 "items": item_schema,
                 "name": f"{item_schema.get('name', 'any')}[]",
-                "title": prop_val.get("title"),
-                "description": prop_val.get("description")
+                "title": self._sanitize_text(prop_val.get("title")),
+                "description": self._sanitize_text(prop_val.get("description"))
             }
         
         res = prop_val.copy()
-        res["name"] = res.get("title") or res.get("name") or res.get("type", "string")
+        res["name"] = self._sanitize_text(res.get("title") or res.get("name") or res.get("type", "string"))
+        if "title" in res: res["title"] = self._sanitize_text(res["title"])
+        if "description" in res: res["description"] = self._sanitize_text(res["description"])
         return res

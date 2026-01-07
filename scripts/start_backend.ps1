@@ -43,6 +43,7 @@ $servicePorts = @{
     "roles" = 8006
     "usuario" = 8007
     "aplicacion-role" = 8008
+    "usuario-rol" = 8009
 }
 
 $jobs = @()
@@ -67,11 +68,11 @@ foreach ($service in $services) {
     Write-Host "Iniciando servicio: $serviceName en puerto $port" -ForegroundColor Yellow
     
     # Verificar e instalar dependencias si existe requirements.txt
-    $requirementsPath = Join-Path $servicePath "requirements.txt"
-    if (Test-Path $requirementsPath) {
-        Write-Host "  Instalando dependencias para $serviceName..." -ForegroundColor Gray
-        pip install -q -r $requirementsPath
-    }
+    # $requirementsPath = Join-Path $servicePath "requirements.txt"
+    # if (Test-Path $requirementsPath) {
+    #     Write-Host "  Instalando dependencias para $serviceName..." -ForegroundColor Gray
+    #     pip install -q -r $requirementsPath
+    # }
     
     # Iniciar el servicio en background
     # Pasamos el servicePath al job para aislar el entorno de cada microservicio

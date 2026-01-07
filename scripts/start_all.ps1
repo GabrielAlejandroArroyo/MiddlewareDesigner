@@ -31,8 +31,9 @@ function Wait-ForUrl($url, $name) {
     Write-Host "  Esperando a $name en $url..." -ForegroundColor Gray
     for ($i = 1; $i -le 20; $i++) {
         try {
-            $resp = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 2 -ErrorAction SilentlyContinue
-            if ($resp.StatusCode -eq 200) {
+            # Usar curl.exe para mayor confiabilidad en Windows
+            $resp = curl.exe -s -o /dev/null -w "%{http_code}" $url
+            if ($resp -eq "200") {
                 Write-Host "  [OK] $name ONLINE." -ForegroundColor Green
                 return $true
             }
@@ -50,50 +51,61 @@ Write-Host "[1/3] Iniciando backend..." -ForegroundColor Cyan
 $backendJob = Start-Job -ScriptBlock {
     param($scriptPath)
     Set-Location (Split-Path $scriptPath)
-    & "$scriptPath\start_backend.ps1"
+    & ".\start_backend.ps1"
 } -ArgumentList $scriptsDir
 
-Wait-ForUrl "http://localhost:8000/openapi.json" "Pais"
-Wait-ForUrl "http://localhost:8001/openapi.json" "Provincia"
-Wait-ForUrl "http://localhost:8002/openapi.json" "Localidad"
-Wait-ForUrl "http://localhost:8003/openapi.json" "Corporacion"
-Wait-ForUrl "http://localhost:8004/openapi.json" "Empresa"
+# Esperar a los microservicios principales
+Wait-ForUrl "http://127.0.0.1:8000/openapi.json" "Pais"
+Wait-ForUrl "http://127.0.0.1:8001/openapi.json" "Provincia"
+Wait-ForUrl "http://127.0.0.1:8002/openapi.json" "Localidad"
+Wait-ForUrl "http://127.0.0.1:8003/openapi.json" "Corporacion"
+Wait-ForUrl "http://127.0.0.1:8004/openapi.json" "Empresa"
+Wait-ForUrl "http://127.0.0.1:8005/openapi.json" "Aplicacion"
+Wait-ForUrl "http://127.0.0.1:8006/openapi.json" "Roles"
+Wait-ForUrl "http://127.0.0.1:8007/openapi.json" "Usuario"
+Wait-ForUrl "http://127.0.0.1:8008/openapi.json" "Aplicacion-Role"
+Wait-ForUrl "http://127.0.0.1:8009/openapi.json" "Usuario-Rol"
 
 Write-Host "[2/3] Iniciando middleware..." -ForegroundColor Cyan
 $middlewareJob = Start-Job -ScriptBlock {
     param($scriptPath)
     Set-Location (Split-Path $scriptPath)
-    & "$scriptPath\start_middleware.ps1"
+    & ".\start_middleware.ps1"
 } -ArgumentList $scriptsDir
 
-Wait-ForUrl "http://localhost:9000/api/v1/config/backend-services" "Middleware"
+Wait-ForUrl "http://127.0.0.1:9000/api/v1/config/backend-services" "Middleware"
 
 Write-Host "[3/3] Iniciando frontend..." -ForegroundColor Cyan
 $frontendJob = Start-Job -ScriptBlock {
     param($scriptPath)
     Set-Location (Split-Path $scriptPath)
-    & "$scriptPath\start_frontend.ps1"
+    & ".\start_frontend.ps1"
 } -ArgumentList $scriptsDir
 
-Wait-ForUrl "http://localhost:4200" "Frontend"
+Wait-ForUrl "http://127.0.0.1:4200" "Frontend"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host "  ECOSISTEMA LISTO" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
-Write-Host "BACKEND MICROSERVICIOS:" -ForegroundColor Cyan
-Write-Host "  -> PAIS:        http://localhost:8000/docs" -ForegroundColor Green
-Write-Host "  -> PROVINCIA:   http://localhost:8001/docs" -ForegroundColor Green
-Write-Host "  -> LOCALIDAD:   http://localhost:8002/docs" -ForegroundColor Green
-Write-Host "  -> CORPORACION: http://localhost:8003/docs" -ForegroundColor Green
-Write-Host "  -> EMPRESA:     http://localhost:8004/docs" -ForegroundColor Green
+Write-Host "BACKEND MICROSERVICIOS (127.0.0.1):" -ForegroundColor Cyan
+Write-Host "  -> PAIS:             http://127.0.0.1:8000/docs" -ForegroundColor Green
+Write-Host "  -> PROVINCIA:        http://127.0.0.1:8001/docs" -ForegroundColor Green
+Write-Host "  -> LOCALIDAD:        http://127.0.0.1:8002/docs" -ForegroundColor Green
+Write-Host "  -> CORPORACION:      http://127.0.0.1:8003/docs" -ForegroundColor Green
+Write-Host "  -> EMPRESA:          http://127.0.0.1:8004/docs" -ForegroundColor Green
+Write-Host "  -> APLICACION:       http://127.0.0.1:8005/docs" -ForegroundColor Green
+Write-Host "  -> ROLES:            http://127.0.0.1:8006/docs" -ForegroundColor Green
+Write-Host "  -> USUARIO:          http://127.0.0.1:8007/docs" -ForegroundColor Green
+Write-Host "  -> APLICACION-ROLE:  http://127.0.0.1:8008/docs" -ForegroundColor Green
+Write-Host "  -> USUARIO-ROL:      http://127.0.0.1:8009/docs" -ForegroundColor Green
 Write-Host ""
 Write-Host "MIDDLEWARE:" -ForegroundColor Cyan
-Write-Host "  -> API:         http://localhost:9000/docs" -ForegroundColor Green
+Write-Host "  -> API:              http://127.0.0.1:9000/docs" -ForegroundColor Green
 Write-Host ""
 Write-Host "FRONTEND:" -ForegroundColor Cyan
-Write-Host "  -> DESIGNER UI: http://localhost:4200" -ForegroundColor Green
+Write-Host "  -> DESIGNER UI:      http://127.0.0.1:4200" -ForegroundColor Green
 Write-Host ""
 
 function Final-Cleanup {
