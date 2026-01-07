@@ -168,7 +168,8 @@ export class DashboardComponent implements OnInit {
 
   checkHealthAll() {
     const healthChecks = this.services.map(svc => {
-      const url = `${svc.host}:${svc.puerto}/openapi.json`;
+      // Usar openapi_url directamente ya que es la URL completa y correcta
+      const url = svc.openapi_url;
       return this.http.get(url).pipe(
         map(() => ({ id: svc.id, status: 'online' as const })),
         catchError(() => of({ id: svc.id, status: 'offline' as const }))
