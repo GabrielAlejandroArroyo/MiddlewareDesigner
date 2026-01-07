@@ -59,13 +59,14 @@ async def create_rol(rol_data: RolCreateDTO) -> RolReadDTO:
         if not await _check_aplicacion_exists(rol_data.id_aplicacion):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"La Aplicación con ID '{rol_data.id_aplicacion}' no existe.")
 
+        now = datetime.utcnow()
         new_rol = RolModel(
             id=rol_data.id,
             descripcion=rol_data.descripcion,
             id_aplicacion=rol_data.id_aplicacion,
             baja_logica=False,
-            fecha_alta_creacion=datetime.utcnow(),
-            fecha_alta_modificacion=None
+            fecha_alta_creacion=now,
+            fecha_alta_modificacion=now
         )
         session.add(new_rol)
         await session.commit()

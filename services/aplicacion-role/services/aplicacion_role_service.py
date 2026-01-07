@@ -69,12 +69,14 @@ async def create(data: AplicacionRoleCreateDTO) -> AplicacionRoleReadDTO:
         if dup.scalar_one_or_none():
             raise HTTPException(status_code=409, detail="Ya existe un vínculo para esta aplicación y rol")
 
+        now = datetime.utcnow()
         new_item = AplicacionRoleModel(
             id=data.id,
             id_aplicacion=data.id_aplicacion,
             id_role=data.id_role,
             baja_logica=False,
-            fecha_alta_creacion=datetime.utcnow()
+            fecha_alta_creacion=now,
+            fecha_alta_modificacion=now
         )
         session.add(new_item)
         await session.commit()

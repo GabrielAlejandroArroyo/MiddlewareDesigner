@@ -38,6 +38,7 @@ async def get_usuario_by_id(usuario_id: str) -> Optional[UsuarioReadDTO]:
 
 async def create_usuario(usuario_data: UsuarioCreateDTO) -> UsuarioReadDTO:
     async with AsyncSessionLocal() as session:
+        now = datetime.utcnow()
         new_usuario = UsuarioModel(
             id=usuario_data.id,
             email=usuario_data.email,
@@ -45,7 +46,8 @@ async def create_usuario(usuario_data: UsuarioCreateDTO) -> UsuarioReadDTO:
             nombre=usuario_data.nombre,
             apellido=usuario_data.apellido,
             baja_logica=False,
-            fecha_alta_creacion=datetime.utcnow()
+            fecha_alta_creacion=now,
+            fecha_alta_modificacion=now
         )
         
         session.add(new_usuario)

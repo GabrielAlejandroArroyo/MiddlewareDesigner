@@ -45,11 +45,14 @@ async def get_empresa_by_id(db: AsyncSession, id: str) -> Optional[EmpresaModel]
     return result.scalar_one_or_none()
 
 async def create_empresa(db: AsyncSession, data: EmpresaCreateDTO) -> EmpresaModel:
+    now = datetime.utcnow()
     new_empresa = EmpresaModel(
         id=data.id,
         descripcion=data.descripcion,
         identificador_fiscal=data.identificador_fiscal,
-        id_corporacion=data.id_corporacion
+        id_corporacion=data.id_corporacion,
+        fecha_alta_creacion=now,
+        fecha_alta_modificacion=now
     )
     db.add(new_empresa)
     await db.commit()

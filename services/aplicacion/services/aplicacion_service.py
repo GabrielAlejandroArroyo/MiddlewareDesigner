@@ -37,12 +37,13 @@ async def get_aplicacion_by_id(aplicacion_id: str) -> Optional[AplicacionReadDTO
 
 async def create_aplicacion(aplicacion_data: AplicacionCreateDTO) -> AplicacionReadDTO:
     async with AsyncSessionLocal() as session:
+        now = datetime.utcnow()
         new_app = AplicacionModel(
             id=aplicacion_data.id,
             descripcion=aplicacion_data.descripcion,
             baja_logica=False,
-            fecha_alta_creacion=datetime.utcnow(),
-            fecha_alta_modificacion=None
+            fecha_alta_creacion=now,
+            fecha_alta_modificacion=now
         )
         session.add(new_app)
         await session.commit()
