@@ -10,6 +10,7 @@ $services = @(
     @{ name="Aplicación"; port=8005; url="http://127.0.0.1:8005/openapi.json" },
     @{ name="Roles"; port=8006; url="http://127.0.0.1:8006/openapi.json" },
     @{ name="Usuario"; port=8007; url="http://127.0.0.1:8007/openapi.json" },
+    @{ name="App-Role"; port=8008; url="http://127.0.0.1:8008/openapi.json" },
     @{ name="Middleware"; port=9000; url="http://127.0.0.1:9000/api/v1/config/backend-services" }
 )
 
