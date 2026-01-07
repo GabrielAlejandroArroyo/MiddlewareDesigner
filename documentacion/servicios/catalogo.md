@@ -41,6 +41,11 @@ El monorepo contiene microservicios desarrollados con **FastAPI** y **SQLAlchemy
 - **Dependencias**: Consume el servicio de Aplicación para validación de integridad referencial.
 - **Contrato**: `/api/v1/roles/`
 
+## 8. Servicio de Usuario (`/services/usuario`)
+- **Puerto predeterminado**: 8007
+- **Responsabilidad**: Gestión de usuarios del sistema.
+- **Contrato**: `/api/v1/usuarios/`
+
 ---
 
 ## Patrones Comunes de Implementación

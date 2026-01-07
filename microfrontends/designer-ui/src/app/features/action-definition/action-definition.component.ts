@@ -292,12 +292,12 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                <th class="text-center">MOSTRAR</th>
                              </tr>
                            </thead>
-                           <tbody class="small">
-                             <tr *ngFor="let param of endpoint?.parameters">
-                               <td class="ps-3">
-                                 <span class="fw-bold">{{ param.name }}</span>
-                                 <div class="x-small text-muted">{{ param.description }}</div>
-                               </td>
+                          <tbody class="small">
+                            <tr *ngFor="let param of getSortedParams()">
+                              <td class="ps-3">
+                                <span class="fw-bold">{{ param.name }}</span>
+                                <div class="x-small text-muted">{{ param.description }}</div>
+                              </td>
                                <td><span class="badge bg-secondary-subtle text-secondary border uppercase">{{ param.in }}</span></td>
                                <td><span class="text-primary">{{ param.schema?.type || 'string' }}</span></td>
                                <td>
@@ -333,10 +333,10 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                        </div>
 
                        <div *ngIf="detectedDtos.length > 0">
-                         <div class="d-flex flex-wrap gap-2 mb-4 border-bottom pb-3">
-                           <button *ngFor="let dto of detectedDtos" 
-                                   (click)="activeDtoId = dto.name"
-                                   class="btn btn-sm py-1 px-3 rounded-pill"
+                        <div class="d-flex flex-wrap gap-2 mb-4 border-bottom pb-3">
+                          <button *ngFor="let dto of detectedDtos" 
+                                  (click)="selectDto(dto)"
+                                  class="btn btn-sm py-1 px-3 rounded-pill"
                                    [class.btn-info]="activeDtoId === dto.name"
                                    [class.text-white]="activeDtoId === dto.name"
                                    [class.btn-outline-secondary]="activeDtoId !== dto.name">
@@ -733,37 +733,75 @@ export class ActionDefinitionComponent implements OnInit {
     return this.getPropertyConfig(String(propKey || 'unknown'), type);
   }
 
+  normalizeOrders(category: string, scopeKeys: string[]) {
+    if (!this.endpoint || !scopeKeys.length) return;
+
+    const items = scopeKeys.map(k => ({
+      key: k,
+      config: this.getFieldConfig(k, category)
+    }));
+
+    // Separar en dos grupos: visibles y ocultos
+    const visibles = items.filter(i => i.config.show).sort((a, b) => (a.config.order || 0) - (b.config.order || 0));
+    const ocultos = items.filter(i => !i.config.show).sort((a, b) => (a.config.order || 0) - (b.config.order || 0));
+
+    // Reasignar órdenes correlativos sin saltos
+    visibles.forEach((item, index) => {
+      item.config.order = index + 1;
+    });
+
+    const offset = visibles.length;
+    ocultos.forEach((item, index) => {
+      item.config.order = offset + index + 1;
+    });
+  }
+
   toggleVisibility(propKey: any, type: string) {
-    const key = String(propKey);
     const category = type === 'params' ? 'params' : (type === 'request' ? 'request' : 'response');
-    const fieldsConfig = this.endpoint?.configuracion_ui?.fields_config?.[category];
-    if (!fieldsConfig) return;
-
-    const currentField = fieldsConfig[key];
-    if (!currentField) return;
-
-    if (currentField.show) {
-      // Si se activa, asignar el siguiente número correlativo al final
-      const activeFields = Object.values(fieldsConfig).filter((f: any) => f.show && f !== currentField);
-      const maxOrder = activeFields.reduce((max: number, f: any) => Math.max(max, f.order || 0), 0);
-      currentField.order = maxOrder + 1;
+    
+    let allKeys: string[] = [];
+    if (category === 'params') {
+      allKeys = this.endpoint?.parameters?.map(p => p.name) || [];
     } else {
-      // Si se desactiva, poner en 0 y reordenar todos los demás activos para que sean correlativos
-      currentField.order = 0;
-      
-      const activeFields = (Object.entries(fieldsConfig) as [string, any][])
-        .filter(([k, config]) => config.show)
-        .sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
-      
-      activeFields.forEach(([k, config], index) => {
-        config.order = index + 1;
-      });
+      const activeDto = this.detectedDtos.find(d => d.name === this.activeDtoId);
+      if (activeDto && activeDto.properties) {
+        allKeys = Object.keys(activeDto.properties);
+      }
     }
+
+    this.normalizeOrders(category, allKeys);
+  }
+
+  getSortedParams(): any[] {
+    if (!this.endpoint || !this.endpoint.parameters) return [];
+    
+    // Antes de devolver, aseguramos que los órdenes estén normalizados
+    const allParamKeys = this.endpoint.parameters.map(p => p.name);
+    this.normalizeOrders('params', allParamKeys);
+
+    const params = [...this.endpoint.parameters];
+    return params.sort((a, b) => {
+      const configA = this.getFieldConfig(a.name, 'params');
+      const configB = this.getFieldConfig(b.name, 'params');
+      
+      if (configA.show !== configB.show) {
+        return configA.show ? -1 : 1;
+      }
+      
+      return (configA.order || 0) - (configB.order || 0);
+    });
   }
 
   changeMainTab(tab: 'request' | 'response') {
     this.activeTab = tab;
     this.updateDetectedDtos();
+  }
+
+  selectDto(dto: any) {
+    this.activeDtoId = dto.name;
+    if (dto.properties) {
+      this.normalizeOrders(this.activeTab, Object.keys(dto.properties));
+    }
   }
 
   updateDetectedDtos() {
@@ -780,9 +818,9 @@ export class ActionDefinitionComponent implements OnInit {
         // Seleccionamos el DTO que tenga propiedades
         const withProps = this.detectedDtos.filter(d => d.properties && Object.keys(d.properties).length > 0);
         if (withProps.length > 0) {
-          this.activeDtoId = withProps[0].name;
+          this.selectDto(withProps[0]);
         } else {
-          this.activeDtoId = this.detectedDtos[0].name;
+          this.selectDto(this.detectedDtos[0]);
         }
       }
     }
@@ -918,10 +956,17 @@ export class ActionDefinitionComponent implements OnInit {
       value
     }));
 
-    // Ordenar según la configuración actual
+    // Ordenar según la configuración actual: primero visibles, luego ocultos
     return propsArray.sort((a, b) => {
       const configA = this.getFieldConfig(a.key, this.activeTab);
       const configB = this.getFieldConfig(b.key, this.activeTab);
+      
+      // Si la visibilidad es diferente, el visible va primero
+      if (configA.show !== configB.show) {
+        return configA.show ? -1 : 1;
+      }
+      
+      // Si ambos tienen la misma visibilidad, usar el orden configurado
       return (configA.order || 0) - (configB.order || 0);
     });
   }

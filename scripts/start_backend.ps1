@@ -41,6 +41,7 @@ $servicePorts = @{
     "empresa" = 8004
     "aplicacion" = 8005
     "roles" = 8006
+    "usuario" = 8007
 }
 
 $jobs = @()

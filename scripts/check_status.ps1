@@ -2,14 +2,15 @@
 # Uso: .\scripts\check_status.ps1
 
 $services = @(
-    @{ name="País"; port=8000; url="http://localhost:8000/openapi.json" },
-    @{ name="Provincia"; port=8001; url="http://localhost:8001/openapi.json" },
-    @{ name="Localidad"; port=8002; url="http://localhost:8002/openapi.json" },
-    @{ name="Corporación"; port=8003; url="http://localhost:8003/openapi.json" },
-    @{ name="Empresa"; port=8004; url="http://localhost:8004/openapi.json" },
-    @{ name="Aplicación"; port=8005; url="http://localhost:8005/openapi.json" },
-    @{ name="Roles"; port=8006; url="http://localhost:8006/openapi.json" },
-    @{ name="Middleware"; port=9000; url="http://localhost:9000/api/v1/config/backend-services" }
+    @{ name="País"; port=8000; url="http://127.0.0.1:8000/openapi.json" },
+    @{ name="Provincia"; port=8001; url="http://127.0.0.1:8001/openapi.json" },
+    @{ name="Localidad"; port=8002; url="http://127.0.0.1:8002/openapi.json" },
+    @{ name="Corporación"; port=8003; url="http://127.0.0.1:8003/openapi.json" },
+    @{ name="Empresa"; port=8004; url="http://127.0.0.1:8004/openapi.json" },
+    @{ name="Aplicación"; port=8005; url="http://127.0.0.1:8005/openapi.json" },
+    @{ name="Roles"; port=8006; url="http://127.0.0.1:8006/openapi.json" },
+    @{ name="Usuario"; port=8007; url="http://127.0.0.1:8007/openapi.json" },
+    @{ name="Middleware"; port=9000; url="http://127.0.0.1:9000/api/v1/config/backend-services" }
 )
 
 Write-Host "`n=== ESTADO DEL ECOSISTEMA MIDDLEWARE ===" -ForegroundColor Cyan
@@ -21,8 +22,8 @@ foreach ($svc in $services) {
     $color = "Red"
     
     try {
-        $response = Invoke-WebRequest -Uri $svc.url -Method Get -TimeoutSec 2 -ErrorAction SilentlyContinue
-        if ($response.StatusCode -eq 200) {
+        $check = curl.exe -s -o /dev/null -w "%{http_code}" --max-time 2 $svc.url
+        if ($check -eq "200") {
             $status = "ONLINE"
             $color = "Green"
         }
