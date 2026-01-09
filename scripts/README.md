@@ -6,17 +6,20 @@ Esta carpeta contiene scripts para levantar todos los servicios del monorepo.
 
 ### Windows (PowerShell)
 
-- **`start_all.ps1`**: Levanta todos los servicios (backend, middleware y frontend)
-- **`start_backend.ps1`**: Levanta solo los servicios backend
-- **`start_middleware.ps1`**: Levanta solo el middleware
-- **`start_frontend.ps1`**: Levanta solo los microfrontends
+- **`start_all.ps1`**: Levanta todos los servicios (backend, middleware y frontend) de forma persistente.
+- **`stop_all.ps1`**: Detiene todos los procesos de Python y Node relacionados con el proyecto.
+- **`check_status.ps1`**: Verifica el estado de salud de todos los servicios.
+- **`start_backend.ps1`**: Levanta solo los servicios backend.
+- **`start_middleware.ps1`**: Levanta solo el middleware.
+- **`start_frontend.ps1`**: Levanta solo los microfrontends.
 
 ### Linux/Mac (Bash)
 
-- **`start_all.sh`**: Levanta todos los servicios (backend, middleware y frontend)
-- **`start_backend.sh`**: Levanta solo los servicios backend
-- **`start_middleware.sh`**: Levanta solo el middleware
-- **`start_frontend.sh`**: Levanta solo los microfrontends
+- **`start_all.sh`**: Levanta todos los servicios.
+- **`stop_all.sh`**: Detiene todos los servicios.
+- **`start_backend.sh`**: Levanta solo los servicios backend.
+- **`start_middleware.sh`**: Levanta solo el middleware.
+- **`start_frontend.sh`**: Levanta solo los microfrontends.
 
 ## Uso
 
@@ -26,10 +29,11 @@ Esta carpeta contiene scripts para levantar todos los servicios del monorepo.
 # Levantar todos los servicios
 .\scripts\start_all.ps1
 
-# O levantar servicios individuales
-.\scripts\start_backend.ps1
-.\scripts\start_middleware.ps1
-.\scripts\start_frontend.ps1
+# Detener todos los servicios
+.\scripts\stop_all.ps1
+
+# Verificar estado
+.\scripts\check_status.ps1
 ```
 
 ### Linux/Mac

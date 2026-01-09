@@ -12,12 +12,13 @@ $services = @(
     @{ name="Usuario"; port=8007; url="http://127.0.0.1:8007/openapi.json" },
     @{ name="App-Role"; port=8008; url="http://127.0.0.1:8008/openapi.json" },
     @{ name="User-Rol"; port=8009; url="http://127.0.0.1:8009/openapi.json" },
-    @{ name="Middleware"; port=9000; url="http://127.0.0.1:9000/api/v1/config/backend-services" }
+    @{ name="Middleware"; port=9000; url="http://127.0.0.1:9000/api/v1/config/backend-services" },
+    @{ name="Frontend"; port=4200; url="http://127.0.0.1:4200" }
 )
 
 Write-Host "`n=== ESTADO DEL ECOSISTEMA MIDDLEWARE ===" -ForegroundColor Cyan
 Write-Host ("{0,-15} {1,-10} {2,-10} {3,-30}" -f "SERVICIO", "PUERTO", "ESTADO", "ENDPOINT")
-Write-Host ("-" * 65)
+Write-Host ("-" * 75)
 
 foreach ($svc in $services) {
     $status = "OFFLINE"
@@ -38,5 +39,5 @@ foreach ($svc in $services) {
     Write-Host (" {0,-30}" -f $svc.url)
 }
 
-Write-Host "`nFrontend UI: http://localhost:4200" -ForegroundColor Yellow
+Write-Host "`nSi el Frontend aparece OFFLINE pero hay procesos de Node, espera 1 min a que termine de compilar." -ForegroundColor Gray
 Write-Host ""

@@ -1,38 +1,31 @@
-# Script maestro para levantar todos los servicios (backend, middleware y frontend)
+# Script maestro para levantar todos los servicios (backend, middleware y frontend) de forma persistente
 # Uso: .\scripts\start_all.ps1
 
 $ErrorActionPreference = "Continue"
 
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "  Middleware Designer - Reiniciando Ecosistema" -ForegroundColor Magenta
+Write-Host "  Middleware Designer - Iniciando Ecosistema" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
 
 # --- FASE 1: BAJADA DE SERVICIOS EXISTENTES ---
-Write-Host "[0/3] Bajando procesos existentes..." -ForegroundColor Yellow
-
-$processes = Get-Process | Where-Object { $_.Name -match "python" -or $_.Name -match "node" }
-if ($processes) {
-    $processes | Stop-Process -Force -ErrorAction SilentlyContinue
-    Write-Host "  Procesos detenidos." -ForegroundColor Green
-} else {
-    Write-Host "  No se encontraron procesos activos." -ForegroundColor Gray
-}
+Write-Host "[0/3] Limpiando procesos previos..." -ForegroundColor Yellow
+# Matar procesos de python y node de forma recursiva
+taskkill /F /IM python.exe /T 2>$null
+taskkill /F /IM node.exe /T 2>$null
 
 Get-Job | Stop-Job -ErrorAction SilentlyContinue
 Get-Job | Remove-Job -ErrorAction SilentlyContinue
-
-Write-Host "  Esperando liberacion de puertos..." -ForegroundColor Gray
 Start-Sleep -Seconds 2
-Write-Host ""
 
 # --- FUNCION DE ESPERA ---
 function Wait-ForUrl($url, $name) {
     Write-Host "  Esperando a $name en $url..." -ForegroundColor Gray
-    for ($i = 1; $i -le 20; $i++) {
+    for ($i = 1; $i -le 30; $i++) { # Aumentamos el tiempo de espera a 60s total
         try {
-            # Usar curl.exe para mayor confiabilidad en Windows
-            $resp = curl.exe -s -o /dev/null -w "%{http_code}" $url
+            # Intentamos con 127.0.0.1 para la verificación interna
+            $testUrl = $url.Replace("localhost", "127.0.0.1")
+            $resp = curl.exe -s -o /dev/null -w "%{http_code}" --max-time 2 $testUrl
             if ($resp -eq "200") {
                 Write-Host "  [OK] $name ONLINE." -ForegroundColor Green
                 return $true
@@ -40,7 +33,7 @@ function Wait-ForUrl($url, $name) {
         } catch { }
         Start-Sleep -Seconds 2
     }
-    Write-Host "  [WAIT] $name aun no responde." -ForegroundColor Yellow
+    Write-Host "  [WAIT] $name aun no responde (posiblemente lento al iniciar o error en binding)." -ForegroundColor Yellow
     return $false
 }
 
@@ -48,80 +41,31 @@ function Wait-ForUrl($url, $name) {
 $scriptsDir = $PSScriptRoot
 
 Write-Host "[1/3] Iniciando backend..." -ForegroundColor Cyan
-$backendJob = Start-Job -ScriptBlock {
-    param($scriptPath)
-    Set-Location (Split-Path $scriptPath)
-    & ".\start_backend.ps1"
-} -ArgumentList $scriptsDir
+& "$scriptsDir\start_backend.ps1"
 
-# Esperar a los microservicios principales
+# Esperar a los microservicios críticos para el inicio
 Wait-ForUrl "http://127.0.0.1:8000/openapi.json" "Pais"
-Wait-ForUrl "http://127.0.0.1:8001/openapi.json" "Provincia"
-Wait-ForUrl "http://127.0.0.1:8002/openapi.json" "Localidad"
 Wait-ForUrl "http://127.0.0.1:8003/openapi.json" "Corporacion"
-Wait-ForUrl "http://127.0.0.1:8004/openapi.json" "Empresa"
-Wait-ForUrl "http://127.0.0.1:8005/openapi.json" "Aplicacion"
-Wait-ForUrl "http://127.0.0.1:8006/openapi.json" "Roles"
-Wait-ForUrl "http://127.0.0.1:8007/openapi.json" "Usuario"
-Wait-ForUrl "http://127.0.0.1:8008/openapi.json" "Aplicacion-Role"
-Wait-ForUrl "http://127.0.0.1:8009/openapi.json" "Usuario-Rol"
 
 Write-Host "[2/3] Iniciando middleware..." -ForegroundColor Cyan
-$middlewareJob = Start-Job -ScriptBlock {
-    param($scriptPath)
-    Set-Location (Split-Path $scriptPath)
-    & ".\start_middleware.ps1"
-} -ArgumentList $scriptsDir
-
+& "$scriptsDir\start_middleware.ps1"
 Wait-ForUrl "http://127.0.0.1:9000/api/v1/config/backend-services" "Middleware"
 
 Write-Host "[3/3] Iniciando frontend..." -ForegroundColor Cyan
-$frontendJob = Start-Job -ScriptBlock {
-    param($scriptPath)
-    Set-Location (Split-Path $scriptPath)
-    & ".\start_frontend.ps1"
-} -ArgumentList $scriptsDir
+& "$scriptsDir\start_frontend.ps1"
 
+# El frontend tarda mas, damos tiempo extra
+Write-Host "  El Frontend (Angular) esta compilando... esto demora ~60 segundos." -ForegroundColor Yellow
+Write-Host "  Puedes ir abriendo http://127.0.0.1:4200 en tu navegador." -ForegroundColor Gray
 Wait-ForUrl "http://127.0.0.1:4200" "Frontend"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
-Write-Host "  ECOSISTEMA LISTO" -ForegroundColor Magenta
+Write-Host "  ECOSISTEMA LISTO Y PERSISTENTE" -ForegroundColor Magenta
 Write-Host "========================================" -ForegroundColor Magenta
 Write-Host ""
-Write-Host "BACKEND MICROSERVICIOS (127.0.0.1):" -ForegroundColor Cyan
-Write-Host "  -> PAIS:             http://127.0.0.1:8000/docs" -ForegroundColor Green
-Write-Host "  -> PROVINCIA:        http://127.0.0.1:8001/docs" -ForegroundColor Green
-Write-Host "  -> LOCALIDAD:        http://127.0.0.1:8002/docs" -ForegroundColor Green
-Write-Host "  -> CORPORACION:      http://127.0.0.1:8003/docs" -ForegroundColor Green
-Write-Host "  -> EMPRESA:          http://127.0.0.1:8004/docs" -ForegroundColor Green
-Write-Host "  -> APLICACION:       http://127.0.0.1:8005/docs" -ForegroundColor Green
-Write-Host "  -> ROLES:            http://127.0.0.1:8006/docs" -ForegroundColor Green
-Write-Host "  -> USUARIO:          http://127.0.0.1:8007/docs" -ForegroundColor Green
-Write-Host "  -> APLICACION-ROLE:  http://127.0.0.1:8008/docs" -ForegroundColor Green
-Write-Host "  -> USUARIO-ROL:      http://127.0.0.1:8009/docs" -ForegroundColor Green
+Write-Host "Los servicios estan corriendo en segundo plano (ventanas ocultas)." -ForegroundColor Cyan
+Write-Host "IMPORTANTE: Si el frontend no carga de inmediato, espera 1 minuto." -ForegroundColor Yellow
+Write-Host "Puedes cerrar esta consola sin que se detengan los servicios." -ForegroundColor Cyan
+Write-Host "Usa 'scripts\check_status.ps1' para monitorear." -ForegroundColor Yellow
 Write-Host ""
-Write-Host "MIDDLEWARE:" -ForegroundColor Cyan
-Write-Host "  -> API:              http://127.0.0.1:9000/docs" -ForegroundColor Green
-Write-Host ""
-Write-Host "FRONTEND:" -ForegroundColor Cyan
-Write-Host "  -> DESIGNER UI:      http://127.0.0.1:4200" -ForegroundColor Green
-Write-Host ""
-
-function Final-Cleanup {
-    Write-Host "Deteniendo procesos..." -ForegroundColor Yellow
-    Get-Job | Stop-Job -ErrorAction SilentlyContinue
-    Get-Job | Remove-Job -ErrorAction SilentlyContinue
-    Get-Process | Where-Object { $_.Name -match "python" -or $_.Name -match "node" } | Stop-Process -Force -ErrorAction SilentlyContinue
-}
-
-try {
-    while ($true) {
-        Start-Sleep -Seconds 5
-        if ($backendJob.State -eq "Failed") { Write-Host "Backend Fallo"; break }
-        if ($middlewareJob.State -eq "Failed") { Write-Host "Middleware Fallo"; break }
-        if ($frontendJob.State -eq "Failed") { Write-Host "Frontend Fallo"; break }
-    }
-} finally {
-    Final-Cleanup
-}
