@@ -364,9 +364,9 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                  <tbody class="small">
                                     <tr *ngFor="let prop of getSortedProps(dto); let i = index; trackBy: trackByProp"
                                         draggable="true" 
-                                        (dragstart)="onDragStart($event, i)" 
+                                        (dragstart)="onDragStart($event, prop.key, dto)" 
                                         (dragover)="onDragOver($event)" 
-                                        (drop)="onDrop($event, i, dto)"
+                                        (drop)="onDrop($event, prop.key, dto)"
                                         class="drag-row">
                                       <td class="ps-3" style="min-width: 250px; background-color: #ffffff;">
                                         <div class="d-flex align-items-center mb-1">
@@ -581,7 +581,8 @@ export class ActionDefinitionComponent implements OnInit {
   propertiesCollapsed = true;
 
   // Drag and Drop State
-  draggedIndex: number | null = null;
+  draggedKey: string | null = null;
+  dragSnapshotKeys: string[] = [];
 
   // Change Detection
   initialState: string = '';
@@ -1007,8 +1008,10 @@ export class ActionDefinitionComponent implements OnInit {
     });
   }
 
-  onDragStart(event: DragEvent, index: number) {
-    this.draggedIndex = index;
+  onDragStart(event: DragEvent, propKey: string, dto: any) {
+    const sortedProps = this.getSortedProps(dto);
+    this.dragSnapshotKeys = sortedProps.map(prop => prop.key);
+    this.draggedKey = propKey;
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
     }
@@ -1021,24 +1024,26 @@ export class ActionDefinitionComponent implements OnInit {
     }
   }
 
-  onDrop(event: DragEvent, targetIndex: number, dto: any) {
+  onDrop(event: DragEvent, targetKey: string, dto: any) {
     event.preventDefault();
-    if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
+    if (!this.draggedKey || !this.dragSnapshotKeys.length) return;
 
-    const sortedProps = this.getSortedProps(dto);
-    const draggedItem = sortedProps[this.draggedIndex];
+    const draggedIndex = this.dragSnapshotKeys.indexOf(this.draggedKey);
+    const targetIndex = this.dragSnapshotKeys.indexOf(targetKey);
+    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) return;
 
-    // Reordenar el array
-    sortedProps.splice(this.draggedIndex, 1);
-    sortedProps.splice(targetIndex, 0, draggedItem);
+    const reorderedKeys = [...this.dragSnapshotKeys];
+    const [moved] = reorderedKeys.splice(draggedIndex, 1);
+    reorderedKeys.splice(targetIndex, 0, moved);
 
     // Actualizar el atributo 'order' de cada campo basándose en su nueva posición
-    sortedProps.forEach((prop, index) => {
-      const config = this.getFieldConfig(prop.key, this.activeTab);
+    reorderedKeys.forEach((propKey, index) => {
+      const config = this.getFieldConfig(propKey, this.activeTab);
       config.order = index + 1; // Orden de 1 a N
     });
 
-    this.draggedIndex = null;
+    this.draggedKey = null;
+    this.dragSnapshotKeys = [];
   }
 
   asAny(val: any): any {

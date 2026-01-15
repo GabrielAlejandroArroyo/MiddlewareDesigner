@@ -516,3 +516,128 @@ runtime.js          | runtime |   6.50 kB |
 Build at: 2026-01-15T00:33:59.683Z - Hash: e7f0995da0caeffa - Time: 654ms
 
 √ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 396.81 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:35:27.918Z - Hash: 99b72e8492184dc0 - Time: 794ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+
+
+5 unchanged chunks
+
+Build at: 2026-01-15T00:35:33.407Z - Hash: 99b72e8492184dc0 - Time: 493ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+
+
+5 unchanged chunks
+
+Build at: 2026-01-15T00:36:08.085Z - Hash: 99b72e8492184dc0 - Time: 658ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 396.94 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:40:56.436Z - Hash: 9cee49bd1359b3df - Time: 949ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:367:84 - error TS2554: Expected 2 arguments, but got 3.
+
+367                                         (dragstart)="onDragStart($event, prop.key, dto)"
+                                                                                       ~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 396.97 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:41:01.451Z - Hash: dd2a1b29cdce9bd9 - Time: 1149ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:367:84 - error TS2554: Expected 2 arguments, but got 3.
+
+367                                         (dragstart)="onDragStart($event, prop.key, dto)"
+                                                                                       ~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:1012:10 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
+
+1012     this.draggedIndex = index;
+              ~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:1027:14 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
+
+1027     if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
+                  ~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:1027:44 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
+
+1027     if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
+                                                ~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:1030:42 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
+
+1030     const draggedItem = sortedProps[this.draggedIndex];
+                                              ~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:1033:29 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
+
+1033     sortedProps.splice(this.draggedIndex, 1);
+                                 ~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:1042:10 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
+
+1042     this.draggedIndex = null;
+              ~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 397.27 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:41:18.348Z - Hash: e2c31f8cec6df1fb - Time: 1146ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 397.27 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:41:25.810Z - Hash: 4914c5f45ec90f99 - Time: 693ms
+
+√ Compiled successfully.

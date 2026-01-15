@@ -51,11 +51,14 @@ foreach ($service in $services) {
     # Usamos 0.0.0.0 para que escuche en todas las interfaces y evitar problemas con localhost/127.0.0.1
     $args = "-m uvicorn main:app --host 0.0.0.0 --port $port --reload"
     $process = Start-Process python -ArgumentList $args -WorkingDirectory $servicePath -PassThru -WindowStyle Hidden
+    Start-Sleep -Milliseconds 500
     
-    if ($process) {
+    if ($process -and -not $process.HasExited) {
         Write-Host "  [OK] $serviceName iniciado (PID: $($process.Id))" -ForegroundColor Green
     } else {
-        Write-Host "  [ERROR] No se pudo iniciar $serviceName" -ForegroundColor Red
+        $exitCode = if ($process) { $process.ExitCode } else { $null }
+        $exitInfo = if ($exitCode -ne $null) { " (ExitCode: $exitCode)" } else { "" }
+        Write-Host "  [ERROR] $serviceName no inició correctamente$exitInfo" -ForegroundColor Red
     }
 }
 

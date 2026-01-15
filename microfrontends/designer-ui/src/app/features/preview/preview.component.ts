@@ -194,7 +194,7 @@ import { HttpClient } from '@angular/common/http';
                           <div *ngIf="activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">
                             <span class="fw-medium ref-underline cursor-help" 
                                   [title]="'Referencia a servicio: ' + activeTest.configuracion_ui.fields_config.response[col.key].refService">
-                              {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay, activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
+                              {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay || 'desc', activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
                             </span>
                           </div>
                           <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">{{ row[col.key] }}</span>
