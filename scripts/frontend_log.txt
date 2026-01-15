@@ -472,3 +472,25 @@ Error: src/app/features/preview/preview.component.ts:900:11 - error TS2345: Argu
 
 
 × Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 396.80 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:28:52.660Z - Hash: 31eb59f988acd3e6 - Time: 805ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 396.80 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-15T00:29:00.716Z - Hash: e7f0995da0caeffa - Time: 536ms
+
+√ Compiled successfully.
