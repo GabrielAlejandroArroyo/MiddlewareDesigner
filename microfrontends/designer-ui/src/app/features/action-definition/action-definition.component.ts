@@ -421,19 +421,28 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                      <td>
                                        <div class="d-flex flex-column gap-1">
                                          <div class="d-flex gap-1">
-                                           <select class="form-select form-select-sm" 
-                                                   [(ngModel)]="getFieldConfig(prop.key, activeTab).refService">
+                                          <select class="form-select form-select-sm" 
+                                                  [(ngModel)]="getFieldConfig(prop.key, activeTab).refService"
+                                                  (ngModelChange)="onRefServiceChange(prop.key, activeTab)">
                                              <option [value]="null">Sin referencia</option>
                                              <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
                                            </select>
                                            <select *ngIf="getFieldConfig(prop.key, activeTab).refService" 
                                                    class="form-select form-select-sm" 
                                                    style="width: 100px"
-                                                   [(ngModel)]="getFieldConfig(prop.key, activeTab).refDisplay">
+                                                  [(ngModel)]="getFieldConfig(prop.key, activeTab).refDisplay"
+                                                  (ngModelChange)="onRefDisplayChange(prop.key, activeTab)">
                                              <option value="id">Mostrar ID</option>
                                              <option value="desc">Mostrar Descr.</option>
                                            </select>
                                          </div>
+                                        <div *ngIf="getFieldConfig(prop.key, activeTab).refService && getFieldConfig(prop.key, activeTab).refDisplay === 'desc'" class="animate-in">
+                                          <select class="form-select form-select-sm x-small bg-light" 
+                                                  [(ngModel)]="getFieldConfig(prop.key, activeTab).refDescriptionService">
+                                            <option [value]="null">Referencia externa para Descr.</option>
+                                            <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
+                                          </select>
+                                        </div>
                                          <!-- Dependencia: Solo si tiene referencia y hay otros campos que podrían ser padres -->
                                          <div *ngIf="getFieldConfig(prop.key, activeTab).refService" class="animate-in">
                                            <select class="form-select form-select-sm x-small bg-light" 
@@ -717,6 +726,7 @@ export class ActionDefinitionComponent implements OnInit {
         visualName: propKey,
         refService: null,
         refDisplay: 'id',
+        refDescriptionService: null,
         dependsOn: null
       };
     }
@@ -727,6 +737,32 @@ export class ActionDefinitionComponent implements OnInit {
     }
 
     return config[category][propKey];
+  }
+
+  onRefServiceChange(propKey: any, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    if (!config.refService) {
+      config.refDisplay = 'id';
+      config.refDescriptionService = null;
+      config.dependsOn = null;
+      return;
+    }
+
+    if (config.refDisplay === 'desc' && !config.refDescriptionService) {
+      config.refDescriptionService = config.refService;
+    }
+  }
+
+  onRefDisplayChange(propKey: any, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    if (config.refDisplay !== 'desc') {
+      config.refDescriptionService = null;
+      return;
+    }
+
+    if (!config.refDescriptionService) {
+      config.refDescriptionService = config.refService;
+    }
   }
 
   getFieldConfig(propKey: any, type: string): any {

@@ -194,7 +194,7 @@ import { HttpClient } from '@angular/common/http';
                           <div *ngIf="activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">
                             <span class="fw-medium ref-underline cursor-help" 
                                   [title]="'Referencia a servicio: ' + activeTest.configuracion_ui.fields_config.response[col.key].refService">
-                              {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay) }}
+                              {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay, activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
                             </span>
                           </div>
                           <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">{{ row[col.key] }}</span>
@@ -405,7 +405,7 @@ export class PreviewComponent implements OnInit {
   selectedId: string = '';
   testResponse: any = null;
   testerColumns: { key: string, label: string }[] = [];
-  testerFields: {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, dependsOn?: string}[] = [];
+  testerFields: {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, refDescriptionService?: string, dependsOn?: string}[] = [];
 
   // Sub-Tester State (para navegación desde grilla)
   activeSubTest: { type: 'create' | 'update' | 'delete' | 'view', ep: any, data?: any } | null = null;
@@ -467,12 +467,18 @@ export class PreviewComponent implements OnInit {
     // Cargar datos para referencias externas si existen
     this.testerFields.forEach(f => {
       if (f.refService) this.fetchRefData(f.refService);
+      if (f.refDescriptionService && f.refDescriptionService !== f.refService) {
+        this.fetchRefData(f.refDescriptionService);
+      }
     });
 
     // También revisar las columnas del GET por si tienen referencias
     const responseConfig = ep.configuracion_ui?.fields_config?.response || {};
     Object.values(responseConfig).forEach((c: any) => {
       if (c.refService) this.fetchRefData(c.refService);
+      if (c.refDescriptionService && c.refDescriptionService !== c.refService) {
+        this.fetchRefData(c.refDescriptionService);
+      }
     });
 
     // AUTO-LISTAR: Si es un GET sin parámetros (Grilla), ejecutar la consulta automáticamente al abrir
@@ -519,8 +525,9 @@ export class PreviewComponent implements OnInit {
     });
   }
 
-  getRefValue(val: any, serviceId: string, display: string): string {
-    const list = this.refDataCache[serviceId];
+  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string): string {
+    const sourceServiceId = display === 'desc' && descriptionServiceId ? descriptionServiceId : serviceId;
+    const list = this.refDataCache[sourceServiceId];
     if (!list || !val) return val;
 
     const item = list.find(i => String(i.id) === String(val));
@@ -568,7 +575,7 @@ export class PreviewComponent implements OnInit {
       }));
   }
 
-  calculateFields(ep: any): {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string}[] {
+  calculateFields(ep: any): {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, refDescriptionService?: string}[] {
     const props = ep.request_dto?.properties || ep.response_dto?.properties;
     if (!props) return [];
 
@@ -584,6 +591,7 @@ export class PreviewComponent implements OnInit {
         order: config[k]?.order || 0,
         refService: config[k]?.refService,
         refDisplay: config[k]?.refDisplay,
+        refDescriptionService: config[k]?.refDescriptionService,
         dependsOn: config[k]?.dependsOn
       }))
       .filter(f => config[f.key]?.show !== false)
@@ -844,14 +852,14 @@ export class PreviewComponent implements OnInit {
     }
   }
 
-  getViewFields(): { key: string, label: string, value: any, refService?: string, refDisplay?: string }[] {
+  getViewFields(): { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string }[] {
     if (!this.activeSubTest || this.activeSubTest.type !== 'view' || !this.activeSubTest.ep) return [];
     
     const ep = this.activeSubTest.ep;
     const responseDto = ep.response_dto;
     if (!responseDto || !responseDto.properties) return [];
 
-    const fields: { key: string, label: string, value: any, refService?: string, refDisplay?: string }[] = [];
+    const fields: { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string }[] = [];
     const fieldsConfig = ep.configuracion_ui?.fields_config?.response || {};
 
     Object.keys(responseDto.properties).forEach(key => {
@@ -865,7 +873,7 @@ export class PreviewComponent implements OnInit {
         
         // Si tiene referencia a otro servicio, obtener el valor descriptivo
         if (config.refService && displayValue) {
-          displayValue = this.getRefValue(displayValue, config.refService, config.refDisplay || 'desc');
+          displayValue = this.getRefValue(displayValue, config.refService, config.refDisplay || 'desc', config.refDescriptionService);
         }
         
         // Formatear valores especiales
@@ -888,7 +896,8 @@ export class PreviewComponent implements OnInit {
           label: visualName,
           value: displayValue,
           refService: config.refService,
-          refDisplay: config.refDisplay
+          refDisplay: config.refDisplay,
+          refDescriptionService: config.refDescriptionService
         });
       }
     });
