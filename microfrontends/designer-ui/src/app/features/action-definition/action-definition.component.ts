@@ -419,41 +419,55 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                        </div>
                                      </td>
                                      <td>
-                                       <div class="d-flex flex-column gap-1">
-                                         <div class="d-flex gap-1">
-                                          <select class="form-select form-select-sm" 
-                                                  [(ngModel)]="getFieldConfig(prop.key, activeTab).refService"
-                                                  (ngModelChange)="onRefServiceChange(prop.key, activeTab)">
-                                             <option [value]="null">Sin referencia</option>
-                                             <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
-                                           </select>
-                                           <select *ngIf="getFieldConfig(prop.key, activeTab).refService" 
-                                                   class="form-select form-select-sm" 
-                                                   style="width: 100px"
-                                                  [(ngModel)]="getFieldConfig(prop.key, activeTab).refDisplay"
-                                                  (ngModelChange)="onRefDisplayChange(prop.key, activeTab)">
-                                             <option value="id">Mostrar ID</option>
-                                             <option value="desc">Mostrar Descr.</option>
-                                           </select>
+                                       <!-- Contenedor de Dependencia -->
+                                       <div class="dependency-container" [class.active-grid]="getFieldConfig(prop.key, activeTab).refService">
+                                         
+                                         <!-- LÍNEA 1 -->
+                                         <div class="dep-row">
+                                           <!-- Bloque Servicio -->
+                                           <div class="dep-block">
+                                             <span class="label-title" *ngIf="getFieldConfig(prop.key, activeTab).refService">SERVICIO</span>
+                                             <select class="form-select form-select-sm custom-select" 
+                                                     [(ngModel)]="getFieldConfig(prop.key, activeTab).refService"
+                                                     (ngModelChange)="onDependencyTypeChange(prop.key, activeTab)">
+                                               <option [value]="null">Sin referencia</option>
+                                               <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
+                                             </select>
+                                           </div>
+
+                                           <!-- Bloque Endpoint -->
+                                           <div class="dep-block animate-in" *ngIf="getFieldConfig(prop.key, activeTab).refService">
+                                             <span class="label-title">ENDPOINT</span>
+                                             <select class="form-select form-select-sm custom-select" 
+                                                     [(ngModel)]="getFieldConfig(prop.key, activeTab).dependency.target"
+                                                     (ngModelChange)="onDependencyTargetChange(prop.key, activeTab)">
+                                               <option [value]="null">Seleccione Target...</option>
+                                               <option *ngFor="let ep of targetEndpoints[activeTab + '_' + prop.key]" [value]="ep.path">
+                                                 {{ ep.method }} {{ ep.path }}
+                                               </option>
+                                             </select>
+                                           </div>
                                          </div>
-                                        <div *ngIf="getFieldConfig(prop.key, activeTab).refService && getFieldConfig(prop.key, activeTab).refDisplay === 'desc'" class="animate-in">
-                                          <select class="form-select form-select-sm x-small bg-light" 
-                                                  [(ngModel)]="getFieldConfig(prop.key, activeTab).refDescriptionService">
-                                            <option [value]="null">Referencia externa para Descr.</option>
-                                            <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
-                                          </select>
-                                        </div>
-                                         <!-- Dependencia: Solo si tiene referencia y hay otros campos que podrían ser padres -->
-                                         <div *ngIf="getFieldConfig(prop.key, activeTab).refService" class="animate-in">
-                                           <select class="form-select form-select-sm x-small bg-light" 
-                                                   [(ngModel)]="getFieldConfig(prop.key, activeTab).dependsOn">
-                                             <option [value]="null">Sin dependencia</option>
-                                             <ng-container *ngFor="let otherProp of dto.properties | keyvalue">
-                                                <option *ngIf="otherProp.key !== prop.key" [value]="otherProp.key">
-                                                  Filtrar por: {{ otherProp.key }}
-                                                </option>
-                                             </ng-container>
-                                           </select>
+
+                                         <!-- LÍNEA 2 (Solo si hay referencia) -->
+                                         <div class="dep-row mt-1 animate-in" *ngIf="getFieldConfig(prop.key, activeTab).refService">
+                                           <!-- Bloque Atributo -->
+                                           <div class="dep-block">
+                                             <span class="label-title">ATRIBUTO</span>
+                                             <select class="form-select form-select-sm custom-select" 
+                                                     [(ngModel)]="getFieldConfig(prop.key, activeTab).dependency.field">
+                                               <option [value]="null">Seleccione Campo...</option>
+                                               <option *ngFor="let f of targetFields[activeTab + '_' + prop.key]" [value]="f">
+                                                 {{ f }}
+                                               </option>
+                                             </select>
+                                           </div>
+
+                                           <!-- Bloque Info -->
+                                           <div class="dep-block d-flex flex-column justify-content-center px-1" style="height: 38px;">
+                                             <span class="label-title">INFO</span>
+                                             <div class="text-dark fw-bold" style="font-size: 0.65rem; padding-left: 4px;">REF_DATA</div>
+                                           </div>
                                          </div>
                                        </div>
                                      </td>
@@ -551,6 +565,43 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       .drag-row:hover { background-color: rgba(var(--bs-primary-rgb), 0.05) !important; }
       .drag-row:active { opacity: 0.7; border: 2px dashed #0d6efd; }
       .drag-row td { vertical-align: middle; }
+
+      /* Arquitectura de Bloques UX Estandarizada */
+      .dependency-container { width: 100%; min-width: 320px; background: transparent; }
+      .dep-row { display: flex; gap: 4px; width: 100%; background: transparent; }
+      .dep-block { 
+        flex: 1; 
+        min-height: 38px; 
+        border-radius: 4px; 
+        overflow: hidden; 
+        padding: 2px 4px; 
+        display: flex; 
+        flex-direction: column; 
+        background-color: transparent !important;
+        border: 1px solid #dee2e6;
+      }
+      
+      .label-title { 
+        font-size: 0.55rem; 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        line-height: 1;
+        margin-bottom: 1px;
+        color: #0d6efd !important; /* Azul estándar */
+      }
+
+      .custom-select {
+        background-color: transparent !important;
+        border: none !important;
+        color: #000 !important; /* Texto negro */
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0 !important;
+        height: auto !important;
+      }
+      .custom-select option { color: #000; background-color: #fff; }
+
+      .x-small { font-size: 0.7rem; }
     </style>
   `
 })
@@ -579,6 +630,10 @@ export class ActionDefinitionComponent implements OnInit {
   availableActions = { create: false, edit: false, delete: false };
   showCode = false;
   propertiesCollapsed = true;
+
+  // Cache para dependencias externas
+  targetEndpoints: { [key: string]: Endpoint[] } = {};
+  targetFields: { [key: string]: string[] } = {};
 
   // Drag and Drop State
   draggedKey: string | null = null;
@@ -728,8 +783,26 @@ export class ActionDefinitionComponent implements OnInit {
         refService: null,
         refDisplay: 'id',
         refDescriptionService: null,
-        dependsOn: null
+        dependsOn: null,
+        dependency: null // Nuevo objeto según requerimiento
       };
+    }
+
+    // Normalización: Asegurar que si no hay referencia, dependency sea null
+    const field = config[category][propKey];
+    if (!field.refService || field.refService === 'Sin referencia' || field.refService === 'null') {
+      field.refService = null;
+      field.dependency = null;
+    }
+
+    // Migración: si existe refService pero no dependency, inicializar dependency
+    if (field.refService && !field.dependency) {
+      field.dependency = {
+        type: field.refService,
+        target: null,
+        field: null
+      };
+      this.loadTargetEndpoints(propKey, category, field.refService);
     }
 
     // Asegurar que siempre tenga un visualName para evitar campos vacíos
@@ -738,6 +811,77 @@ export class ActionDefinitionComponent implements OnInit {
     }
 
     return config[category][propKey];
+  }
+
+  loadTargetEndpoints(propKey: string, type: string, serviceId: string) {
+    if (!serviceId) return;
+    const cacheKey = `${type}_${propKey}`;
+    this.middlewareService.inspectService(serviceId).subscribe(data => {
+      this.targetEndpoints[cacheKey] = data.endpoints || [];
+      
+      const config = this.getFieldConfig(propKey, type);
+      if (config.dependency?.target) {
+        this.loadTargetFields(propKey, type, config.dependency.target);
+      }
+    });
+  }
+
+  loadTargetFields(propKey: string, type: string, path: string) {
+    const cacheKey = `${type}_${propKey}`;
+    const endpoints = this.targetEndpoints[cacheKey];
+    if (!endpoints) return;
+
+    const endpoint = endpoints.find(e => e.path === path);
+    if (!endpoint || !endpoint.response_dto) {
+      this.targetFields[cacheKey] = [];
+      return;
+    }
+
+    this.targetFields[cacheKey] = this.extractPropsFromDto(endpoint.response_dto);
+  }
+
+  private extractPropsFromDto(dto: any): string[] {
+    if (!dto) return [];
+    if (dto.properties) {
+      const listProp: any = Object.values(dto.properties).find((p: any) => p.type === 'array');
+      if (listProp && listProp.items && listProp.items.properties) {
+        return Object.keys(listProp.items.properties);
+      }
+      return Object.keys(dto.properties);
+    }
+    if (dto.type === 'array' && dto.items && dto.items.properties) {
+      return Object.keys(dto.items.properties);
+    }
+    return [];
+  }
+
+  onDependencyTypeChange(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    const cacheKey = `${type}_${propKey}`;
+
+    if (!config.refService || config.refService === 'Sin referencia' || config.refService === 'null') {
+      config.refService = null;
+      config.dependency = null;
+      config.editable = true;
+      delete this.targetEndpoints[cacheKey];
+      delete this.targetFields[cacheKey];
+    } else {
+      config.dependency = {
+        type: config.refService,
+        target: null,
+        field: null
+      };
+      config.editable = false;
+      this.loadTargetEndpoints(propKey, type, config.refService);
+    }
+  }
+
+  onDependencyTargetChange(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    if (config.dependency?.target) {
+      config.dependency.field = null;
+      this.loadTargetFields(propKey, type, config.dependency.target);
+    }
   }
 
   onRefServiceChange(propKey: any, type: string) {

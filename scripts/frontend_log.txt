@@ -13,14 +13,14 @@ case.
 
 Initial chunk files   | Names         |  Raw size
 vendor.js             | vendor        |   2.80 MB | 
-main.js               | main          | 391.04 kB | 
+main.js               | main          | 397.27 kB | 
 polyfills.js          | polyfills     | 262.57 kB | 
 styles.css, styles.js | styles        | 153.00 kB | 
 runtime.js            | runtime       |   6.50 kB | 
 
-                      | Initial total |   3.59 MB
+                      | Initial total |   3.60 MB
 
-Build at: 2026-01-14T21:31:49.228Z - Hash: dc2df1d106a41e54 - Time: 3640ms
+Build at: 2026-01-15T21:03:34.836Z - Hash: 4914c5f45ec90f99 - Time: 2494ms
 
 ** Angular Live Development Server is listening on 0.0.0.0:4200, open your browser on http://localhost:4200/ **
 
@@ -32,612 +32,160 @@ Build at: 2026-01-14T21:31:49.228Z - Hash: dc2df1d106a41e54 - Time: 3640ms
 
 5 unchanged chunks
 
-Build at: 2026-01-14T21:31:50.371Z - Hash: dc2df1d106a41e54 - Time: 1065ms
+Build at: 2026-01-15T21:03:35.672Z - Hash: 4914c5f45ec90f99 - Time: 762ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.33 kB | 
+main.js             | main    | 397.36 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T21:56:53.519Z - Hash: ede223025ff0fa3c - Time: 2291ms
+Build at: 2026-01-15T21:12:09.159Z - Hash: f31df01a1c1bdd09 - Time: 1481ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.67 kB | 
+main.js             | main    | 400.23 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T21:57:12.451Z - Hash: f3254bc39cd06239 - Time: 1535ms
-
-Error: src/app/features/preview/preview.component.ts:906:11 - error TS2345: Argument of type '{ key: string; label: any; value: any; refService: any; refDisplay: any; refDisplayField: any; }' is not assignable to parameter of type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'.
-  Object literal may only specify known properties, but 'refDisplayField' does not exist in type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'. Did you mean to write 'refDisplay'?
-
-906           refDisplayField: config.refDisplayField
-              ~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.67 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-14T21:57:41.111Z - Hash: b27e8eb8b1ae2a76 - Time: 1252ms
-
-Error: src/app/features/preview/preview.component.ts:906:11 - error TS2345: Argument of type '{ key: string; label: any; value: any; refService: any; refDisplay: any; refDisplayField: any; }' is not assignable to parameter of type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'.
-  Object literal may only specify known properties, but 'refDisplayField' does not exist in type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'. Did you mean to write 'refDisplay'?
-
-906           refDisplayField: config.refDisplayField
-              ~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.67 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-14T21:58:53.884Z - Hash: 2a769b93a5388d55 - Time: 773ms
+Build at: 2026-01-15T21:12:20.456Z - Hash: 8c3f4f305bea7d2b - Time: 1696ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.67 kB | 
+main.js             | main    | 397.84 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T21:59:03.059Z - Hash: dbd9266577d65656 - Time: 650ms
+Build at: 2026-01-15T21:12:32.286Z - Hash: 8ab8974af4030825 - Time: 935ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 398.46 kB | 
+main.js             | main    | 398.92 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T22:05:33.857Z - Hash: c9ec82c076814a7e - Time: 1282ms
+Build at: 2026-01-15T21:12:40.129Z - Hash: 4f1984f477872433 - Time: 1082ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 398.46 kB | 
+main.js             | main    | 398.92 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T22:05:44.786Z - Hash: 55b5ee8b3fef8b6f - Time: 1101ms
+Build at: 2026-01-15T21:13:01.097Z - Hash: df9654e8592549ba - Time: 1023ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.79 kB | 
+main.js             | main    | 400.04 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T22:10:47.394Z - Hash: deaecf4b76f6f980 - Time: 1186ms
+Build at: 2026-01-15T21:34:29.082Z - Hash: de540e4ffa4a00d4 - Time: 1196ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.79 kB | 
+main.js             | main    | 400.35 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T22:10:55.797Z - Hash: b94a77f0e473c82a - Time: 1318ms
+Build at: 2026-01-15T21:34:39.018Z - Hash: a7d740107548a8ed - Time: 1126ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 448.08 kB | 
+main.js             | main    | 400.96 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:43:43.585Z - Hash: b2c1e839d1f5e010 - Time: 673ms
+Build at: 2026-01-15T21:34:47.649Z - Hash: 1f771aea5ece2b30 - Time: 925ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 449.64 kB | 
+main.js             | main    | 400.96 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:43:54.465Z - Hash: d898e80ba0007fd1 - Time: 1233ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:365:75 - error TS2339: Property 'getReferenceBadgeClass' does not exist on type 'ActionDefinitionComponent'.
-
-365                                            <span class="badge" [ngClass]="getReferenceBadgeClass()">{{ getReferenceStatusLabel() }}</span>
-                                                                              ~~~~~~~~~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:365:104 - error TS2339: Property 'getReferenceStatusLabel' does not exist on type 'ActionDefinitionComponent'.
-
-365                                            <span class="badge" [ngClass]="getReferenceBadgeClass()">{{ getReferenceStatusLabel() }}</span>
-                                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 450.31 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-14T23:44:05.748Z - Hash: cb8feff8aac2369b - Time: 1097ms
+Build at: 2026-01-15T21:35:04.093Z - Hash: c3aabea43a1aa6e2 - Time: 1048ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 450.72 kB | 
+main.js             | main    | 400.80 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:44:26.245Z - Hash: 4ad16c43d5e1b512 - Time: 1375ms
+Build at: 2026-01-15T21:43:06.551Z - Hash: cc35760242950786 - Time: 1037ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 450.72 kB | 
+main.js             | main    | 400.56 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:44:40.835Z - Hash: 7b959b60babefae7 - Time: 1156ms
+Build at: 2026-01-15T21:43:19.342Z - Hash: 95b9e81b14929f86 - Time: 1098ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 450.72 kB | 
+main.js             | main    | 400.56 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:45:01.996Z - Hash: 44e81544f180b9b8 - Time: 1249ms
+Build at: 2026-01-15T21:43:26.795Z - Hash: 55893e7f8b98fa7e - Time: 941ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.05 kB | 
+main.js             | main    | 400.23 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:51:21.686Z - Hash: ca0db8fe59734e3f - Time: 1613ms
+Build at: 2026-01-15T21:45:35.613Z - Hash: f387581798b7063e - Time: 1101ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.05 kB | 
+main.js             | main    | 400.23 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-14T23:51:31.351Z - Hash: b87d95023e79163f - Time: 1349ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.05 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-14T23:54:54.507Z - Hash: ff23f56f4a88b171 - Time: 575ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.05 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-14T23:55:05.364Z - Hash: 13eac9382b8cdb72 - Time: 406ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.52 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:00:56.294Z - Hash: 06c787f4b4cc85f4 - Time: 914ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.52 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:01:08.235Z - Hash: 6b5edeef195cca0a - Time: 439ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.75 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:03:33.933Z - Hash: 39e5318efb913a1f - Time: 561ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 451.75 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:03:46.373Z - Hash: dd60363eeb9ed08b - Time: 422ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 439.37 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:05:57.985Z - Hash: 1a4c3cd0823de65c - Time: 1414ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 391.04 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:05:59.408Z - Hash: 82458722fac07416 - Time: 1383ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.15 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:07:53.420Z - Hash: 7648b40a41f2edce - Time: 1477ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.24 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:08:24.302Z - Hash: ddc07ccbe39daeb0 - Time: 1168ms
-
-Error: src/app/features/preview/preview.component.ts:197:204 - error TS2554: Expected 3 arguments, but got 4.
-
-197                               {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay, activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
-                                                                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.24 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:08:31.778Z - Hash: d7de509ddb7262c6 - Time: 568ms
-
-Error: src/app/features/preview/preview.component.ts:197:204 - error TS2554: Expected 3 arguments, but got 4.
-
-197                               {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay, activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
-                                                                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.52 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:08:40.447Z - Hash: 473d700f0c0e4c5f - Time: 551ms
-
-Error: src/app/features/preview/preview.component.ts:197:204 - error TS2554: Expected 3 arguments, but got 4.
-
-197                               {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay, activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
-                                                                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.65 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:08:46.673Z - Hash: f9bd606b2dd2e3c1 - Time: 680ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.71 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:08:54.990Z - Hash: 5ad4c9432e0c3457 - Time: 684ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:09:04.564Z - Hash: 67052a1569dc2ec7 - Time: 588ms
-
-Error: src/app/features/preview/preview.component.ts:900:11 - error TS2345: Argument of type '{ key: string; label: any; value: any; refService: any; refDisplay: any; refDescriptionService: any; }' is not assignable to parameter of type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'.
-  Object literal may only specify known properties, and 'refDescriptionService' does not exist in type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'.
-
-900           refDescriptionService: config.refDescriptionService
-              ~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:10:02.148Z - Hash: e89673054fb596db - Time: 1275ms
-
-Error: src/app/features/preview/preview.component.ts:900:11 - error TS2345: Argument of type '{ key: string; label: any; value: any; refService: any; refDisplay: any; refDescriptionService: any; }' is not assignable to parameter of type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'.
-  Object literal may only specify known properties, and 'refDescriptionService' does not exist in type '{ key: string; label: string; value: any; refService?: string | undefined; refDisplay?: string | undefined; }'.
-
-900           refDescriptionService: config.refDescriptionService
-              ~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:28:52.660Z - Hash: 31eb59f988acd3e6 - Time: 805ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:29:00.716Z - Hash: e7f0995da0caeffa - Time: 536ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.81 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:33:52.411Z - Hash: aedc88f371817536 - Time: 795ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:33:59.683Z - Hash: e7f0995da0caeffa - Time: 654ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.81 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:35:27.918Z - Hash: 99b72e8492184dc0 - Time: 794ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-
-
-5 unchanged chunks
-
-Build at: 2026-01-15T00:35:33.407Z - Hash: 99b72e8492184dc0 - Time: 493ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-
-
-5 unchanged chunks
-
-Build at: 2026-01-15T00:36:08.085Z - Hash: 99b72e8492184dc0 - Time: 658ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.94 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:40:56.436Z - Hash: 9cee49bd1359b3df - Time: 949ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:367:84 - error TS2554: Expected 2 arguments, but got 3.
-
-367                                         (dragstart)="onDragStart($event, prop.key, dto)"
-                                                                                       ~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 396.97 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:41:01.451Z - Hash: dd2a1b29cdce9bd9 - Time: 1149ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:367:84 - error TS2554: Expected 2 arguments, but got 3.
-
-367                                         (dragstart)="onDragStart($event, prop.key, dto)"
-                                                                                       ~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1012:10 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
-
-1012     this.draggedIndex = index;
-              ~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1027:14 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
-
-1027     if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
-                  ~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1027:44 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
-
-1027     if (this.draggedIndex === null || this.draggedIndex === targetIndex) return;
-                                                ~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1030:42 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
-
-1030     const draggedItem = sortedProps[this.draggedIndex];
-                                              ~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1033:29 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
-
-1033     sortedProps.splice(this.draggedIndex, 1);
-                                 ~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1042:10 - error TS2339: Property 'draggedIndex' does not exist on type 'ActionDefinitionComponent'.
-
-1042     this.draggedIndex = null;
-              ~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.27 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:41:18.348Z - Hash: e2c31f8cec6df1fb - Time: 1146ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.27 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T00:41:25.810Z - Hash: 4914c5f45ec90f99 - Time: 693ms
+Build at: 2026-01-15T21:45:42.839Z - Hash: 1001c4cdf324e34c - Time: 922ms
 
 √ Compiled successfully.
