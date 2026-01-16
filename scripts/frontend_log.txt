@@ -252,3 +252,449 @@ runtime.js          | runtime |   6.50 kB |
 Build at: 2026-01-16T00:17:14.528Z - Hash: d4270fd6d7a905a8 - Time: 1081ms
 
 √ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 392.80 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:36:04.898Z - Hash: 85d78049aa2723e1 - Time: 1200ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+
+423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
+                                                            ~~~~~~~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 407.23 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:36:13.197Z - Hash: 519e14b8bc840efc - Time: 1319ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+
+423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
+                                                            ~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:536:19 - error TS2339: Property 'isModalOpen' does not exist on type 'ActionDefinitionComponent'.
+
+536       <div *ngIf="isModalOpen" class="custom-modal-backdrop animate-in">
+                      ~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:541:41 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+541               Configurar Referencia: {{ editingPropKey }}
+                                            ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:543:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+
+543             <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
+                                 ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:556:67 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
+                                                                      ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:556:83 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
+                                                                                      ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:562:73 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                            ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:562:89 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                                            ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:566:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
+                                                                        ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:566:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
+                                                                                        ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:568:63 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
+                                                                  ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:568:82 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
+                                                                                     ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:576:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                        ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:576:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                                        ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:582:59 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                                                              ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:582:78 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                                                                                 ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:597:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+
+597             <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
+                                 ~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 407.93 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:36:24.288Z - Hash: e2b9d862a403f995 - Time: 1109ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+
+423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
+                                                            ~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:536:19 - error TS2339: Property 'isModalOpen' does not exist on type 'ActionDefinitionComponent'.
+
+536       <div *ngIf="isModalOpen" class="custom-modal-backdrop animate-in">
+                      ~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:541:41 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+541               Configurar Referencia: {{ editingPropKey }}
+                                            ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:543:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+
+543             <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
+                                 ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:556:67 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
+                                                                      ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:556:83 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
+                                                                                      ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:562:73 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                            ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:562:89 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                                            ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:566:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
+                                                                        ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:566:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
+                                                                                        ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:568:63 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
+                                                                  ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:568:82 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
+                                                                                     ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:576:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                        ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:576:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                                                                                        ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                          ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                                                                          ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:582:59 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+
+582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                                                              ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:582:78 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+
+582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                                                                                 ~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:597:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+
+597             <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
+                                 ~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 408.03 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:36:28.448Z - Hash: f172e67e5bfa82bc - Time: 1149ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+
+423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
+                                                            ~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:543:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+
+543             <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
+                                 ~~~~~~~~~~
+
+
+Error: src/app/features/action-definition/action-definition.component.ts:597:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+
+597             <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
+                                 ~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 408.50 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:36:35.039Z - Hash: 9709f01721143b91 - Time: 970ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 408.50 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:36:43.318Z - Hash: b4912836e5a2e58f - Time: 885ms
+
+√ Compiled successfully.

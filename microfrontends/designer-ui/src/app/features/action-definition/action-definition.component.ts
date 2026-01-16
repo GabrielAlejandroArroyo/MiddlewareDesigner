@@ -418,57 +418,29 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                                 [(ngModel)]="getFieldConfig(prop.key, activeTab).unique">
                                        </div>
                                      </td>
-                                     <td>
-                                       <!-- Contenedor de Dependencia -->
-                                       <div class="dependency-container" [class.active-grid]="getFieldConfig(prop.key, activeTab).refService">
+                                     <td class="text-center">
+                                       <!-- Botón Contextual para Referencia -->
+                                       <button (click)="openReferenceModal(prop.key, activeTab)" 
+                                               class="btn btn-sm w-100 d-flex align-items-center justify-content-between px-2"
+                                               [class.btn-outline-primary]="!getFieldConfig(prop.key, activeTab).refService"
+                                               [class.btn-primary]="getFieldConfig(prop.key, activeTab).refService"
+                                               [class.shadow-sm]="getFieldConfig(prop.key, activeTab).refService">
                                          
-                                         <!-- LÍNEA 1 -->
-                                         <div class="dep-row">
-                                           <!-- Bloque Servicio -->
-                                           <div class="dep-block">
-                                             <span class="label-title" *ngIf="getFieldConfig(prop.key, activeTab).refService">SERVICIO</span>
-                                             <select class="form-select form-select-sm custom-select" 
-                                                     [(ngModel)]="getFieldConfig(prop.key, activeTab).refService"
-                                                     (ngModelChange)="onDependencyTypeChange(prop.key, activeTab)">
-                                               <option [value]="null">Sin referencia</option>
-                                               <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
-                                             </select>
-                                           </div>
-
-                                           <!-- Bloque Endpoint -->
-                                           <div class="dep-block animate-in" *ngIf="getFieldConfig(prop.key, activeTab).refService">
-                                             <span class="label-title">ENDPOINT</span>
-                                             <select class="form-select form-select-sm custom-select" 
-                                                     [(ngModel)]="getFieldConfig(prop.key, activeTab).dependency.target"
-                                                     (ngModelChange)="onDependencyTargetChange(prop.key, activeTab)">
-                                               <option [value]="null">Seleccione Target...</option>
-                                               <option *ngFor="let ep of targetEndpoints[activeTab + '_' + prop.key]" [value]="ep.path">
-                                                 {{ ep.method }} {{ ep.path }}
-                                               </option>
-                                             </select>
-                                           </div>
+                                         <div class="d-flex align-items-center text-truncate">
+                                           <i class="bi" [ngClass]="getFieldConfig(prop.key, activeTab).refService ? 'bi-link-45deg' : 'bi-plus-circle'"></i>
+                                           <span class="ms-2 x-small fw-bold text-truncate">
+                                             {{ getFieldConfig(prop.key, activeTab).refService || 'CONFIGURAR' }}
+                                           </span>
                                          </div>
+                                         
+                                         <i class="bi bi-chevron-right opacity-50 ms-1"></i>
+                                       </button>
 
-                                         <!-- LÍNEA 2 (Solo si hay referencia) -->
-                                         <div class="dep-row mt-1 animate-in" *ngIf="getFieldConfig(prop.key, activeTab).refService">
-                                           <!-- Bloque Atributo -->
-                                           <div class="dep-block">
-                                             <span class="label-title">ATRIBUTO</span>
-                                             <select class="form-select form-select-sm custom-select" 
-                                                     [(ngModel)]="getFieldConfig(prop.key, activeTab).dependency.field">
-                                               <option [value]="null">Seleccione Campo...</option>
-                                               <option *ngFor="let f of targetFields[activeTab + '_' + prop.key]" [value]="f">
-                                                 {{ f }}
-                                               </option>
-                                             </select>
-                                           </div>
-
-                                           <!-- Bloque Info -->
-                                           <div class="dep-block d-flex flex-column justify-content-center px-1" style="height: 38px;">
-                                             <span class="label-title">INFO</span>
-                                             <div class="text-dark fw-bold" style="font-size: 0.65rem; padding-left: 4px;">REF_DATA</div>
-                                           </div>
-                                         </div>
+                                       <!-- Resumen compacto -->
+                                       <div *ngIf="getFieldConfig(prop.key, activeTab).refService" class="mt-1 text-truncate" style="max-width: 200px;">
+                                          <span class="badge bg-info-subtle text-dark border x-small py-0 px-1 fw-normal">
+                                            {{ getFieldConfig(prop.key, activeTab).dependency?.field || '...' }}
+                                          </span>
                                        </div>
                                      </td>
                                    </tr>
@@ -559,6 +531,74 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
           </div>
         </div>
       </div>
+
+      <!-- MODAL CONTEXTUAL: CONFIGURACIÓN DE REFERENCIA -->
+      <div *ngIf="isModalOpen" class="custom-modal-backdrop animate-in">
+        <div class="custom-modal shadow-lg border-0 rounded-4 overflow-hidden">
+          <div class="modal-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-uppercase ls-1">
+              <i class="bi bi-link-45deg me-2"></i>
+              Configurar Referencia: {{ editingPropKey }}
+            </h6>
+            <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
+          </div>
+          
+          <div class="modal-body p-4 bg-white">
+            <p class="text-muted small mb-4">Define el origen de datos dinámico para este atributo técnico.</p>
+            
+            <div class="dependency-container active-grid">
+              <!-- LÍNEA 1 -->
+              <div class="dep-row mb-3">
+                <div class="dep-block">
+                  <span class="label-title">SERVICIO (Origen Externo)</span>
+                  <select class="form-select form-select-sm custom-select" 
+                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
+                          (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
+                    <option [value]="null">Sin referencia (Valor manual)</option>
+                    <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
+                  </select>
+                </div>
+
+                <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                  <span class="label-title">ENDPOINT (Acceso a Datos)</span>
+                  <select class="form-select form-select-sm custom-select" 
+                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
+                          (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
+                    <option [value]="null">Seleccione un endpoint...</option>
+                    <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
+                      {{ ep.method }} {{ ep.path }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- LÍNEA 2 -->
+              <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                <div class="dep-block">
+                  <span class="label-title">ATRIBUTO (Campo de Referencia)</span>
+                  <select class="form-select form-select-sm custom-select" 
+                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                    <option [value]="null">Seleccione un campo...</option>
+                    <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                      {{ f }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="dep-block d-flex flex-column justify-content-center px-2 bg-light border-0">
+                  <span class="label-title opacity-50">ESTADO INTEGRIDAD</span>
+                  <div class="text-primary fw-bold small">LINK_CONNECTED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="modal-footer bg-light p-3 border-top">
+            <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
+          </div>
+        </div>
+      </div>
+
     <style>
       .cursor-move { cursor: move; }
       .drag-row { transition: all 0.2s ease; cursor: default; }
@@ -602,6 +642,23 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       .custom-select option { color: #000; background-color: #fff; }
 
       .x-small { font-size: 0.7rem; }
+
+      /* Estilos del Modal Contextual */
+      .custom-modal-backdrop {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+        z-index: 1050; display: flex; align-items: center; justify-content: center;
+      }
+      .custom-modal {
+        width: 90%; max-width: 600px;
+        background: white; border-radius: 1rem;
+        animation: slideUp 0.3s ease-out;
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .ls-1 { letter-spacing: 1px; }
     </style>
   `
 })
@@ -639,6 +696,11 @@ export class ActionDefinitionComponent implements OnInit {
   // Drag and Drop State
   draggedKey: string | null = null;
   dragSnapshotKeys: string[] = [];
+
+  // Modal State
+  isModalOpen = false;
+  editingPropKey: string = '';
+  editingTab: string = '';
 
   // Change Detection
   initialState: string = '';
@@ -928,6 +990,24 @@ export class ActionDefinitionComponent implements OnInit {
     if (config.dependency?.target) {
       config.dependency.field = null;
       this.loadTargetFields(propKey, type, config.dependency.target);
+    }
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+    this.editingPropKey = '';
+    this.editingTab = '';
+  }
+
+  openReferenceModal(propKey: string, tab: string) {
+    this.editingPropKey = propKey;
+    this.editingTab = tab;
+    this.isModalOpen = true;
+    
+    // Si ya tiene una referencia, asegurar que se carguen los endpoints al abrir
+    const config = this.getFieldConfig(propKey, tab);
+    if (config.refService) {
+      this.loadTargetEndpoints(propKey, tab, config.refService);
     }
   }
 
