@@ -189,3 +189,66 @@ runtime.js          | runtime |   6.50 kB |
 Build at: 2026-01-15T21:45:42.839Z - Hash: 1001c4cdf324e34c - Time: 922ms
 
 √ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 400.27 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:16:20.185Z - Hash: 532b1dc1d01c91ba - Time: 1645ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 400.31 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:16:24.730Z - Hash: 1a76fe40ad1ce1df - Time: 1240ms
+
+Error: src/app/features/action-definition/action-definition.component.ts:730:16 - error TS2339: Property 'preloadAllDependencies' does not exist on type 'ActionDefinitionComponent'.
+
+730           this.preloadAllDependencies();
+                   ~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 401.54 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:16:47.964Z - Hash: da8266d8d9ff327e - Time: 1609ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 401.86 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:17:03.159Z - Hash: 4561786ccd2ec0fd - Time: 1228ms
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 401.86 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-16T00:17:14.528Z - Hash: d4270fd6d7a905a8 - Time: 1081ms
+
+√ Compiled successfully.

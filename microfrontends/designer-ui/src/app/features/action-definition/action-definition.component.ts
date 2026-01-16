@@ -634,6 +634,7 @@ export class ActionDefinitionComponent implements OnInit {
   // Cache para dependencias externas
   targetEndpoints: { [key: string]: Endpoint[] } = {};
   targetFields: { [key: string]: string[] } = {};
+  private serviceEndpointsCache: { [serviceId: string]: Endpoint[] } = {};
 
   // Drag and Drop State
   draggedKey: string | null = null;
@@ -726,6 +727,7 @@ export class ActionDefinitionComponent implements OnInit {
           this.availableActions.delete = data.endpoints.some((e: any) => e.is_enabled && e.method === 'DELETE');
 
           this.captureInitialState();
+          this.preloadAllDependencies();
         } else {
           this.error = "No se encontró la definición del endpoint solicitado.";
         }
@@ -795,14 +797,13 @@ export class ActionDefinitionComponent implements OnInit {
       field.dependency = null;
     }
 
-    // Migración: si existe refService pero no dependency, inicializar dependency
+    // Asegurar objeto dependency si existe refService
     if (field.refService && !field.dependency) {
       field.dependency = {
         type: field.refService,
         target: null,
         field: null
       };
-      this.loadTargetEndpoints(propKey, category, field.refService);
     }
 
     // Asegurar que siempre tenga un visualName para evitar campos vacíos
@@ -813,26 +814,72 @@ export class ActionDefinitionComponent implements OnInit {
     return config[category][propKey];
   }
 
-  loadTargetEndpoints(propKey: string, type: string, serviceId: string) {
-    if (!serviceId) return;
-    const cacheKey = `${type}_${propKey}`;
-    this.middlewareService.inspectService(serviceId).subscribe(data => {
-      this.targetEndpoints[cacheKey] = data.endpoints || [];
-      
-      const config = this.getFieldConfig(propKey, type);
-      if (config.dependency?.target) {
-        this.loadTargetFields(propKey, type, config.dependency.target);
+  preloadAllDependencies() {
+    if (!this.endpoint?.configuracion_ui?.fields_config) return;
+    const fc = this.endpoint.configuracion_ui.fields_config;
+    
+    // Iterar sobre todas las categorías para precargar endpoints de servicios referenciados
+    ['params', 'request', 'response'].forEach(cat => {
+      if (fc[cat]) {
+        Object.keys(fc[cat]).forEach(propKey => {
+          const config = fc[cat][propKey];
+          if (config.refService) {
+             this.loadTargetEndpoints(propKey, cat, config.refService);
+          }
+        });
       }
     });
   }
 
+  loadTargetEndpoints(propKey: string, type: string, serviceId: string) {
+    if (!serviceId || serviceId === 'null' || serviceId === 'Sin referencia') return;
+    const cacheKey = `${type}_${propKey}`;
+
+    // 1. Si ya tenemos los endpoints de este servicio en el caché global, usarlos
+    if (this.serviceEndpointsCache[serviceId]) {
+      this.targetEndpoints[cacheKey] = this.serviceEndpointsCache[serviceId];
+      this.afterEndpointsLoaded(propKey, type);
+      return;
+    }
+
+    // 2. Si no, cargarlos de la API (evitando llamadas redundantes si ya están en progreso)
+    this.middlewareService.inspectService(serviceId).subscribe({
+      next: (data) => {
+        const endpoints = data.endpoints || [];
+        this.serviceEndpointsCache[serviceId] = endpoints;
+        this.targetEndpoints[cacheKey] = endpoints;
+        this.afterEndpointsLoaded(propKey, type);
+      },
+      error: (err) => {
+        console.error(`Error al cargar servicio ${serviceId}:`, err);
+        this.targetEndpoints[cacheKey] = [];
+      }
+    });
+  }
+
+  private afterEndpointsLoaded(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    if (config.dependency?.target) {
+      this.loadTargetFields(propKey, type, config.dependency.target);
+    }
+  }
+
   loadTargetFields(propKey: string, type: string, path: string) {
+    if (!path) return;
     const cacheKey = `${type}_${propKey}`;
     const endpoints = this.targetEndpoints[cacheKey];
-    if (!endpoints) return;
+    if (!endpoints || endpoints.length === 0) return;
 
-    const endpoint = endpoints.find(e => e.path === path);
+    // Normalización de path para búsqueda (quitar slashes extras)
+    const normalizedPath = path.replace(/\/+$/, '').toLowerCase();
+    
+    const endpoint = endpoints.find(e => 
+      e.path === path || 
+      e.path.replace(/\/+$/, '').toLowerCase() === normalizedPath
+    );
+
     if (!endpoint || !endpoint.response_dto) {
+      console.warn(`No se encontró DTO de respuesta para el endpoint: ${path}`);
       this.targetFields[cacheKey] = [];
       return;
     }
