@@ -590,6 +590,20 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                   <div class="text-primary fw-bold small">LINK_CONNECTED</div>
                 </div>
               </div>
+
+              <!-- LÍNEA 3 (Opciones adicionales) -->
+              <div class="dep-row mt-3 pt-3 border-top animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                <div class="dep-block border-0">
+                  <span class="label-title">OPCIONES DE VISTA</span>
+                  <div class="form-check form-switch mt-1">
+                    <input class="form-check-input" type="checkbox" 
+                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescription">
+                    <label class="form-check-label x-small fw-bold text-muted">
+                      Mostrar ID junto a la descripción (ID: ...)
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -848,7 +862,8 @@ export class ActionDefinitionComponent implements OnInit {
         refDisplay: 'id',
         refDescriptionService: null,
         dependsOn: null,
-        dependency: null // Nuevo objeto según requerimiento
+        dependency: null, // Nuevo objeto según requerimiento
+        showIdWithDescription: false // REGLA: Por defecto oculto
       };
     }
 

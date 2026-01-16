@@ -194,7 +194,11 @@ import { HttpClient } from '@angular/common/http';
                           <div *ngIf="activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">
                             <span class="fw-medium ref-underline cursor-help" 
                                   [title]="'Referencia a servicio: ' + activeTest.configuracion_ui.fields_config.response[col.key].refService">
-                              {{ getRefValue(row[col.key], activeTest.configuracion_ui.fields_config.response[col.key].refService, activeTest.configuracion_ui.fields_config.response[col.key].refDisplay || 'desc', activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService) }}
+                              {{ getRefValue(row[col.key], 
+                                             activeTest.configuracion_ui.fields_config.response[col.key].refService, 
+                                             activeTest.configuracion_ui.fields_config.response[col.key].refDisplay || 'desc', 
+                                             activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService,
+                                             activeTest.configuracion_ui.fields_config.response[col.key].showIdWithDescription) }}
                             </span>
                           </div>
                           <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">{{ row[col.key] }}</span>
@@ -259,7 +263,7 @@ import { HttpClient } from '@angular/common/http';
                       <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable || activeTest.method === 'GET'" [title]="'Atributo técnico: ' + prop.key">
                         <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
                         <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn)" [value]="opt.id">
-                          {{ opt.descripcion || opt.nombre || opt.id }} (ID: {{ opt.id }})
+                          {{ opt.descripcion || opt.nombre || opt.id }}<span *ngIf="prop.showIdWithDescription"> (ID: {{ opt.id }})</span>
                         </option>
                       </select>
                     </div>
@@ -405,7 +409,7 @@ export class PreviewComponent implements OnInit {
   selectedId: string = '';
   testResponse: any = null;
   testerColumns: { key: string, label: string }[] = [];
-  testerFields: {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, refDescriptionService?: string, dependsOn?: string}[] = [];
+  testerFields: {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, refDescriptionService?: string, showIdWithDescription?: boolean, dependsOn?: string}[] = [];
 
   // Sub-Tester State (para navegación desde grilla)
   activeSubTest: { type: 'create' | 'update' | 'delete' | 'view', ep: any, data?: any } | null = null;
@@ -525,7 +529,7 @@ export class PreviewComponent implements OnInit {
     });
   }
 
-  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string): string {
+  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string, showId: boolean = false): string {
     const sourceServiceId = display === 'desc' && descriptionServiceId ? descriptionServiceId : serviceId;
     const list = this.refDataCache[sourceServiceId];
     if (!list || !val) return val;
@@ -534,7 +538,8 @@ export class PreviewComponent implements OnInit {
     if (!item) return val;
 
     if (display === 'desc') {
-      return item.descripcion || item.nombre || item.label || val;
+      const desc = item.descripcion || item.nombre || item.label || val;
+      return showId ? `${desc} (ID: ${val})` : desc;
     }
     return val;
   }
@@ -592,6 +597,7 @@ export class PreviewComponent implements OnInit {
         refService: config[k]?.refService,
         refDisplay: config[k]?.refDisplay,
         refDescriptionService: config[k]?.refDescriptionService,
+        showIdWithDescription: config[k]?.showIdWithDescription === true, // Capturar nueva propiedad
         dependsOn: config[k]?.dependsOn
       }))
       .filter(f => config[f.key]?.show !== false)
@@ -852,14 +858,14 @@ export class PreviewComponent implements OnInit {
     }
   }
 
-  getViewFields(): { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string }[] {
+  getViewFields(): { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string, showIdWithDescription?: boolean }[] {
     if (!this.activeSubTest || this.activeSubTest.type !== 'view' || !this.activeSubTest.ep) return [];
     
     const ep = this.activeSubTest.ep;
     const responseDto = ep.response_dto;
     if (!responseDto || !responseDto.properties) return [];
 
-    const fields: { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string }[] = [];
+    const fields: { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string, showIdWithDescription?: boolean }[] = [];
     const fieldsConfig = ep.configuracion_ui?.fields_config?.response || {};
 
     Object.keys(responseDto.properties).forEach(key => {
@@ -873,7 +879,11 @@ export class PreviewComponent implements OnInit {
         
         // Si tiene referencia a otro servicio, obtener el valor descriptivo
         if (config.refService && displayValue) {
-          displayValue = this.getRefValue(displayValue, config.refService, config.refDisplay || 'desc', config.refDescriptionService);
+          displayValue = this.getRefValue(displayValue, 
+                                          config.refService, 
+                                          config.refDisplay || 'desc', 
+                                          config.refDescriptionService,
+                                          config.showIdWithDescription);
         }
         
         // Formatear valores especiales
