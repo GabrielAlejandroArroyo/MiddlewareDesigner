@@ -912,19 +912,20 @@ export class ActionDefinitionComponent implements OnInit {
     if (!serviceId || serviceId === 'null' || serviceId === 'Sin referencia') return;
     const cacheKey = `${type}_${propKey}`;
 
-    // 1. Si ya tenemos los endpoints de este servicio en el caché global, usarlos
+    // 1. Si ya tenemos los endpoints de este servicio en el caché global, usarlos (filtrando por GET y Activos)
     if (this.serviceEndpointsCache[serviceId]) {
-      this.targetEndpoints[cacheKey] = this.serviceEndpointsCache[serviceId];
+      this.targetEndpoints[cacheKey] = this.serviceEndpointsCache[serviceId].filter((e: any) => e.method === 'GET' && e.is_enabled);
       this.afterEndpointsLoaded(propKey, type);
       return;
     }
 
-    // 2. Si no, cargarlos de la API (evitando llamadas redundantes si ya están en progreso)
+    // 2. Si no, cargarlos de la API
     this.middlewareService.inspectService(serviceId).subscribe({
       next: (data) => {
         const endpoints = data.endpoints || [];
         this.serviceEndpointsCache[serviceId] = endpoints;
-        this.targetEndpoints[cacheKey] = endpoints;
+        // REGLA: Solo permitir métodos GET que estén ACTIVOS en la definición
+        this.targetEndpoints[cacheKey] = endpoints.filter((e: any) => e.method === 'GET' && e.is_enabled);
         this.afterEndpointsLoaded(propKey, type);
       },
       error: (err) => {
