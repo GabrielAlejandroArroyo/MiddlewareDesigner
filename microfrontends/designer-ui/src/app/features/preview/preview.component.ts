@@ -71,7 +71,7 @@ import { HttpClient } from '@angular/common/http';
 
           <div *ngIf="selectedServiceId && inspectionData" class="animate-in">
             <div class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
-              <div class="card-header bg-white border-0 py-4 px-4 d-flex justify-content-between align-items-center">
+              <div class="card-header border-0 py-4 px-4 d-flex justify-content-between align-items-center">
                 <div>
                   <h3 class="fw-bold mb-1 text-dark">{{ inspectionData.service_name }}</h3>
                   <p class="text-muted mb-0">Visualizando componentes activos del microservicio</p>
@@ -117,7 +117,7 @@ import { HttpClient } from '@angular/common/http';
 
     <!-- Modal de Pruebas (Tester Funcional) - PANTALLA COMPLETA -->
     <div *ngIf="activeTest" class="full-screen-overlay animate-in">
-      <div class="full-screen-container bg-white shadow-lg d-flex flex-column">
+      <div class="full-screen-container shadow-lg d-flex flex-column">
         <!-- Header -->
         <div class="p-3 border-bottom bg-dark text-white d-flex justify-content-between align-items-center flex-shrink-0">
           <div class="d-flex align-items-center">
@@ -165,7 +165,7 @@ import { HttpClient } from '@angular/common/http';
             <!-- Caso GET: Listado Real -->
             <div *ngIf="activeTest.method === 'GET'">
               <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
                   <h6 class="fw-bold mb-0 text-secondary uppercase">REGISTROS RECUPERADOS DEL BACKEND</h6>
                   <div class="d-flex gap-2">
                     <button *ngIf="activeTest.configuracion_ui?.linked_actions?.create" 
@@ -240,7 +240,7 @@ import { HttpClient } from '@angular/common/http';
             <div *ngIf="['POST', 'PUT', 'PATCH'].includes(activeTest.method)">
               <div class="row justify-content-center">
                 <div class="col-lg-8">
-              <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+              <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                   <h4 class="fw-bold mb-0 text-primary">
                     {{ activeTest.method === 'GET' ? 'Visualización de Registro' : 'Formulario de Configuración' }}
@@ -303,7 +303,7 @@ import { HttpClient } from '@angular/common/http';
             <!-- Caso DELETE -->
             <div *ngIf="activeTest.method === 'DELETE'" class="row justify-content-center">
               <div class="col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
                   <div class="icon-circle bg-danger text-white mx-auto mb-4" style="width: 100px; height: 100px; font-size: 3rem">
                     <i class="bi bi-trash3"></i>
                   </div>
@@ -340,7 +340,7 @@ import { HttpClient } from '@angular/common/http';
 
       <!-- Modal Contextual de Visualización -->
       <div *ngIf="activeSubTest && activeSubTest.type === 'view'" class="custom-modal-overlay" (click)="activeSubTest = null">
-        <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in" (click)="$event.stopPropagation()" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="custom-modal shadow-lg p-0 rounded-4 overflow-hidden animate-in" (click)="$event.stopPropagation()" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
           <div class="p-4 border-bottom bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
             <div>
               <h4 class="mb-0 fw-bold text-info">

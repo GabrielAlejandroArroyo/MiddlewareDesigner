@@ -31,53 +31,53 @@ interface ServiceHealth extends BackendService {
       <div class="row g-4">
         <!-- Stats Summary -->
         <div class="col-md-3">
-          <div class="card border-0 shadow-sm bg-primary text-white rounded-4 p-3">
+          <div class="card border-0 shadow-sm stat-card-primary rounded-4 p-3">
             <div class="d-flex align-items-center">
-              <div class="icon-circle bg-white bg-opacity-20 me-3" style="width: 48px; height: 48px">
+              <div class="icon-circle stat-icon-primary me-3" style="width: 48px; height: 48px">
                 <i class="bi bi-cpu fs-4"></i>
               </div>
               <div>
-                <div class="small opacity-75">Servicios Totales</div>
-                <div class="fs-3 fw-bold">{{ services.length }}</div>
+                <div class="small stat-label">Servicios Totales</div>
+                <div class="fs-3 fw-bold stat-value">{{ services.length }}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-md-3">
-          <div class="card border-0 shadow-sm bg-success text-white rounded-4 p-3">
+          <div class="card border-0 shadow-sm stat-card-success rounded-4 p-3">
             <div class="d-flex align-items-center">
-              <div class="icon-circle bg-white bg-opacity-20 me-3" style="width: 48px; height: 48px">
+              <div class="icon-circle stat-icon-success me-3" style="width: 48px; height: 48px">
                 <i class="bi bi-check-circle fs-4"></i>
               </div>
               <div>
-                <div class="small opacity-75">Operativos</div>
-                <div class="fs-3 fw-bold">{{ onlineCount }}</div>
+                <div class="small stat-label">Operativos</div>
+                <div class="fs-3 fw-bold stat-value">{{ onlineCount }}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-md-3">
-          <div class="card border-0 shadow-sm bg-danger text-white rounded-4 p-3">
+          <div class="card border-0 shadow-sm stat-card-danger rounded-4 p-3">
             <div class="d-flex align-items-center">
-              <div class="icon-circle bg-white bg-opacity-20 me-3" style="width: 48px; height: 48px">
+              <div class="icon-circle stat-icon-danger me-3" style="width: 48px; height: 48px">
                 <i class="bi bi-exclamation-triangle fs-4"></i>
               </div>
               <div>
-                <div class="small opacity-75">Caídos / Offline</div>
-                <div class="fs-3 fw-bold">{{ services.length - onlineCount }}</div>
+                <div class="small stat-label">Caídos / Offline</div>
+                <div class="fs-3 fw-bold stat-value">{{ services.length - onlineCount }}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-md-3">
-          <div class="card border-0 shadow-sm bg-info text-white rounded-4 p-3">
+          <div class="card border-0 shadow-sm stat-card-info rounded-4 p-3">
             <div class="d-flex align-items-center">
-              <div class="icon-circle bg-white bg-opacity-20 me-3" style="width: 48px; height: 48px">
+              <div class="icon-circle stat-icon-info me-3" style="width: 48px; height: 48px">
                 <i class="bi bi-lightning-charge fs-4"></i>
               </div>
               <div>
-                <div class="small opacity-75">Middleware</div>
-                <div class="fs-3 fw-bold">ONLINE</div>
+                <div class="small stat-label">Middleware</div>
+                <div class="fs-3 fw-bold stat-value">ONLINE</div>
               </div>
             </div>
           </div>
@@ -132,13 +132,124 @@ interface ServiceHealth extends BackendService {
     </div>
 
     <style>
-      .icon-circle { display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-      .service-card { transition: transform 0.2s; border: 1px solid transparent !important; }
-      .service-card:hover { transform: translateY(-5px); border-color: rgba(var(--bs-primary-rgb), 0.1) !important; }
+      .icon-circle { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        border-radius: 50%; 
+        background-color: var(--md-bg-tertiary);
+        color: var(--md-text-primary);
+      }
+      .service-card { 
+        transition: transform 0.2s; 
+        border: 1px solid transparent !important; 
+        background-color: var(--md-card-bg);
+        color: var(--md-text-primary);
+      }
+      .service-card:hover { 
+        transform: translateY(-5px); 
+        border-color: rgba(13, 110, 253, 0.1) !important; 
+      }
       .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
-      .shadow-xs { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-      .btn-white { background: white; color: #333; }
-      .btn-white:hover { background: #f8f9fa; }
+      .shadow-xs { box-shadow: 0 1px 2px var(--md-shadow-sm); }
+
+      /* Tarjetas de Estadísticas Adaptativas */
+      .stat-card-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      [data-theme="dark"] .stat-card-primary {
+        background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .stat-icon-primary {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+      }
+
+      [data-theme="dark"] .stat-icon-primary {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+      }
+
+      .stat-card-success {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      [data-theme="dark"] .stat-card-success {
+        background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .stat-icon-success {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+      }
+
+      [data-theme="dark"] .stat-icon-success {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+      }
+
+      .stat-card-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      [data-theme="dark"] .stat-card-danger {
+        background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .stat-icon-danger {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+      }
+
+      [data-theme="dark"] .stat-icon-danger {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+      }
+
+      .stat-card-info {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      [data-theme="dark"] .stat-card-info {
+        background: linear-gradient(135deg, #00acc1 0%, #00838f 100%);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .stat-icon-info {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+      }
+
+      [data-theme="dark"] .stat-icon-info {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: white !important;
+      }
+
+      .stat-label {
+        opacity: 0.9;
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+
+      .stat-value {
+        color: white !important;
+      }
     </style>
   `
 })

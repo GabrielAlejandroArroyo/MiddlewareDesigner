@@ -46,7 +46,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       <div *ngIf="inspectionData && !loading" class="card shadow-sm border-0 overflow-hidden">
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+            <thead>
               <tr>
                 <th style="width: 80px" class="ps-4">ESTADO</th>
                 <th style="width: 100px">MÉTODO</th>

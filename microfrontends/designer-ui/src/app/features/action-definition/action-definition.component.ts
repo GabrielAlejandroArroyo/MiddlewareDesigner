@@ -48,7 +48,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       <div *ngIf="endpoint && !loading">
         <!-- Propiedades de la Acción (Colapsable y arriba) -->
         <div class="card shadow-sm border-0 mb-4 overflow-hidden">
-          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center cursor-pointer" 
+          <div class="card-header py-3 d-flex justify-content-between align-items-center cursor-pointer" 
                (click)="propertiesCollapsed = !propertiesCollapsed">
             <h5 class="mb-0 fw-bold">
               <i class="bi" [ngClass]="propertiesCollapsed ? 'bi-chevron-right' : 'bi-chevron-down'"></i>
@@ -81,7 +81,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
         <!-- Contenedor Principal: DTOs y Preview -->
         <div class="card shadow-sm border-0">
-          <div class="card-header bg-white p-0 overflow-hidden">
+          <div class="card-header p-0 overflow-hidden">
             <div class="px-4 pt-3 pb-2 border-bottom bg-light bg-opacity-50">
               <h6 class="mb-0 fw-bold text-secondary text-uppercase small">
                 <i class="bi bi-sliders2-vertical me-2 text-primary"></i>
@@ -190,7 +190,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
                        <!-- Caso POST/PUT/PATCH/GET(Individual): Formulario Dinámico -->
                        <div *ngIf="method !== 'GET' || (method === 'GET' && !hasGridData())">
-                         <div class="card border-0 bg-white shadow-sm rounded-4 p-4">
+                         <div class="card border-0 shadow-sm rounded-4 p-4">
                            <h5 class="fw-bold mb-4">
                              {{ method === 'POST' ? 'Crear' : (method === 'GET' ? 'Consultar' : 'Editar') }} {{ actionName || 'Entidad' }}
                            </h5>
@@ -282,7 +282,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                        
                        <div *ngIf="endpoint?.parameters?.length! > 0" class="table-responsive border rounded-3 overflow-hidden">
                          <table class="table table-hover align-middle mb-0">
-                           <thead class="table-dark small">
+                           <thead class="small">
                              <tr>
                                <th class="ps-3">NOMBRE</th>
                                <th>UBICACIÓN</th>
@@ -348,7 +348,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                            <div *ngIf="activeDtoId === dto.name" class="animate-in">
                              <div class="table-responsive border rounded-3 overflow-hidden">
                                <table class="table table-hover align-middle mb-0">
-                                  <thead class="table-dark small">
+                                  <thead class="small">
                                     <tr>
                                       <th class="ps-3">ATRIBUTO TÉCNICO</th>
                                       <th>ATRIBUTO VISUALIZABLE</th>
@@ -368,17 +368,17 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                         (dragover)="onDragOver($event)" 
                                         (drop)="onDrop($event, prop.key, dto)"
                                         class="drag-row">
-                                      <td class="ps-3" style="min-width: 250px; background-color: #ffffff;">
+                                      <td class="ps-3" style="min-width: 250px; background-color: var(--md-card-bg);">
                                         <div class="d-flex align-items-center mb-1">
                                           <i class="bi bi-grip-vertical me-2 text-muted cursor-move"></i>
                                           <i class="bi bi-tag-fill me-2 text-primary opacity-75"></i>
-                                          <span class="fw-bold text-dark">{{ prop.key }}</span>
+                                          <span class="fw-bold">{{ prop.key }}</span>
                                         </div>
                                         <div class="x-small text-muted italic ps-4" *ngIf="asAny(prop.value).description">
                                           {{ asAny(prop.value).description }}
                                         </div>
                                       </td>
-                                      <td style="background-color: #ffffff;">
+                                      <td style="background-color: var(--md-card-bg);">
                                         <input type="text" class="form-control form-control-sm border-info border-opacity-25" 
                                                [ngModel]="getFieldConfig(prop.key, activeTab).visualName"
                                                (ngModelChange)="getFieldConfig(prop.key, activeTab).visualName = $event"
@@ -438,7 +438,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
                                        <!-- Resumen compacto -->
                                        <div *ngIf="getFieldConfig(prop.key, activeTab).refService" class="mt-1 text-truncate" style="max-width: 200px;">
-                                          <span class="badge bg-info-subtle text-dark border x-small py-0 px-1 fw-normal">
+                                          <span class="badge bg-info-subtle border x-small py-0 px-1 fw-normal">
                                             {{ getFieldConfig(prop.key, activeTab).dependency?.field || '...' }}
                                           </span>
                                        </div>
@@ -461,7 +461,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                </div>
 
                                <!-- Configuración de Campo ID (Crucial para acciones vinculadas) -->
-                               <div class="row align-items-center mb-4 px-2 bg-white rounded-3 border p-3">
+                               <div class="row align-items-center mb-4 px-2 rounded-3 border p-3">
                                  <div class="col-md-7">
                                    <h6 class="fw-bold mb-1"><i class="bi bi-key-fill me-2 text-warning"></i>Identificador Principal (Primary Key)</h6>
                                    <p class="text-muted x-small mb-0">Selecciona el atributo técnico que identifica unívocamente al registro para poder Editar, Eliminar o Ver Detalle.</p>
@@ -548,7 +548,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
             </div>
           </div>
           
-          <div class="modal-body p-4 bg-white">
+          <div class="modal-body p-4">
             <div class="dependency-container">
 
               <!-- 1. SELECCIÓN DE SERVICIO Y ENDPOINT (ORIGEN) -->
@@ -666,7 +666,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                   <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" id="showIdCheckBottom"
                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescription">
-                    <label class="form-check-label small fw-bold text-dark" for="showIdCheckBottom">
+                    <label class="form-check-label small fw-bold" for="showIdCheckBottom">
                       Mostrar ID junto a la descripción
                     </label>
                   </div>
@@ -707,13 +707,13 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
             <div class="container-fluid" style="max-width: 1000px;">
               
               <!-- Card Central: Acción Prominente -->
-              <div class="card border-0 rounded-4 p-5 text-center mb-5 shadow-sm bg-white overflow-hidden position-relative">
+              <div class="card border-0 rounded-4 p-5 text-center mb-5 shadow-sm overflow-hidden position-relative">
                 <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-5"></div>
                 <div class="position-relative">
                   <div class="icon-circle bg-primary text-white mx-auto mb-4 shadow" style="width: 70px; height: 70px; font-size: 2rem;">
                     <i class="bi bi-search"></i>
                   </div>
-                  <h2 class="fw-bold text-dark mb-3">Auditoría Técnica de Campo</h2>
+                  <h2 class="fw-bold mb-3">Auditoría Técnica de Campo</h2>
                   <p class="text-secondary mb-4 mx-auto lead" style="max-width: 600px;">
                     Analizaremos la conexión entre <strong>{{ editingPropKey }}</strong> y los microservicios externos para detectar fallas de contrato.
                   </p>
@@ -744,7 +744,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                         <i class="bi fs-4" [ngClass]="sug.icon"></i>
                       </div>
                       <div>
-                        <h5 class="mb-1 fw-bold text-dark">{{ sug.title }}</h5>
+                        <h5 class="mb-1 fw-bold">{{ sug.title }}</h5>
                         <p class="text-secondary small mb-0">{{ sug.message }}</p>
                       </div>
                     </div>
@@ -770,7 +770,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                   </div>
 
                   <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center border">
-                    <div class="text-dark small fw-bold">
+                    <div class="small fw-bold">
                       <i class="bi bi-lightbulb-fill me-2 text-warning"></i>{{ sug.action }}
                     </div>
                     <button class="btn btn-sm btn-primary px-4 fw-bold rounded-pill shadow-sm" (click)="applyAISuggestion(sug)">
@@ -783,19 +783,19 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
               <!-- Guías Iniciales (Integradas) -->
               <div *ngIf="!aiSuggestions && !aiLoading" class="row g-4 animate-in">
                 <div class="col-md-6">
-                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
                     <div class="d-flex align-items-center mb-3">
                       <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
-                      <h6 class="text-dark fw-bold mb-0">Arquitectura de Referencia</h6>
+                      <h6 class="fw-bold mb-0">Arquitectura de Referencia</h6>
                     </div>
                     <p class="small text-secondary mb-0">El sistema permite automatizar la carga de datos maestros vinculando contratos OpenAPI entre diferentes servicios.</p>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
                     <div class="d-flex align-items-center mb-3">
                       <i class="bi bi-diagram-3-fill text-success fs-4 me-3"></i>
-                      <h6 class="text-dark fw-bold mb-0">Control de Jerarquía</h6>
+                      <h6 class="fw-bold mb-0">Control de Jerarquía</h6>
                     </div>
                     <p class="small text-secondary mb-0">Configure filtros en cascada para que la interfaz sea dinámica y solo muestre opciones contextuales.</p>
                   </div>
@@ -807,7 +807,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
           <!-- PANEL LATERAL: COPILOT INTEGRADO -->
           <div class="side-chat-panel animate-in">
             <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
-              <h6 class="text-dark fw-bold mb-0 d-flex align-items-center gap-2">
+              <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
                 <i class="bi bi-robot text-primary fs-5"></i> Copilot Técnico
               </h6>
               <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Online</span>
@@ -874,7 +874,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         display: flex; 
         flex-direction: column; 
         background-color: transparent !important;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--md-border-color);
       }
       
       .label-title { 
@@ -883,19 +883,22 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         text-transform: uppercase; 
         line-height: 1;
         margin-bottom: 1px;
-        color: #0d6efd !important; /* Azul estándar */
+        color: #0d6efd !important; /* Azul estándar - mantener para consistencia */
       }
 
       .custom-select {
         background-color: transparent !important;
         border: none !important;
-        color: #000 !important; /* Texto negro */
+        color: var(--md-text-primary) !important;
         font-weight: 600;
         font-size: 0.75rem;
         padding: 0 !important;
         height: auto !important;
       }
-      .custom-select option { color: #000; background-color: #fff; }
+      .custom-select option { 
+        color: var(--md-text-primary); 
+        background-color: var(--md-card-bg); 
+      }
 
       .x-small { font-size: 0.7rem; }
 
@@ -909,19 +912,20 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       /* Pantalla Completa para Ayuda Inteligente - REDISEÑO INTEGRADO */
       .full-screen-help-container {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: #f8f9fa; /* Fondo gris muy claro, integrado con el sistema */
+        background: var(--md-bg-secondary);
         z-index: 1500;
         display: flex;
         flex-direction: column;
-        color: #212529;
+        color: var(--md-text-primary);
         font-family: inherit;
       }
 
       .help-header {
-        background: #ffffff;
-        border-bottom: 1px solid #dee2e6;
+        background: var(--md-header-bg);
+        border-bottom: 1px solid var(--md-border-color);
         padding: 0.75rem 1.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 4px var(--md-shadow-sm);
+        color: var(--md-header-text);
       }
 
       .help-content-grid {
@@ -933,20 +937,22 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
       @media (max-width: 1200px) {
         .help-content-grid { flex-direction: column; }
-        .side-chat-panel { width: 100% !important; border-left: none !important; border-top: 1px solid #dee2e6; height: 400px; }
+        .side-chat-panel { width: 100% !important; border-left: none !important; border-top: 1px solid var(--md-border-color); height: 400px; }
       }
 
       .main-diagnostic-area {
         flex: 1;
         overflow-y: auto;
         padding: 2rem;
-        background: #f8f9fa;
+        background: var(--md-bg-secondary);
+        color: var(--md-text-primary);
       }
 
       .side-chat-panel {
         width: 400px;
-        background: #ffffff;
-        border-left: 1px solid #dee2e6;
+        background: var(--md-card-bg);
+        border-left: 1px solid var(--md-border-color);
+        color: var(--md-text-primary);
         display: flex;
         flex-direction: column;
         padding: 1.5rem;
@@ -954,21 +960,26 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       }
 
       .diagnostic-card {
-        background: #ffffff;
-        border: 1px solid #dee2e6;
+        background: var(--md-card-bg);
+        border: 1px solid var(--md-border-color);
         border-radius: 12px;
         transition: all 0.2s;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px var(--md-shadow-sm);
+        color: var(--md-text-primary);
       }
-      .diagnostic-card:hover { border-color: #0d6efd; box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+      .diagnostic-card:hover { 
+        border-color: #0d6efd; 
+        box-shadow: 0 8px 15px var(--md-shadow); 
+      }
 
       .diff-container {
         display: flex;
         gap: 1rem;
-        background: #f1f3f5;
+        background: var(--md-bg-tertiary);
         padding: 1.25rem;
         border-radius: 10px;
         font-family: 'SFMono-Regular', Consolas, monospace;
+        color: var(--md-text-primary);
       }
 
       .diff-box {
@@ -977,27 +988,36 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         border-radius: 6px;
         font-size: 0.85rem;
       }
-      .diff-old { background: #fff5f5; border: 1px solid #ffa8a8; color: #c92a2a; }
-      .diff-new { background: #ebfbee; border: 1px solid #8ce99a; color: #2b8a3e; }
+      .diff-old { 
+        background: rgba(220, 53, 69, 0.1); 
+        border: 1px solid rgba(220, 53, 69, 0.3); 
+        color: #dc3545; 
+      }
+      .diff-new { 
+        background: rgba(25, 135, 84, 0.1); 
+        border: 1px solid rgba(25, 135, 84, 0.3); 
+        color: #198754; 
+      }
 
       .ai-bubble-v2 {
-        background: #f1f3f5;
+        background: var(--md-bg-tertiary);
         border-radius: 15px;
         padding: 1rem;
         border-bottom-left-radius: 2px;
         margin-bottom: 1.5rem;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--md-border-color);
+        color: var(--md-text-primary);
       }
 
       .user-bubble {
-        background: #e7f5ff;
-        border: 1px solid #a5d8ff;
+        background: rgba(13, 110, 253, 0.1);
+        border: 1px solid rgba(13, 110, 253, 0.3);
         border-radius: 15px;
         padding: 0.8rem 1.2rem;
         border-bottom-right-radius: 2px;
         margin-bottom: 1.5rem;
         align-self: flex-end;
-        color: #1971c2;
+        color: #0d6efd;
         font-size: 0.85rem;
         max-width: 85%;
       }
@@ -1021,8 +1041,11 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
       .custom-modal {
         width: 90%; max-width: 600px;
-        background: white; border-radius: 1rem;
+        background: var(--md-card-bg); 
+        border-radius: 1rem;
         animation: slideUp 0.3s ease-out;
+        color: var(--md-text-primary);
+        border: 1px solid var(--md-border-color);
       }
       @keyframes slideUp {
         from { transform: translateY(20px); opacity: 0; }

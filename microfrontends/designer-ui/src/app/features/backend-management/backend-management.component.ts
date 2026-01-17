@@ -11,7 +11,7 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
   template: `
     <div class="container-fluid px-4 py-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0 fw-bold">Gestión de Microservicios</h2>
+        <h2 class="mb-0 fw-bold text-dark">Gestión de Microservicios</h2>
         <div class="d-flex gap-2">
           <!-- Botón para abrir modal de registro (Solo en Activos o Todos) -->
           <button *ngIf="filterTab !== 'inactive'" (click)="showRegisterModal = true" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
@@ -145,7 +145,7 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
             <tbody>
               <tr *ngFor="let svc of services" [class.table-light]="svc.baja_logica" [class.text-muted]="svc.baja_logica">
                 <td class="ps-4">
-                  <span class="badge border" [ngClass]="svc.baja_logica ? 'bg-secondary text-white' : 'bg-light text-dark'">
+                  <span class="badge border" [ngClass]="svc.baja_logica ? 'bg-secondary text-white' : 'bg-light'">
                     {{ svc.id }}
                   </span>
                 </td>
@@ -183,8 +183,8 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
 
     <!-- Modal de Registro (Contextual) -->
     <div *ngIf="showRegisterModal" class="custom-modal-overlay">
-      <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in">
-        <div class="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <div class="custom-modal shadow-lg p-0 rounded-4 overflow-hidden animate-in">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
           <h4 class="mb-0 fw-bold text-primary">Registrar Nuevo Backend</h4>
           <button (click)="showRegisterModal = false" class="btn-close"></button>
         </div>
@@ -217,8 +217,8 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
 
     <!-- Modal de Edición -->
     <div *ngIf="editingService" class="custom-modal-overlay">
-      <div class="custom-modal shadow-lg p-0 bg-white rounded-4 overflow-hidden animate-in">
-        <div class="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <div class="custom-modal shadow-lg p-0 rounded-4 overflow-hidden animate-in">
+        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
           <h4 class="mb-0 fw-bold text-primary">Editar Backend: {{ editingService.id }}</h4>
           <button (click)="editingService = null" class="btn-close"></button>
         </div>

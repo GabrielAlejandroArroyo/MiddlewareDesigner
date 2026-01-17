@@ -13,14 +13,14 @@ case.
 
 Initial chunk files   | Names         |  Raw size
 vendor.js             | vendor        |   2.80 MB | 
-main.js               | main          | 431.46 kB | 
+main.js               | main          | 483.89 kB | 
 polyfills.js          | polyfills     | 262.57 kB | 
-styles.css, styles.js | styles        | 153.00 kB | 
+styles.css, styles.js | styles        | 178.19 kB | 
 runtime.js            | runtime       |   6.50 kB | 
 
-                      | Initial total |   3.63 MB
+                      | Initial total |   3.71 MB
 
-Build at: 2026-01-16T23:33:51.825Z - Hash: b6ef27e524dea384 - Time: 2813ms
+Build at: 2026-01-17T02:24:21.128Z - Hash: c0327c156658a0a3 - Time: 2998ms
 
 ** Angular Live Development Server is listening on 0.0.0.0:4200, open your browser on http://localhost:4200/ **
 
@@ -32,1209 +32,344 @@ Build at: 2026-01-16T23:33:51.825Z - Hash: b6ef27e524dea384 - Time: 2813ms
 
 5 unchanged chunks
 
-Build at: 2026-01-16T23:33:52.750Z - Hash: b6ef27e524dea384 - Time: 851ms
+Build at: 2026-01-17T02:24:22.120Z - Hash: c0327c156658a0a3 - Time: 903ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.32 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:39:18.347Z - Hash: 33d4e44c1313af28 - Time: 1423ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.33 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:39:22.769Z - Hash: b3cb9c6237905f7e - Time: 706ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.47 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:39:34.771Z - Hash: bc90b7c449acb30a - Time: 743ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.47 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:39:47.997Z - Hash: 1d00e367c27edfc7 - Time: 531ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 433.43 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:44:20.761Z - Hash: 6468bc5b76a991d4 - Time: 941ms
-
-Error: src/app/features/preview/preview.component.ts:679:56 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
-
-679     if (fieldConfig?.hasSecondaryLookup && fieldConfig.dependency?.field) {
-                                                           ~~~~~~~~~~
-
-
-Error: src/app/features/preview/preview.component.ts:680:40 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
-
-680       const linkageField = fieldConfig.dependency.field;
-                                           ~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 433.46 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:44:25.378Z - Hash: f9dd4ca5dd46c740 - Time: 591ms
-
-Error: src/app/features/preview/preview.component.ts:679:56 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
-
-679     if (fieldConfig?.hasSecondaryLookup && fieldConfig.dependency?.field) {
-                                                           ~~~~~~~~~~
-
-
-Error: src/app/features/preview/preview.component.ts:680:40 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
-
-680       const linkageField = fieldConfig.dependency.field;
-                                           ~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 433.46 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:44:39.622Z - Hash: 7aab16677512aa12 - Time: 666ms
-
-Error: src/app/features/preview/preview.component.ts:679:56 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
-
-679     if (fieldConfig?.hasSecondaryLookup && fieldConfig.dependency?.field) {
-                                                           ~~~~~~~~~~
-
-
-Error: src/app/features/preview/preview.component.ts:680:40 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
-
-680       const linkageField = fieldConfig.dependency.field;
-                                           ~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 433.46 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:46:11.877Z - Hash: ef34211bd5408057 - Time: 846ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 433.46 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:46:29.467Z - Hash: d8f4e9ceb11014d1 - Time: 576ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.51 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:50:18.107Z - Hash: f1316259e656596a - Time: 903ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.51 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:50:25.754Z - Hash: 590938eb8b1ed788 - Time: 676ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.71 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:52:56.531Z - Hash: 5b663209ee316a12 - Time: 871ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.71 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:53:02.953Z - Hash: d17d8cbeb3c0ef5b - Time: 597ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 432.71 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T23:53:11.115Z - Hash: 29a936f40e6756ab - Time: 526ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 330.32 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:18:40.116Z - Hash: a7f0d4f36f6d7af9 - Time: 680ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:684:9 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
-
-684         </div>
-            ~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:685:7 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
-
-685       </div>
-          ~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 330.32 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:18:50.224Z - Hash: 3f7a3959f398f975 - Time: 251ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:684:9 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
-
-684         </div>
-            ~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:685:7 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
-
-685       </div>
-          ~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.55 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:20:39.602Z - Hash: f413b5edfe2993aa - Time: 1440ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.55 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:20:47.062Z - Hash: 24ad3d5680e3550d - Time: 1160ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.65 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:22:41.737Z - Hash: 9a7d9732a8cc9276 - Time: 800ms
-
-Error: src/app/features/preview/preview.component.ts:272:99 - error TS2339: Property 'getParentLabel' does not exist on type 'PreviewComponent'.
-
-272                       <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ getParentLabel(prop.dependsOn) }}</strong> primero.
-                                                                                                      ~~~~~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.94 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:22:50.662Z - Hash: 8d0552e4284df10d - Time: 763ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.94 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:22:58.997Z - Hash: 8ff5c52b37fb9cfd - Time: 604ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.93 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:31:00.594Z - Hash: 4e25ed90a7c9d885 - Time: 838ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 436.34 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:33:44.391Z - Hash: e2d692c2eaaad468 - Time: 733ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 436.34 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:35:31.240Z - Hash: 59305f7e9685173f - Time: 500ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 431.46 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:38:18.538Z - Hash: 2c611609ba4bf51b - Time: 1658ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 434.29 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:46:22.730Z - Hash: 323a7507e67b2054 - Time: 1823ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 435.94 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:46:24.011Z - Hash: 8ff5c52b37fb9cfd - Time: 1247ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 436.16 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:47:22.937Z - Hash: f1fa1e9abc0f1cf2 - Time: 997ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 436.16 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:47:32.020Z - Hash: d5ecc6da2a51e6f8 - Time: 618ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 437.64 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:51:58.628Z - Hash: c05fcf5a9edef230 - Time: 672ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 438.45 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:52:10.150Z - Hash: 31c0f2b7893322eb - Time: 767ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 438.44 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:52:29.366Z - Hash: 1f2570dd5699870e - Time: 665ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 438.44 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:52:39.302Z - Hash: bb8a44023704d8eb - Time: 574ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 446.60 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:59:15.342Z - Hash: 37cf6e2468e71562 - Time: 1700ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:588:98 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-588                   <button class="btn btn-xs btn-outline-info ms-auto fw-bold py-1 px-3" (click)="showHelp = !showHelp">
-                                                                                                     ~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:588:110 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-588                   <button class="btn btn-xs btn-outline-info ms-auto fw-bold py-1 px-3" (click)="showHelp = !showHelp">
-                                                                                                                 ~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:595:27 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-595               <div *ngIf="showHelp" class="alert alert-info border-0 shadow-sm animate-in mb-3 small" style="background-color: #f0f7ff;">
-                              ~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:610:85 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-610                   <button class="btn btn-xs btn-link text-decoration-none" (click)="showHelp = false">Entendido, cerrar guía</button>
-                                                                                        ~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 446.63 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:59:20.845Z - Hash: bb0912bc38fe6074 - Time: 2130ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 446.63 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T00:59:25.767Z - Hash: 396bf3100dcb3ab3 - Time: 1315ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 444.04 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:00:50.776Z - Hash: 0bf61d54963e06ef - Time: 1632ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 446.63 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:00:56.063Z - Hash: 580785130c4021ec - Time: 1569ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 446.63 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:00:59.746Z - Hash: 68418faa7fc833cd - Time: 1345ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 444.75 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:04:28.123Z - Hash: 5af1debdde26fe20 - Time: 1664ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 444.75 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:04:31.940Z - Hash: 7303ba1ed4d583b4 - Time: 1475ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 444.75 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:11:34.755Z - Hash: ed7bb575dfc5bf80 - Time: 1949ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:544:32 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-544               <button (click)="showHelp = !showHelp" class="btn btn-link text-white p-0 text-decoration-none d-flex align-items-center fw-bold small" title="Guía de configuración">
-                                   ~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:544:44 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-544               <button (click)="showHelp = !showHelp" class="btn btn-link text-white p-0 text-decoration-none d-flex align-items-center fw-bold small" title="Guía de configuración">
-                                               ~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:555:27 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-555               <div *ngIf="showHelp" class="alert alert-info border-0 shadow-sm animate-in mb-4 small" style="background-color: #f0f7ff; border-left: 4px solid #0dcaf0 !important;">
-                              ~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:568:85 - error TS2339: Property 'showHelp' does not exist on type 'ActionDefinitionComponent'.
-
-568                   <button class="btn btn-xs btn-link text-decoration-none" (click)="showHelp = false">Cerrar guía</button>
-                                                                                        ~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 439.41 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:11:43.374Z - Hash: b2d1ed2401953ae5 - Time: 1299ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 445.96 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:11:55.998Z - Hash: 7431c70ca01ce885 - Time: 1537ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 445.96 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:12:02.400Z - Hash: 0e4863537f5d62bb - Time: 1350ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 447.03 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:13:16.761Z - Hash: aae133063dd4b7de - Time: 1785ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 447.03 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:13:22.055Z - Hash: 545361d4c97d092d - Time: 1561ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 447.25 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:15:16.081Z - Hash: ae96fefff854db33 - Time: 1678ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 454.53 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:15:33.335Z - Hash: 9fdae424256e4cbd - Time: 1587ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 454.53 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:15:39.398Z - Hash: f9ae646a9e806832 - Time: 1522ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 454.61 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:17:39.429Z - Hash: 77bb8f19fe4ecf07 - Time: 1725ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 456.55 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:17:50.376Z - Hash: caead4ee6679e50b - Time: 1727ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 463.98 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-Build at: 2026-01-17T01:18:01.423Z - Hash: 1b9b08f323906f89 - Time: 1515ms
+4 unchanged chunks
 
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 463.98 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:18:07.252Z - Hash: 84dd582335b24e31 - Time: 1551ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 465.61 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
+Build at: 2026-01-17T02:26:50.399Z - Hash: a43a6d8c9c4567f6 - Time: 336ms
 
-Build at: 2026-01-17T01:20:37.859Z - Hash: 5014e8f60052d85d - Time: 1797ms
-
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 465.61 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:20:45.173Z - Hash: 0042e56d1bb054f4 - Time: 1477ms
+Build at: 2026-01-17T02:26:53.687Z - Hash: 46826a2977f9edd1 - Time: 157ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 465.57 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:24:00.646Z - Hash: c5c8d3a39fe7872d - Time: 1662ms
+Build at: 2026-01-17T02:26:58.242Z - Hash: 8831e07d11357c2f - Time: 185ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 470.69 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:24:11.748Z - Hash: 8c5be2dd60db6fc8 - Time: 1668ms
+Build at: 2026-01-17T02:27:10.171Z - Hash: f488684fb8a24810 - Time: 189ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 470.69 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:24:18.560Z - Hash: 0c02e26f88227041 - Time: 1561ms
+Build at: 2026-01-17T02:27:19.378Z - Hash: 4108e1f501ab85f3 - Time: 174ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 470.79 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:26:32.320Z - Hash: cc7c660f334ef45a - Time: 2015ms
+Build at: 2026-01-17T02:27:27.398Z - Hash: fe1bbc4ad8b4dfdc - Time: 147ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 472.41 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:26:59.046Z - Hash: 9d0435aac7824b9a - Time: 1997ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 477.01 kB | 
-runtime.js          | runtime |   6.50 kB | 
 
-3 unchanged chunks
+5 unchanged chunks
 
-Build at: 2026-01-17T01:27:21.894Z - Hash: 3d5149bb3aea31a1 - Time: 1657ms
+Build at: 2026-01-17T02:27:35.516Z - Hash: fe1bbc4ad8b4dfdc - Time: 157ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 477.44 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
 
-Build at: 2026-01-17T01:27:28.261Z - Hash: cfe1aa26e8b648cd - Time: 1853ms
 
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 477.44 kB | 
-runtime.js          | runtime |   6.50 kB | 
 
-3 unchanged chunks
+5 unchanged chunks
 
-Build at: 2026-01-17T01:27:32.882Z - Hash: 05460dd3c8a026ba - Time: 1364ms
+Build at: 2026-01-17T02:30:40.494Z - Hash: fe1bbc4ad8b4dfdc - Time: 171ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 478.96 kB | 
+main.js             | main    | 483.89 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:31:17.448Z - Hash: 6fe5b51ef77c459d - Time: 1833ms
+Build at: 2026-01-17T02:31:04.814Z - Hash: 26f02d0d64352f99 - Time: 2367ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 478.96 kB | 
+main.js             | main    | 483.86 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:31:22.371Z - Hash: 035b576bbd04a6ae - Time: 1507ms
+Build at: 2026-01-17T02:31:07.295Z - Hash: 06e503efeab41225 - Time: 1730ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 479.29 kB | 
+main.js             | main    | 483.83 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:33:25.853Z - Hash: ac5619cfde03cfd8 - Time: 2210ms
+Build at: 2026-01-17T02:31:10.059Z - Hash: 9cee60e45523429e - Time: 1447ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 480.22 kB | 
+main.js             | main    | 483.82 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:33:38.047Z - Hash: 43fe91c4b6cff3db - Time: 1728ms
+Build at: 2026-01-17T02:31:13.164Z - Hash: a95e8f0ba30cb341 - Time: 1517ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 480.95 kB | 
+main.js             | main    | 483.80 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:33:45.605Z - Hash: be2648a3d7be75c6 - Time: 1685ms
+Build at: 2026-01-17T02:31:16.053Z - Hash: b6a2c21d0193173d - Time: 1404ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 480.95 kB | 
+main.js             | main    | 483.79 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:33:51.064Z - Hash: 3c4f0394a9e206d2 - Time: 1426ms
+Build at: 2026-01-17T02:31:19.113Z - Hash: e13ff2ca166ec66f - Time: 1364ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 481.57 kB | 
+main.js             | main    | 483.78 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:36:53.801Z - Hash: 7effa69e57711395 - Time: 1874ms
+Build at: 2026-01-17T02:31:22.283Z - Hash: a7eb76af1af32085 - Time: 1316ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 477.46 kB | 
+main.js             | main    | 483.77 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:38:08.498Z - Hash: c716def4b93d4919 - Time: 1892ms
+Build at: 2026-01-17T02:31:25.595Z - Hash: a29725f0571ca6aa - Time: 1510ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 477.46 kB | 
+main.js             | main    | 483.76 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:38:15.686Z - Hash: 3c41855ab433d296 - Time: 1943ms
+Build at: 2026-01-17T02:31:28.750Z - Hash: 773a1c32cf9b9b56 - Time: 1467ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 479.24 kB | 
+main.js             | main    | 483.74 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:45:33.730Z - Hash: 952d76517658025f - Time: 1618ms
+Build at: 2026-01-17T02:31:31.892Z - Hash: 3e4127822baf431d - Time: 1316ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.06 kB | 
+main.js             | main    | 483.74 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:46:01.876Z - Hash: 47a1d835f6b79176 - Time: 1503ms
+Build at: 2026-01-17T02:31:34.952Z - Hash: cddf30fb6de3585e - Time: 1349ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.06 kB | 
+main.js             | main    | 483.71 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:46:08.475Z - Hash: bac03e64b173e564 - Time: 1477ms
+Build at: 2026-01-17T02:31:38.264Z - Hash: 8a2a9352b5960de0 - Time: 1477ms
 
 √ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.06 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:48:33.072Z - Hash: e11e40cf6d2758ae - Time: 1909ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:789:69 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-789               <div class="ai-bubble-v2 shadow-sm animate-in" *ngIf="aiResponse">
-                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:794:91 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-794                 <div class="text-white-50 small ai-content" [innerHTML]="formatAIResponse(aiResponse)"></div>
-                                                                                              ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:797:52 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-797               <div class="text-center p-4" *ngIf="!aiResponse && !isAskingAI">
-                                                       ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1494:10 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-1494     this.aiResponse = '';
-              ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:1529:12 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-1529       this.aiResponse = `${analysisSummary}\n**RESULTADO DEL ANÁLISIS:**\n${detailResponse}\n\n¿Deseas que profundice en algún otro detalle técnico de este campo o tienes otra duda?`;
-                ~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 470.00 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:48:46.266Z - Hash: e0e93198cc589195 - Time: 1451ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:789:69 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-789               <div class="ai-bubble-v2 shadow-sm animate-in" *ngIf="aiResponse">
-                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:794:91 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-794                 <div class="text-white-50 small ai-content" [innerHTML]="formatAIResponse(aiResponse)"></div>
-                                                                                              ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:797:52 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-797               <div class="text-center p-4" *ngIf="!aiResponse && !isAskingAI">
-                                                       ~~~~~~~~~~
-
-
-
-
-× Failed to compile.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 470.36 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-17T01:48:55.303Z - Hash: 6c027056545a0f58 - Time: 1468ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:789:69 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-789               <div class="ai-bubble-v2 shadow-sm animate-in" *ngIf="aiResponse">
-                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:794:91 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-794                 <div class="text-white-50 small ai-content" [innerHTML]="formatAIResponse(aiResponse)"></div>
-                                                                                              ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:797:52 - error TS2339: Property 'aiResponse' does not exist on type 'ActionDefinitionComponent'.
-
-797               <div class="text-center p-4" *ngIf="!aiResponse && !isAskingAI">
-                                                       ~~~~~~~~~~
-
-
-
-
-× Failed to compile.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.06 kB | 
+main.js             | main    | 483.70 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:49:13.691Z - Hash: d8b792b513f010fd - Time: 1567ms
+Build at: 2026-01-17T02:31:41.336Z - Hash: d75e7d9ecb3c03ca - Time: 1448ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.11 kB | 
+main.js             | main    | 483.68 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:49:20.649Z - Hash: b29a0a40d192c1e0 - Time: 1898ms
+Build at: 2026-01-17T02:31:44.297Z - Hash: 8abca26cbf247099 - Time: 1329ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.11 kB | 
+main.js             | main    | 483.67 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:49:27.883Z - Hash: 054c86f32cfb5429 - Time: 1297ms
+Build at: 2026-01-17T02:31:47.552Z - Hash: 4ea7f7c4fa846408 - Time: 1331ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 471.79 kB | 
+main.js             | main    | 483.66 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:54:29.585Z - Hash: 55aba4fe80a24dd3 - Time: 1854ms
+Build at: 2026-01-17T02:31:50.768Z - Hash: c1d8cfc3ea3fa6a6 - Time: 1463ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 475.58 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:55:01.101Z - Hash: 52721985b70f5c87 - Time: 1664ms
+Build at: 2026-01-17T02:31:56.529Z - Hash: b541971107cc344c - Time: 833ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 475.58 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:55:09.320Z - Hash: 6285a902989b0bee - Time: 1572ms
+Build at: 2026-01-17T02:31:59.155Z - Hash: 7d25385d40ae9cfc - Time: 124ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 475.67 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:57:28.583Z - Hash: 2eb07472b5510e9e - Time: 1616ms
+Build at: 2026-01-17T02:32:02.900Z - Hash: 4fdbc6ed3347d9f7 - Time: 143ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 476.41 kB | 
-runtime.js          | runtime |   6.50 kB | 
+Initial chunk files | Names   | Raw size
+runtime.js          | runtime |  6.50 kB | 
 
-3 unchanged chunks
+4 unchanged chunks
 
-Build at: 2026-01-17T01:57:35.164Z - Hash: a2cb754aa72317b2 - Time: 1707ms
+Build at: 2026-01-17T02:32:13.400Z - Hash: dd3cc6cda5749560 - Time: 180ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 476.97 kB | 
+main.js             | main    | 483.66 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:57:42.752Z - Hash: 94e1ab6d9d1c013d - Time: 1625ms
+Build at: 2026-01-17T02:32:24.339Z - Hash: cb2e3f8a06016065 - Time: 1341ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 476.97 kB | 
+main.js             | main    | 483.89 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T01:57:48.997Z - Hash: 60d8ce38cd45c507 - Time: 1585ms
+Build at: 2026-01-17T02:37:18.462Z - Hash: 37982048af106bbd - Time: 567ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 478.18 kB | 
+main.js             | main    | 487.26 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T02:06:56.507Z - Hash: 879ded4229f530cd - Time: 1649ms
+Build at: 2026-01-17T02:37:24.672Z - Hash: 8ba8902f50e3a9e0 - Time: 291ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 478.18 kB | 
+main.js             | main    | 487.26 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-17T02:07:01.990Z - Hash: afd56458a5351f00 - Time: 1529ms
+Build at: 2026-01-17T02:37:34.232Z - Hash: cbf48e2bc6f44678 - Time: 258ms
 
 √ Compiled successfully.

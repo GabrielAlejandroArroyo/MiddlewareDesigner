@@ -1,5 +1,5 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes, RouterOutlet, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -9,6 +9,7 @@ import { ActionDefinitionComponent } from './app/features/action-definition/acti
 import { PreviewComponent } from './app/features/preview/preview.component';
 import { CustomPageDesignerComponent } from './app/features/custom-page-designer/custom-page-designer.component';
 import { DashboardComponent } from './app/features/dashboard/dashboard.component';
+import { ThemeService } from './app/core/services/theme.service';
 
 const routes: Routes = [
   { path: '', component: DashboardComponent },
@@ -85,12 +86,22 @@ const routes: Routes = [
       </aside>
 
       <!-- Main Content Area -->
-      <div class="flex-grow-1 overflow-auto bg-light">
-        <header class="bg-white border-bottom px-4 py-3 d-flex align-items-center shadow-sm">
-          <h5 class="mb-0 fw-bold text-dark d-lg-none me-3" *ngIf="isCollapsed">
+      <div class="flex-grow-1 overflow-auto main-content-area">
+        <header class="app-header border-bottom px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+          <h5 class="mb-0 fw-bold d-lg-none me-3" *ngIf="isCollapsed">
             <span class="text-info">MD</span>
           </h5>
-          <h5 class="mb-0 fw-bold text-dark">Middleware Designer</h5>
+          <h5 class="mb-0 fw-bold">Middleware Designer</h5>
+          
+          <!-- Toggle de Tema -->
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-flex align-items-center gap-2" 
+                    (click)="themeService.toggleTheme()"
+                    [title]="themeService.currentTheme() === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'">
+              <i class="bi" [ngClass]="themeService.currentTheme() === 'light' ? 'bi-moon-stars-fill' : 'bi-sun-fill'"></i>
+              <span class="d-none d-md-inline fw-bold">{{ themeService.currentTheme() === 'light' ? 'Oscuro' : 'Claro' }}</span>
+            </button>
+          </div>
         </header>
         <main class="p-0">
           <router-outlet></router-outlet>
@@ -99,22 +110,51 @@ const routes: Routes = [
     </div>
 
     <style>
-      .sidebar { width: 280px; min-width: 280px; z-index: 1000; }
+      .sidebar { 
+        width: 280px; 
+        min-width: 280px; 
+        z-index: 1000;
+        background-color: var(--md-sidebar-bg) !important;
+        color: var(--md-sidebar-text);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
       .sidebar.collapsed { width: 80px; min-width: 80px; }
       .transition-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
       
-      .nav-link { color: #adb5bd; text-decoration: none; }
-      .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
-      .nav-link.active { font-weight: 600; }
+      .nav-link { 
+        color: var(--md-sidebar-text);
+        opacity: 0.7;
+        text-decoration: none; 
+      }
+      .nav-link:hover { 
+        color: var(--md-sidebar-text); 
+        background: var(--md-sidebar-hover);
+        opacity: 1;
+      }
+      .nav-link.active { 
+        font-weight: 600;
+        opacity: 1;
+      }
       
       aside.collapsed .nav-link { justify-content: center; padding: 1rem !important; }
       aside.collapsed .sidebar-header { justify-content: center !important; }
+      
+      .main-content-area {
+        background-color: var(--md-bg-secondary);
+      }
+      
+      .app-header {
+        background-color: var(--md-header-bg);
+        color: var(--md-header-text);
+        border-color: var(--md-border-color);
+      }
       
       body { overflow: hidden; }
     </style>
   `
 })
 export class App {
+  themeService = inject(ThemeService);
   isCollapsed = true;
 }
 
