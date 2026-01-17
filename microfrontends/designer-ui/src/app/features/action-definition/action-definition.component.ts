@@ -536,21 +536,25 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
       <div *ngIf="isModalOpen" class="custom-modal-backdrop animate-in">
         <div class="custom-modal shadow-lg border-0 rounded-4 overflow-hidden">
           <div class="modal-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold text-uppercase ls-1">
+            <h6 class="mb-0 fw-bold text-uppercase ls-1 d-flex align-items-center">
               <i class="bi bi-link-45deg me-2"></i>
               Configurar Referencia: {{ editingPropKey }}
             </h6>
-            <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
+            <div class="d-flex align-items-center gap-3">
+              <button (click)="showHelpModal = true" class="btn btn-link text-white p-0 text-decoration-none d-flex align-items-center fw-bold small" title="Guía de configuración">
+                <i class="bi bi-question-circle me-1 fs-5"></i> AYUDA
+              </button>
+              <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
+            </div>
           </div>
           
           <div class="modal-body p-4 bg-white">
-            <p class="text-muted small mb-4">Define el origen de datos dinámico para este atributo técnico.</p>
-            
-            <div class="dependency-container active-grid">
-              <!-- LÍNEA 1 -->
+            <div class="dependency-container">
+
+              <!-- 1. SELECCIÓN DE SERVICIO Y ENDPOINT (ORIGEN) -->
               <div class="dep-row mb-3">
                 <div class="dep-block">
-                  <span class="label-title">SERVICIO (Origen Externo)</span>
+                  <span class="label-title">1. SERVICIO (ORIGEN EXTERNO)</span>
                   <select class="form-select form-select-sm custom-select" 
                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
@@ -560,11 +564,11 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
 
                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                  <span class="label-title">ENDPOINT (Acceso a Datos)</span>
+                  <span class="label-title">2. ENDPOINT (ACCESO A DATOS)</span>
                   <select class="form-select form-select-sm custom-select" 
                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
-                    <option [value]="null">Seleccione un endpoint...</option>
+                    <option [value]="null">Seleccione un endpoint GET...</option>
                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
                       {{ ep.method }} {{ ep.path }}
                     </option>
@@ -572,43 +576,281 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
               </div>
 
-              <!-- LÍNEA 2 -->
-              <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                <div class="dep-block">
-                  <span class="label-title">ATRIBUTO (Campo de Referencia)</span>
+              <!-- CHECK: BÚSQUEDA DE VALORES RELACIONADOS -->
+              <div class="border-top pt-3 mb-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="checkRelacionados"
+                         [(ngModel)]="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup"
+                         (ngModelChange)="onSecondaryLookupToggle(editingPropKey, editingTab)">
+                  <label class="form-check-label fw-bold text-primary small" for="checkRelacionados">
+                    Búsqueda de valores relacionados (Cascada o Catálogo Secundario)
+                  </label>
+                </div>
+              </div>
+
+              <!-- MODO A: CHECK DESACTIVADO (ATRIBUTO DE REFERENCIA DIRECTO) -->
+              <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target && !getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup">
+                <div class="dep-block bg-light">
+                  <span class="label-title">3. ATRIBUTO DE REFERENCIA (VALOR DIRECTO)</span>
                   <select class="form-select form-select-sm custom-select" 
                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                    <option [value]="null">Seleccione un campo...</option>
+                    <option [value]="null">Seleccione atributo del DTO...</option>
                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
                       {{ f }}
                     </option>
                   </select>
                 </div>
+              </div>
 
-                <div class="dep-block d-flex flex-column justify-content-center px-2 bg-light border-0">
-                  <span class="label-title opacity-50">ESTADO INTEGRIDAD</span>
-                  <div class="text-primary fw-bold small">LINK_CONNECTED</div>
+              <!-- MODO B: CHECK ACTIVADO (FLUJO CON SERVICIO RELACIONADO) -->
+              <div class="animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup">
+                
+                <!-- PASO INTERMEDIO: ATRIBUTO QUE ACTÚA COMO LLAVE (PUENTE) -->
+                <div class="dep-row mb-3">
+                  <div class="dep-block border-info">
+                    <span class="label-title text-info">ATRIBUTO LLAVE (PROVIENE DE SERVICIO ORIGEN)</span>
+                    <select class="form-select form-select-sm custom-select" 
+                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
+                      <option [value]="null">Seleccione atributo llave...</option>
+                      <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                        {{ f }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- SELECCIÓN DE SERVICIO Y ENDPOINT RELACIONADO -->
+                <div class="dep-row mb-3" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.field">
+                  <div class="dep-block">
+                    <span class="label-title">SERVICIO RELACIONADO</span>
+                    <select class="form-select form-select-sm custom-select" 
+                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).secondaryDependency.type"
+                            (ngModelChange)="onSecondaryDependencyTypeChange(editingPropKey, editingTab)">
+                      <option [value]="null">Seleccione servicio...</option>
+                      <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
+                    </select>
+                  </div>
+
+                  <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).secondaryDependency?.type">
+                    <span class="label-title">ENDPOINT RELACIONADO (RECIBE LLAVE)</span>
+                    <select class="form-select form-select-sm custom-select" 
+                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).secondaryDependency.target"
+                            (ngModelChange)="onSecondaryDependencyTargetChange(editingPropKey, editingTab)">
+                      <option [value]="null">Seleccione endpoint...</option>
+                      <option *ngFor="let ep of secondaryTargetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
+                        {{ ep.method }} {{ ep.path }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- SELECCIÓN DE ATRIBUTO A MOSTRAR (LABEL) -->
+                <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).secondaryDependency?.target">
+                  <div class="dep-block bg-success bg-opacity-10 border-success border-opacity-25">
+                    <span class="label-title text-success">ATRIBUTO A MOSTRAR (LABEL EN UI)</span>
+                    <select class="form-select form-select-sm custom-select" 
+                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).secondaryDependency.field">
+                      <option [value]="null">Seleccione el campo descriptivo...</option>
+                      <option *ngFor="let f of secondaryTargetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                        {{ f }}
+                      </option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <!-- LÍNEA 3 (Opciones adicionales) -->
-              <div class="dep-row mt-3 pt-3 border-top animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                <div class="dep-block border-0">
-                  <span class="label-title">OPCIONES DE VISTA</span>
-                  <div class="form-check form-switch mt-1">
-                    <input class="form-check-input" type="checkbox" 
+              <!-- OPCIONES DE VISTA (BAJO DE TODO) -->
+              <div class="border-top mt-4 pt-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
+                <div class="d-flex align-items-center">
+                  <span class="label-title me-3 mb-0" style="font-size: 0.75rem">OPCIONES DE VISTA:</span>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="showIdCheckBottom"
                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescription">
-                    <label class="form-check-label x-small fw-bold text-muted">
-                      Mostrar ID junto a la descripción (ID: ...)
+                    <label class="form-check-label small fw-bold text-dark" for="showIdCheckBottom">
+                      Mostrar ID junto a la descripción
                     </label>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          <div class="modal-footer bg-light p-3 border-top">
+            <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">GUARDAR CONFIGURACIÓN</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASISTENTE TÉCNICO REDISEÑADO E INTEGRADO -->
+      <div *ngIf="showHelpModal" class="full-screen-help-container animate-in">
+        
+        <!-- Header Integrado con Sistema -->
+        <div class="help-header d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary text-white p-2 rounded-3 shadow-sm">
+              <i class="bi bi-shield-lock-fill fs-4"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-bold text-primary">Estudio de Referencias <span class="text-muted fw-normal">/ {{ editingPropKey }}</span></h5>
+              <div class="x-small text-muted fw-medium text-uppercase ls-1">Centro de Integridad y Diagnóstico AI</div>
+            </div>
+          </div>
+          <button class="btn btn-outline-danger btn-sm px-4 fw-bold rounded-pill" (click)="showHelpModal = false">
+            <i class="bi bi-x-circle me-2"></i>CERRAR ESTUDIO
+          </button>
+        </div>
+
+        <div class="help-content-grid">
+          <!-- ÁREA PRINCIPAL: DIAGNÓSTICO -->
+          <div class="main-diagnostic-area">
+            <div class="container-fluid" style="max-width: 1000px;">
+              
+              <!-- Card Central: Acción Prominente -->
+              <div class="card border-0 rounded-4 p-5 text-center mb-5 shadow-sm bg-white overflow-hidden position-relative">
+                <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-5"></div>
+                <div class="position-relative">
+                  <div class="icon-circle bg-primary text-white mx-auto mb-4 shadow" style="width: 70px; height: 70px; font-size: 2rem;">
+                    <i class="bi bi-search"></i>
+                  </div>
+                  <h2 class="fw-bold text-dark mb-3">Auditoría Técnica de Campo</h2>
+                  <p class="text-secondary mb-4 mx-auto lead" style="max-width: 600px;">
+                    Analizaremos la conexión entre <strong>{{ editingPropKey }}</strong> y los microservicios externos para detectar fallas de contrato.
+                  </p>
+                  <button (click)="analyzeWithAI()" [disabled]="aiLoading" 
+                          class="studio-button-main d-inline-flex align-items-center gap-3">
+                    <i class="bi" [ngClass]="aiLoading ? 'bi-arrow-repeat spin' : 'bi-lightning-charge-fill'"></i>
+                    {{ aiLoading ? 'PROCESANDO CONTEXTO...' : 'EJECUTAR ANÁLISIS DE INTEGRIDAD' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Listado de Resultados (Sistema de Cards Integradas) -->
+              <div *ngIf="aiSuggestions" class="animate-in">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+                  <h6 class="text-primary fw-bold mb-0 text-uppercase ls-1">
+                    <i class="bi bi-clipboard-data me-2"></i>Informe de Resultados
+                  </h6>
+                  <span class="badge bg-light text-primary border px-3 py-2 fw-bold">
+                    {{ aiSuggestions.length }} Hallazgo(s)
+                  </span>
+                </div>
+                
+                <div *ngFor="let sug of aiSuggestions" class="diagnostic-card p-4 mb-4 shadow-sm border-start border-5" 
+                     [ngClass]="'border-' + (sug.type === 'danger' ? 'danger' : 'info')">
+                  <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="d-flex gap-3">
+                      <div [ngClass]="'bg-' + (sug.type === 'danger' ? 'danger' : 'info') + ' text-white rounded-3 p-2 shadow-sm'" style="height: fit-content;">
+                        <i class="bi fs-4" [ngClass]="sug.icon"></i>
+                      </div>
+                      <div>
+                        <h5 class="mb-1 fw-bold text-dark">{{ sug.title }}</h5>
+                        <p class="text-secondary small mb-0">{{ sug.message }}</p>
+                      </div>
+                    </div>
+                    <span class="badge" [ngClass]="'bg-' + (sug.type === 'danger' ? 'danger' : 'info') + '-subtle text-' + (sug.type === 'danger' ? 'danger' : 'info')">
+                      Prioridad: {{ sug.type === 'danger' ? 'ALTA' : 'MEDIA' }}
+                    </span>
+                  </div>
+
+                  <!-- Comparativa Estilo DIFF Moderno -->
+                  <div *ngIf="sug.visualBefore" class="diff-container mb-4 shadow-inner">
+                    <div class="diff-box diff-old shadow-sm">
+                      <div class="x-small fw-bold text-uppercase opacity-75 mb-2 d-flex align-items-center">
+                        <i class="bi bi-x-circle-fill me-2"></i>Estado Actual
+                      </div>
+                      <div class="fw-bold">{{ sug.visualBefore }}</div>
+                    </div>
+                    <div class="diff-box diff-new shadow-sm">
+                      <div class="x-small fw-bold text-uppercase opacity-75 mb-2 d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2"></i>Recomendado
+                      </div>
+                      <div class="fw-bold">{{ sug.visualAfter }}</div>
+                    </div>
+                  </div>
+
+                  <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center border">
+                    <div class="text-dark small fw-bold">
+                      <i class="bi bi-lightbulb-fill me-2 text-warning"></i>{{ sug.action }}
+                    </div>
+                    <button class="btn btn-sm btn-primary px-4 fw-bold rounded-pill shadow-sm" (click)="applyAISuggestion(sug)">
+                      APLICAR CAMBIO
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Guías Iniciales (Integradas) -->
+              <div *ngIf="!aiSuggestions && !aiLoading" class="row g-4 animate-in">
+                <div class="col-md-6">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                      <i class="bi bi-info-circle-fill text-info fs-4 me-3"></i>
+                      <h6 class="text-dark fw-bold mb-0">Arquitectura de Referencia</h6>
+                    </div>
+                    <p class="small text-secondary mb-0">El sistema permite automatizar la carga de datos maestros vinculando contratos OpenAPI entre diferentes servicios.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                    <div class="d-flex align-items-center mb-3">
+                      <i class="bi bi-diagram-3-fill text-success fs-4 me-3"></i>
+                      <h6 class="text-dark fw-bold mb-0">Control de Jerarquía</h6>
+                    </div>
+                    <p class="small text-secondary mb-0">Configure filtros en cascada para que la interfaz sea dinámica y solo muestre opciones contextuales.</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-          <div class="modal-footer bg-light p-3 border-top">
-            <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
+
+          <!-- PANEL LATERAL: COPILOT INTEGRADO -->
+          <div class="side-chat-panel animate-in">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+              <h6 class="text-dark fw-bold mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-robot text-primary fs-5"></i> Copilot Técnico
+              </h6>
+              <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Online</span>
+            </div>
+            
+            <!-- Historial de Conversación -->
+            <div class="flex-grow-1 overflow-auto mb-4 custom-scrollbar d-flex flex-column pe-2">
+              <div *ngFor="let msg of chatHistory" [ngClass]="msg.role === 'ai' ? 'ai-bubble-v2 shadow-sm' : 'user-bubble shadow-sm animate-in'">
+                <div class="d-flex align-items-center gap-2 mb-2" *ngIf="msg.role === 'ai'">
+                  <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.7rem;">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                  <span class="x-small fw-bold text-primary text-uppercase">Analizador IA</span>
+                </div>
+                <div [ngClass]="msg.role === 'ai' ? 'text-dark small ai-content' : 'text-primary fw-medium'" 
+                     style="line-height: 1.5;"
+                     [innerHTML]="formatAIResponse(msg.content)"></div>
+              </div>
+              
+              <div class="text-center py-5 opacity-50" *ngIf="chatHistory.length === 0 && !isAskingAI">
+                <i class="bi bi-chat-quote fs-1 text-muted"></i>
+                <p class="x-small text-muted mt-3 px-4">Consulte sobre llaves, endpoints o cómo mejorar la UX de este campo.</p>
+              </div>
+
+              <div *ngIf="isAskingAI" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                <div class="x-small text-muted mt-2 fw-medium">IA razonando respuesta...</div>
+              </div>
+            </div>
+
+            <!-- Input de Chat Integrado -->
+            <div class="mt-auto">
+              <div class="input-group shadow-sm border rounded-pill overflow-hidden bg-light p-1">
+                <input type="text" class="form-control border-0 bg-transparent small px-3 shadow-none" 
+                       placeholder="Escriba su duda técnica..."
+                       [(ngModel)]="userQuestion"
+                       (keyup.enter)="askAIQuestion()">
+                <button class="btn btn-primary rounded-pill px-3 shadow-sm" (click)="askAIQuestion()" [disabled]="isAskingAI || !userQuestion.trim()">
+                  <i class="bi" [ngClass]="isAskingAI ? 'bi-arrow-repeat spin' : 'bi-send-fill'"></i>
+                </button>
+              </div>
+              <div class="x-small text-muted mt-2 text-center">IA basada en el contexto del campo <strong>{{ editingPropKey }}</strong></div>
+            </div>
           </div>
         </div>
       </div>
@@ -663,6 +905,120 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
         z-index: 1050; display: flex; align-items: center; justify-content: center;
       }
+
+      /* Pantalla Completa para Ayuda Inteligente - REDISEÑO INTEGRADO */
+      .full-screen-help-container {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: #f8f9fa; /* Fondo gris muy claro, integrado con el sistema */
+        z-index: 1500;
+        display: flex;
+        flex-direction: column;
+        color: #212529;
+        font-family: inherit;
+      }
+
+      .help-header {
+        background: #ffffff;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      }
+
+      .help-content-grid {
+        display: flex;
+        flex-direction: row;
+        height: calc(100vh - 62px);
+        overflow: hidden;
+      }
+
+      @media (max-width: 1200px) {
+        .help-content-grid { flex-direction: column; }
+        .side-chat-panel { width: 100% !important; border-left: none !important; border-top: 1px solid #dee2e6; height: 400px; }
+      }
+
+      .main-diagnostic-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem;
+        background: #f8f9fa;
+      }
+
+      .side-chat-panel {
+        width: 400px;
+        background: #ffffff;
+        border-left: 1px solid #dee2e6;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        box-shadow: -4px 0 15px rgba(0,0,0,0.03);
+      }
+
+      .diagnostic-card {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      }
+      .diagnostic-card:hover { border-color: #0d6efd; box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+
+      .diff-container {
+        display: flex;
+        gap: 1rem;
+        background: #f1f3f5;
+        padding: 1.25rem;
+        border-radius: 10px;
+        font-family: 'SFMono-Regular', Consolas, monospace;
+      }
+
+      .diff-box {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+      }
+      .diff-old { background: #fff5f5; border: 1px solid #ffa8a8; color: #c92a2a; }
+      .diff-new { background: #ebfbee; border: 1px solid #8ce99a; color: #2b8a3e; }
+
+      .ai-bubble-v2 {
+        background: #f1f3f5;
+        border-radius: 15px;
+        padding: 1rem;
+        border-bottom-left-radius: 2px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+      }
+
+      .user-bubble {
+        background: #e7f5ff;
+        border: 1px solid #a5d8ff;
+        border-radius: 15px;
+        padding: 0.8rem 1.2rem;
+        border-bottom-right-radius: 2px;
+        margin-bottom: 1.5rem;
+        align-self: flex-end;
+        color: #1971c2;
+        font-size: 0.85rem;
+        max-width: 85%;
+      }
+
+      .studio-button-main {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2);
+      }
+      .studio-button-main:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px rgba(13, 110, 253, 0.3);
+        background: #0b5ed7;
+      }
+
       .custom-modal {
         width: 90%; max-width: 600px;
         background: white; border-radius: 1rem;
@@ -673,6 +1029,32 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         to { transform: translateY(0); opacity: 1; }
       }
       .ls-1 { letter-spacing: 1px; }
+      .spin { animation: spin 1s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      
+      .animate-in { animation: fadeIn 0.3s ease-out; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+      /* Estilos para el contenido de la IA (Markdown-like) */
+      .ai-content strong { color: #0dcaf0; }
+      .ai-content .bi-dot { font-size: 1.2rem; line-height: 1; }
+      
+      .ai-bubble {
+        transition: all 0.3s ease;
+        max-width: 100%;
+        word-wrap: break-word;
+      }
+      
+      .chat-input-container .input-group {
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      
+      .chat-input-container input:focus {
+        box-shadow: none;
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border-color: #0dcaf0 !important;
+      }
     </style>
   `
 })
@@ -705,6 +1087,8 @@ export class ActionDefinitionComponent implements OnInit {
   // Cache para dependencias externas
   targetEndpoints: { [key: string]: Endpoint[] } = {};
   targetFields: { [key: string]: string[] } = {};
+  secondaryTargetEndpoints: { [key: string]: Endpoint[] } = {};
+  secondaryTargetFields: { [key: string]: string[] } = {};
   private serviceEndpointsCache: { [serviceId: string]: Endpoint[] } = {};
 
   // Drag and Drop State
@@ -715,6 +1099,23 @@ export class ActionDefinitionComponent implements OnInit {
   isModalOpen = false;
   editingPropKey: string = '';
   editingTab: string = '';
+  showHelpModal = false;
+  
+  // AI Analysis State
+  aiLoading = false;
+  aiSuggestions: any[] | null = null;
+  
+  // AI Chat State
+  userQuestion = '';
+  chatHistory: { role: 'user' | 'ai', content: string }[] = [];
+  isAskingAI = false;
+
+  get helpContext() {
+    const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
+    if (!config.refService) return 'base';
+    if (config.hasSecondaryLookup) return 'secondary';
+    return 'direct';
+  }
 
   // Change Detection
   initialState: string = '';
@@ -862,8 +1263,10 @@ export class ActionDefinitionComponent implements OnInit {
         refDisplay: 'id',
         refDescriptionService: null,
         dependsOn: null,
-        dependency: null, // Nuevo objeto según requerimiento
-        showIdWithDescription: false // REGLA: Por defecto oculto
+        dependency: null,
+        hasSecondaryLookup: false,
+        secondaryDependency: null,
+        showIdWithDescription: false
       };
     }
 
@@ -872,12 +1275,23 @@ export class ActionDefinitionComponent implements OnInit {
     if (!field.refService || field.refService === 'Sin referencia' || field.refService === 'null') {
       field.refService = null;
       field.dependency = null;
+      field.hasSecondaryLookup = false;
+      field.secondaryDependency = null;
     }
 
     // Asegurar objeto dependency si existe refService
     if (field.refService && !field.dependency) {
       field.dependency = {
         type: field.refService,
+        target: null,
+        field: null
+      };
+    }
+
+    // Inicialización de secondaryDependency si el flag está activo
+    if (field.hasSecondaryLookup && !field.secondaryDependency) {
+      field.secondaryDependency = {
+        type: null,
         target: null,
         field: null
       };
@@ -903,19 +1317,23 @@ export class ActionDefinitionComponent implements OnInit {
           if (config.refService) {
              this.loadTargetEndpoints(propKey, cat, config.refService);
           }
+          if (config.hasSecondaryLookup && config.secondaryDependency?.type) {
+             this.loadTargetEndpoints(propKey, cat, config.secondaryDependency.type, true);
+          }
         });
       }
     });
   }
 
-  loadTargetEndpoints(propKey: string, type: string, serviceId: string) {
+  loadTargetEndpoints(propKey: string, type: string, serviceId: string, isSecondary: boolean = false) {
     if (!serviceId || serviceId === 'null' || serviceId === 'Sin referencia') return;
     const cacheKey = `${type}_${propKey}`;
+    const targetMap = isSecondary ? this.secondaryTargetEndpoints : this.targetEndpoints;
 
     // 1. Si ya tenemos los endpoints de este servicio en el caché global, usarlos (filtrando por GET y Activos)
     if (this.serviceEndpointsCache[serviceId]) {
-      this.targetEndpoints[cacheKey] = this.serviceEndpointsCache[serviceId].filter((e: any) => e.method === 'GET' && e.is_enabled);
-      this.afterEndpointsLoaded(propKey, type);
+      targetMap[cacheKey] = this.serviceEndpointsCache[serviceId].filter((e: any) => e.method === 'GET' && e.is_enabled);
+      this.afterEndpointsLoaded(propKey, type, isSecondary);
       return;
     }
 
@@ -925,27 +1343,31 @@ export class ActionDefinitionComponent implements OnInit {
         const endpoints = data.endpoints || [];
         this.serviceEndpointsCache[serviceId] = endpoints;
         // REGLA: Solo permitir métodos GET que estén ACTIVOS en la definición
-        this.targetEndpoints[cacheKey] = endpoints.filter((e: any) => e.method === 'GET' && e.is_enabled);
-        this.afterEndpointsLoaded(propKey, type);
+        targetMap[cacheKey] = endpoints.filter((e: any) => e.method === 'GET' && e.is_enabled);
+        this.afterEndpointsLoaded(propKey, type, isSecondary);
       },
       error: (err) => {
         console.error(`Error al cargar servicio ${serviceId}:`, err);
-        this.targetEndpoints[cacheKey] = [];
+        targetMap[cacheKey] = [];
       }
     });
   }
 
-  private afterEndpointsLoaded(propKey: string, type: string) {
+  private afterEndpointsLoaded(propKey: string, type: string, isSecondary: boolean = false) {
     const config = this.getFieldConfig(propKey, type);
-    if (config.dependency?.target) {
-      this.loadTargetFields(propKey, type, config.dependency.target);
+    const dep = isSecondary ? config.secondaryDependency : config.dependency;
+    if (dep?.target) {
+      this.loadTargetFields(propKey, type, dep.target, isSecondary);
     }
   }
 
-  loadTargetFields(propKey: string, type: string, path: string) {
+  loadTargetFields(propKey: string, type: string, path: string, isSecondary: boolean = false) {
     if (!path) return;
     const cacheKey = `${type}_${propKey}`;
-    const endpoints = this.targetEndpoints[cacheKey];
+    const sourceMap = isSecondary ? this.secondaryTargetEndpoints : this.targetEndpoints;
+    const targetMap = isSecondary ? this.secondaryTargetFields : this.targetFields;
+    
+    const endpoints = sourceMap[cacheKey];
     if (!endpoints || endpoints.length === 0) return;
 
     // Normalización de path para búsqueda (quitar slashes extras)
@@ -958,11 +1380,11 @@ export class ActionDefinitionComponent implements OnInit {
 
     if (!endpoint || !endpoint.response_dto) {
       console.warn(`No se encontró DTO de respuesta para el endpoint: ${path}`);
-      this.targetFields[cacheKey] = [];
+      targetMap[cacheKey] = [];
       return;
     }
 
-    this.targetFields[cacheKey] = this.extractPropsFromDto(endpoint.response_dto);
+    targetMap[cacheKey] = this.extractPropsFromDto(endpoint.response_dto);
   }
 
   private extractPropsFromDto(dto: any): string[] {
@@ -1009,10 +1431,205 @@ export class ActionDefinitionComponent implements OnInit {
     }
   }
 
+  onSecondaryLookupToggle(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    if (config.hasSecondaryLookup) {
+      config.secondaryDependency = {
+        type: null,
+        target: null,
+        field: null
+      };
+    } else {
+      config.secondaryDependency = null;
+      const cacheKey = `${type}_${propKey}`;
+      delete this.secondaryTargetEndpoints[cacheKey];
+      delete this.secondaryTargetFields[cacheKey];
+    }
+  }
+
+  onSecondaryDependencyTypeChange(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    const cacheKey = `${type}_${propKey}`;
+    if (config.secondaryDependency) {
+      config.secondaryDependency.target = null;
+      config.secondaryDependency.field = null;
+      delete this.secondaryTargetEndpoints[cacheKey];
+      delete this.secondaryTargetFields[cacheKey];
+      
+      if (config.secondaryDependency.type) {
+        this.loadTargetEndpoints(propKey, type, config.secondaryDependency.type, true);
+      }
+    }
+  }
+
+  formatAIResponse(text: string): string {
+    if (!text) return '';
+    // Conversión básica de pseudo-markdown a HTML para legibilidad
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/• (.*?)\n/g, '<div class="d-flex gap-2 mb-1"><i class="bi bi-dot text-info"></i><span>$1</span></div>')
+      .replace(/\n/g, '<br>');
+  }
+
+  onSecondaryDependencyTargetChange(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    if (config.secondaryDependency?.target) {
+      config.secondaryDependency.field = null;
+      this.loadTargetFields(propKey, type, config.secondaryDependency.target, true);
+    }
+  }
+
+  analyzeWithAI() {
+    this.aiLoading = true;
+    this.aiSuggestions = null;
+    
+    setTimeout(() => {
+      const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
+      const suggestions = [];
+      const propLower = this.editingPropKey.toLowerCase();
+
+      // 1. Error Crítico: Llave Desconectada (Caso Rol/Aplicación)
+      if (propLower.includes('rol') && config.dependency?.field && config.dependency.field.toLowerCase().includes('aplicacion')) {
+        suggestions.push({
+          id: 'fix_rol_key',
+          type: 'danger',
+          icon: 'bi-exclamation-octagon-fill',
+          title: 'FALLA DE VÍNCULO DETECTADA',
+          message: `El campo "${this.editingPropKey}" requiere una llave de tipo ROL para consultar el catálogo de descripciones. Actualmente estás enviando un ID de APLICACIÓN.`,
+          improvement: 'Vincular el ID correcto permitirá al Middleware realizar el "Join" y mostrar el nombre del Rol en lugar de un código vacío.',
+          visualBefore: '[ ID: 104 ] (Valor actual: Desconectado)',
+          visualAfter: '[ ADMINISTRADOR ] (Valor corregido)',
+          options: [
+            '¿Qué pasaría si dejo id_aplicacion? -> La lista de roles se filtrará por aplicación pero no mostrará nombres.',
+            '¿Por qué id_rol es mejor? -> Porque es la clave primaria en el microservicio de roles.'
+          ],
+          action: 'CAMBIO SUGERIDO: Cambiar "Atributo Llave" a "id_rol".'
+        });
+      }
+
+      // 2. Mejora de UX: Búsqueda Relacionada
+      if (!config.hasSecondaryLookup && (propLower.includes('id_') || propLower.includes('_id') || propLower.includes('rol'))) {
+        suggestions.push({
+          id: 'enable_secondary',
+          type: 'warning',
+          icon: 'bi-stars',
+          title: 'MEJORA DE LEGIBILIDAD (UX)',
+          message: 'Detecto que este campo es un identificador. Actualmente el usuario verá números crudos en la pantalla.',
+          improvement: 'Al activar la búsqueda relacionada, el Middleware irá a buscar el nombre legible automáticamente.',
+          visualBefore: 'Input: [ 10025 ]',
+          visualAfter: 'Select: [ SELECCIONE ROL: ADMINISTRADOR ▼ ]',
+          options: [
+            '¿Cómo mejora la productividad? -> El usuario no tiene que recordar códigos de memoria.',
+            '¿Afecta el rendimiento? -> No, el middleware cachea estas relaciones.'
+          ],
+          action: 'CAMBIO SUGERIDO: Activar "Búsqueda de valores relacionados".'
+        });
+      }
+
+      // 3. Mejora de Estética: Mostrar ID
+      if (config.refService && !config.showIdWithDescription) {
+        suggestions.push({
+          id: 'show_id',
+          type: 'info',
+          icon: 'bi-eye-fill',
+          title: 'OPTIMIZACIÓN DE VISTA',
+          message: 'Estás mostrando solo la descripción. Para auditoría, suele ser mejor ver el código técnico al lado.',
+          improvement: 'Añade el ID entre paréntesis al final de la descripción.',
+          visualBefore: 'ADMINISTRADOR',
+          visualAfter: 'ADMINISTRADOR (ID: 104)',
+          options: [
+            '¿Cuándo usarlo? -> En pantallas de gestión técnica o soporte.',
+            '¿Cuándo NO usarlo? -> En interfaces finales para clientes externos.'
+          ],
+          action: 'CAMBIO SUGERIDO: Activar "Mostrar ID junto a la descripción".'
+        });
+      }
+
+      if (suggestions.length === 0) {
+        suggestions.push({
+          type: 'success',
+          icon: 'bi-check-all',
+          title: 'CONFIGURACIÓN ÓPTIMA',
+          message: 'Todo parece estar en orden. ¿Te gustaría explorar opciones avanzadas de filtrado?',
+          action: 'No se requieren cambios inmediatos.'
+        });
+      }
+
+      this.aiSuggestions = suggestions;
+      this.aiLoading = false;
+    }, 1500);
+  }
+
+  askAIQuestion() {
+    if (!this.userQuestion.trim()) return;
+    
+    const userMsg = this.userQuestion;
+    this.chatHistory.push({ role: 'user', content: userMsg });
+    this.userQuestion = '';
+    this.isAskingAI = true;
+    
+    setTimeout(() => {
+      const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
+      const question = userMsg.toLowerCase();
+      const prop = this.editingPropKey;
+      
+      let detailResponse = '';
+
+      if (question.includes('analiza') || question.includes('funcionar') || question.includes('test')) {
+        if (prop.toLowerCase().includes('email')) {
+          detailResponse = `Para el campo **Email**, es preferible usar validación de formato (Regex) en lugar de un selector. Una referencia externa suele ser innecesaria aquí.`;
+        } else if (prop.toLowerCase().includes('rol') || prop.toLowerCase().includes('perfil')) {
+          if (config.dependency?.field?.toLowerCase().includes('aplicacion')) {
+            detailResponse = `**¡ALERTA TÉCNICA!** Estás intentando resolver un Rol usando un ID de Aplicación. **Cambio sugerido:** Usa "id_rol" como atributo llave.`;
+          } else {
+            detailResponse = `La configuración para este Rol parece sólida. Al usar búsqueda relacionada, garantizas que el usuario vea nombres descriptivos.`;
+          }
+        } else {
+          detailResponse = `He verificado el flujo. Asegúrate de que el endpoint devuelva un esquema compatible con los campos elegidos.`;
+        }
+      } else if (question.includes('llave') || question.includes('id')) {
+        detailResponse = `La "Llave" es vital. Si el servicio origen te da un ID numérico, ese mismo ID debe existir en el servicio relacionado.`;
+      } else {
+        detailResponse = `He analizado tu duda sobre "${userMsg}". Te sugiero revisar si este campo debe ser obligatorio en la pantalla principal.`;
+      }
+
+      this.chatHistory.push({ 
+        role: 'ai', 
+        content: `${detailResponse}\n\n¿Deseas que profundice en algún otro detalle técnico o tienes otra duda?` 
+      });
+      
+      this.isAskingAI = false;
+    }, 1200);
+  }
+
   closeModal() {
     this.isModalOpen = false;
     this.editingPropKey = '';
     this.editingTab = '';
+  }
+
+  applyAISuggestion(sug: any) {
+    const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
+    
+    switch(sug.id) {
+      case 'fix_rol_key':
+        if (config.dependency) config.dependency.field = 'id_rol';
+        break;
+      case 'enable_secondary':
+        config.hasSecondaryLookup = true;
+        this.onSecondaryLookupToggle(this.editingPropKey, this.editingTab);
+        break;
+      case 'show_id':
+        config.showIdWithDescription = true;
+        break;
+    }
+
+    // Feedback visual y limpieza
+    this.aiSuggestions = this.aiSuggestions?.filter(s => s.id !== sug.id) || null;
+    this.chatHistory.push({ 
+      role: 'ai', 
+      content: `¡Listo! He aplicado el cambio: **${sug.action}**. ¿Deseas analizar algo más?` 
+    });
   }
 
   openReferenceModal(propKey: string, tab: string) {
@@ -1020,10 +1637,16 @@ export class ActionDefinitionComponent implements OnInit {
     this.editingTab = tab;
     this.isModalOpen = true;
     
-    // Si ya tiene una referencia, asegurar que se carguen los endpoints al abrir
+    // Limpiar chat para el nuevo contexto
+    this.chatHistory = [];
+    this.aiSuggestions = null;
+    this.userQuestion = '';
     const config = this.getFieldConfig(propKey, tab);
     if (config.refService) {
       this.loadTargetEndpoints(propKey, tab, config.refService);
+    }
+    if (config.hasSecondaryLookup && config.secondaryDependency?.type) {
+      this.loadTargetEndpoints(propKey, tab, config.secondaryDependency.type, true);
     }
   }
 

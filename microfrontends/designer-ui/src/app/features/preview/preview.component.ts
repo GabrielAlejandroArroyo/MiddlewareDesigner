@@ -198,7 +198,8 @@ import { HttpClient } from '@angular/common/http';
                                              activeTest.configuracion_ui.fields_config.response[col.key].refService, 
                                              activeTest.configuracion_ui.fields_config.response[col.key].refDisplay || 'desc', 
                                              activeTest.configuracion_ui.fields_config.response[col.key].refDescriptionService,
-                                             activeTest.configuracion_ui.fields_config.response[col.key].showIdWithDescription) }}
+                                             activeTest.configuracion_ui.fields_config.response[col.key].showIdWithDescription,
+                                             activeTest.configuracion_ui.fields_config.response[col.key]) }}
                             </span>
                           </div>
                           <span *ngIf="!activeTest.configuracion_ui?.fields_config?.response?.[col.key]?.refService">{{ row[col.key] }}</span>
@@ -262,13 +263,13 @@ import { HttpClient } from '@angular/common/http';
                       </span>
                       <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable || activeTest.method === 'GET'" [title]="'Atributo técnico: ' + prop.key">
                         <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
-                        <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn)" [value]="opt.id">
-                          {{ opt.descripcion || opt.nombre || opt.id }}<span *ngIf="prop.showIdWithDescription"> (ID: {{ opt.id }})</span>
+                        <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn, prop)" [value]="getOptionValue(opt, prop)">
+                          {{ getOptionLabel(opt, prop) }}
                         </option>
                       </select>
                     </div>
                     <div *ngIf="prop.dependsOn && !formData[prop.dependsOn] && activeTest.method !== 'GET'" class="small text-warning mt-2 d-flex align-items-center">
-                      <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ prop.dependsOn }}</strong> primero.
+                      <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ getParentLabel(prop.dependsOn) }}</strong> primero.
                     </div>
 
                     <!-- Caso ESTÁNDAR -->
@@ -409,7 +410,22 @@ export class PreviewComponent implements OnInit {
   selectedId: string = '';
   testResponse: any = null;
   testerColumns: { key: string, label: string }[] = [];
-  testerFields: {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, refDescriptionService?: string, showIdWithDescription?: boolean, dependsOn?: string}[] = [];
+  testerFields: {
+    key: string, 
+    label: string, 
+    type: string, 
+    editable: boolean, 
+    required: boolean, 
+    unique: boolean, 
+    refService?: string, 
+    refDisplay?: string, 
+    refDescriptionService?: string, 
+    showIdWithDescription?: boolean, 
+    dependsOn?: string,
+    hasSecondaryLookup?: boolean,
+    secondaryDependency?: any,
+    dependency?: any
+  }[] = [];
 
   // Sub-Tester State (para navegación desde grilla)
   activeSubTest: { type: 'create' | 'update' | 'delete' | 'view', ep: any, data?: any } | null = null;
@@ -471,6 +487,9 @@ export class PreviewComponent implements OnInit {
     // Cargar datos para referencias externas si existen
     this.testerFields.forEach(f => {
       if (f.refService) this.fetchRefData(f.refService);
+      if (f.hasSecondaryLookup && f.secondaryDependency?.type) {
+        this.fetchRefData(f.secondaryDependency.type);
+      }
       if (f.refDescriptionService && f.refDescriptionService !== f.refService) {
         this.fetchRefData(f.refDescriptionService);
       }
@@ -480,6 +499,9 @@ export class PreviewComponent implements OnInit {
     const responseConfig = ep.configuracion_ui?.fields_config?.response || {};
     Object.values(responseConfig).forEach((c: any) => {
       if (c.refService) this.fetchRefData(c.refService);
+      if (c.hasSecondaryLookup && c.secondaryDependency?.type) {
+        this.fetchRefData(c.secondaryDependency.type);
+      }
       if (c.refDescriptionService && c.refDescriptionService !== c.refService) {
         this.fetchRefData(c.refDescriptionService);
       }
@@ -529,12 +551,64 @@ export class PreviewComponent implements OnInit {
     });
   }
 
-  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string, showId: boolean = false): string {
+  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string, showId: boolean = false, fieldConfig?: any): string {
+    // 1. Caso Lookup Secundario: El valor descriptivo viene de otro microservicio
+    if (fieldConfig?.hasSecondaryLookup && fieldConfig?.secondaryDependency?.type) {
+      const primaryList = this.refDataCache[serviceId];
+      const secondaryServiceId = fieldConfig.secondaryDependency.type;
+      const secondaryDisplayField = fieldConfig.secondaryDependency.field;
+      const secondaryList = this.refDataCache[secondaryServiceId];
+      
+      if (primaryList && secondaryList && val) {
+        // 1. Encontrar el registro puente en el primer servicio
+        const searchValPrimary = String(val).trim().toLowerCase();
+        const bridgeRecord = primaryList.find(i => {
+           return Object.entries(i).some(([k, v]) => 
+             (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
+             String(v).trim().toLowerCase() === searchValPrimary
+           );
+        });
+
+        if (bridgeRecord) {
+          const linkageField = fieldConfig.dependency?.field || 'id';
+          let linkageValue = bridgeRecord[linkageField];
+          
+          if (linkageValue === null || linkageValue === undefined) {
+            linkageValue = bridgeRecord.id || bridgeRecord.id_rol || bridgeRecord.id_aplicacion || bridgeRecord.codigo;
+          }
+          
+          if (linkageValue) {
+            const searchValSecondary = String(linkageValue).trim().toLowerCase();
+            // 2. Encontrar el registro descriptivo en el segundo servicio
+            const secondaryItem = secondaryList.find(i => {
+              return Object.entries(i).some(([k, v]) => 
+                (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
+                String(v).trim().toLowerCase() === searchValSecondary
+              );
+            });
+
+            if (secondaryItem) {
+              const desc = secondaryItem[secondaryDisplayField] || secondaryItem.descripcion || secondaryItem.nombre || String(linkageValue);
+              return showId ? `${desc} (ID: ${linkageValue})` : desc;
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Caso estándar o fallback
     const sourceServiceId = display === 'desc' && descriptionServiceId ? descriptionServiceId : serviceId;
     const list = this.refDataCache[sourceServiceId];
     if (!list || !val) return val;
 
-    const item = list.find(i => String(i.id) === String(val));
+    const searchVal = String(val).trim().toLowerCase();
+    const item = list.find(i => {
+      return Object.entries(i).some(([k, v]) => 
+        (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
+        String(v).trim().toLowerCase() === searchVal
+      );
+    });
+
     if (!item) return val;
 
     if (display === 'desc') {
@@ -544,13 +618,118 @@ export class PreviewComponent implements OnInit {
     return val;
   }
 
-  getFilteredOptions(refService: string, dependsOn?: string): any[] {
-    const data = this.refDataCache[refService] || [];
-    if (!dependsOn || !this.formData[dependsOn]) return data;
+  getOptionLabel(opt: any, fieldConfig: any): string {
+    if (!opt) return '';
     
-    // Filtrar la lista del servicio referenciado buscando el campo que coincide con la dependencia
-    // Por ejemplo: si id_provincia depende de id_pais, filtramos provincias donde provincia.id_pais == formData.id_pais
-    return data.filter(item => String(item[dependsOn]) === String(this.formData[dependsOn]));
+    // 1. Identificar el valor de unión (ID técnico que vincula los servicios)
+    // Intentamos usar el campo configurado, pero si falla o es igual al dependsOn, buscamos otros
+    const linkageField = fieldConfig?.dependency?.field || 'id';
+    let linkageValue = opt[linkageField];
+
+    // Heurística: Si no hay valor, buscamos cualquier campo que parezca un ID en el objeto
+    if (linkageValue === null || linkageValue === undefined) {
+      linkageValue = opt.id || opt.id_rol || opt.id_aplicacion || opt.codigo || 
+                     Object.entries(opt).find(([k,v]) => k.toLowerCase().includes('id') && v)?.[1];
+    }
+    
+    if (linkageValue === null || linkageValue === undefined) {
+      return opt.descripcion || opt.nombre || opt.label || 'Sin valor';
+    }
+
+    // 2. Si tiene búsqueda secundaria (JOIN entre microservicios)
+    if (fieldConfig?.hasSecondaryLookup && fieldConfig?.secondaryDependency?.type) {
+      const secondaryServiceId = fieldConfig.secondaryDependency.type;
+      const secondaryDisplayField = fieldConfig.secondaryDependency.field;
+      const secondaryList = this.refDataCache[secondaryServiceId];
+      
+      if (secondaryList && secondaryList.length > 0) {
+        const searchVal = String(linkageValue).trim().toLowerCase();
+        const secondaryItem = secondaryList.find(i => {
+          // Búsqueda profunda en campos identificadores del catálogo secundario
+          return Object.entries(i).some(([k, v]) => 
+            (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
+            String(v).trim().toLowerCase() === searchVal
+          );
+        });
+
+        if (secondaryItem) {
+          const desc = secondaryItem[secondaryDisplayField] || secondaryItem.descripcion || secondaryItem.nombre || linkageValue;
+          return fieldConfig.showIdWithDescription ? `${desc} (ID: ${linkageValue})` : desc;
+        }
+      }
+      
+      // Fallback: Si el servicio secundario no tiene el dato, intentamos buscar una descripción en el propio registro
+      const localDesc = opt.descripcion || opt.nombre || opt.label;
+      if (localDesc) return fieldConfig.showIdWithDescription ? `${localDesc} (ID: ${linkageValue})` : localDesc;
+      
+      return fieldConfig.showIdWithDescription ? `Cargando... (ID: ${linkageValue})` : String(linkageValue);
+    }
+
+    // 3. Fallback estándar (Sin búsqueda secundaria)
+    const desc = opt.descripcion || opt.nombre || opt.label || linkageValue;
+    return fieldConfig?.showIdWithDescription ? `${desc} (ID: ${linkageValue})` : String(desc);
+  }
+
+  getOptionValue(opt: any, fieldConfig: any): any {
+    if (!opt) return undefined;
+    // Siempre priorizamos el campo de referencia configurado por el usuario
+    const refField = fieldConfig?.dependency?.field || 'id';
+    const val = opt[refField];
+    if (val !== null && val !== undefined) return val;
+    
+    // Heurística de respaldo si el campo configurado no existe en el objeto real
+    return opt.id || opt.id_rol || opt.id_aplicacion || opt.codigo || Object.values(opt)[0];
+  }
+
+  getFilteredOptions(refService: string, dependsOn?: string, fieldConfig?: any): any[] {
+    const data = this.refDataCache[refService] || [];
+    if (data.length === 0) return [];
+    
+    let filtered = [...data];
+
+    // 1. Filtrado por cascada (Dependencia de otro campo)
+    if (dependsOn && dependsOn !== 'null' && this.formData[dependsOn]) {
+      const parentVal = String(this.formData[dependsOn]).toLowerCase();
+      filtered = data.filter(item => {
+        // Buscamos cualquier campo que coincida con el valor del padre
+        return Object.entries(item).some(([k, v]) => {
+          const keyLower = k.toLowerCase();
+          const depLower = dependsOn.toLowerCase();
+          const isRelatedKey = keyLower === depLower || 
+                               keyLower === (depLower + '_id') || 
+                               keyLower === ('id_' + depLower) ||
+                               keyLower.includes('id_') || 
+                               keyLower.includes('_id');
+          
+          return isRelatedKey && String(v).toLowerCase() === parentVal;
+        });
+      });
+      
+      // Si el filtro es demasiado estricto y no devuelve nada, intentamos un filtro más relajado
+      if (filtered.length === 0) {
+        filtered = data.filter(item => Object.values(item).some(v => String(v).toLowerCase() === parentVal));
+      }
+    }
+
+    // 2. De-duplicación por VALOR TÉCNICO + ETIQUETA
+    // Usamos una combinación para asegurar que no perdemos opciones válidas pero evitamos repetidos visuales
+    const seen = new Set();
+    return filtered.filter(item => {
+      const label = this.getOptionLabel(item, fieldConfig);
+      const val = this.getOptionValue(item, fieldConfig);
+      const uniqueKey = `${val}-${label}`;
+      
+      if (!label || seen.has(uniqueKey)) return false;
+      seen.add(uniqueKey);
+      return true;
+    });
+  }
+
+  getParentLabel(key: string): string {
+    if (!key || key === 'null') return 'el campo anterior';
+    // Buscar en testerFields el label amigable
+    const parent = this.testerFields.find(f => f.key === key || f.key.toLowerCase() === key.toLowerCase());
+    return parent ? parent.label : key;
   }
 
   calculateColumns(ep: any): { key: string, label: string }[] {
@@ -580,11 +759,15 @@ export class PreviewComponent implements OnInit {
       }));
   }
 
-  calculateFields(ep: any): {key: string, label: string, type: string, editable: boolean, required: boolean, unique: boolean, refService?: string, refDisplay?: string, refDescriptionService?: string}[] {
-    const props = ep.request_dto?.properties || ep.response_dto?.properties;
+  calculateFields(ep: any): any[] {
+    const isMutation = ['POST', 'PUT', 'PATCH'].includes(ep.method);
+    const props = isMutation ? ep.request_dto?.properties : ep.response_dto?.properties;
     if (!props) return [];
 
-    const config = ep.configuracion_ui?.fields_config?.request || {};
+    const config = isMutation 
+                ? (ep.configuracion_ui?.fields_config?.request || {})
+                : (ep.configuracion_ui?.fields_config?.response || {});
+
     return Object.entries(props)
       .map(([k, v]: any) => ({ 
         key: k, 
@@ -597,8 +780,11 @@ export class PreviewComponent implements OnInit {
         refService: config[k]?.refService,
         refDisplay: config[k]?.refDisplay,
         refDescriptionService: config[k]?.refDescriptionService,
-        showIdWithDescription: config[k]?.showIdWithDescription === true, // Capturar nueva propiedad
-        dependsOn: config[k]?.dependsOn
+        showIdWithDescription: config[k]?.showIdWithDescription === true,
+        dependsOn: config[k]?.dependsOn,
+        hasSecondaryLookup: config[k]?.hasSecondaryLookup === true,
+        secondaryDependency: config[k]?.secondaryDependency,
+        dependency: config[k]?.dependency
       }))
       .filter(f => config[f.key]?.show !== false)
       .sort((a, b) => a.order - b.order);
@@ -883,7 +1069,8 @@ export class PreviewComponent implements OnInit {
                                           config.refService, 
                                           config.refDisplay || 'desc', 
                                           config.refDescriptionService,
-                                          config.showIdWithDescription);
+                                          config.showIdWithDescription,
+                                          config);
         }
         
         // Formatear valores especiales

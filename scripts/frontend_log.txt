@@ -13,14 +13,14 @@ case.
 
 Initial chunk files   | Names         |  Raw size
 vendor.js             | vendor        |   2.80 MB | 
-main.js               | main          | 397.27 kB | 
+main.js               | main          | 431.46 kB | 
 polyfills.js          | polyfills     | 262.57 kB | 
 styles.css, styles.js | styles        | 153.00 kB | 
 runtime.js            | runtime       |   6.50 kB | 
 
-                      | Initial total |   3.60 MB
+                      | Initial total |   3.63 MB
 
-Build at: 2026-01-15T21:03:34.836Z - Hash: 4914c5f45ec90f99 - Time: 2494ms
+Build at: 2026-01-16T23:33:51.825Z - Hash: b6ef27e524dea384 - Time: 2813ms
 
 ** Angular Live Development Server is listening on 0.0.0.0:4200, open your browser on http://localhost:4200/ **
 
@@ -32,188 +32,73 @@ Build at: 2026-01-15T21:03:34.836Z - Hash: 4914c5f45ec90f99 - Time: 2494ms
 
 5 unchanged chunks
 
-Build at: 2026-01-15T21:03:35.672Z - Hash: 4914c5f45ec90f99 - Time: 762ms
+Build at: 2026-01-16T23:33:52.750Z - Hash: b6ef27e524dea384 - Time: 851ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.36 kB | 
+main.js             | main    | 432.32 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-15T21:12:09.159Z - Hash: f31df01a1c1bdd09 - Time: 1481ms
+Build at: 2026-01-16T23:39:18.347Z - Hash: 33d4e44c1313af28 - Time: 1423ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.23 kB | 
+main.js             | main    | 432.33 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-15T21:12:20.456Z - Hash: 8c3f4f305bea7d2b - Time: 1696ms
+Build at: 2026-01-16T23:39:22.769Z - Hash: b3cb9c6237905f7e - Time: 706ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 397.84 kB | 
+main.js             | main    | 432.47 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-15T21:12:32.286Z - Hash: 8ab8974af4030825 - Time: 935ms
+Build at: 2026-01-16T23:39:34.771Z - Hash: bc90b7c449acb30a - Time: 743ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 398.92 kB | 
+main.js             | main    | 432.47 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-15T21:12:40.129Z - Hash: 4f1984f477872433 - Time: 1082ms
+Build at: 2026-01-16T23:39:47.997Z - Hash: 1d00e367c27edfc7 - Time: 531ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 398.92 kB | 
+main.js             | main    | 433.43 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-15T21:13:01.097Z - Hash: df9654e8592549ba - Time: 1023ms
+Build at: 2026-01-16T23:44:20.761Z - Hash: 6468bc5b76a991d4 - Time: 941ms
 
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
+Error: src/app/features/preview/preview.component.ts:679:56 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.04 kB | 
-runtime.js          | runtime |   6.50 kB | 
+679     if (fieldConfig?.hasSecondaryLookup && fieldConfig.dependency?.field) {
+                                                           ~~~~~~~~~~
 
-3 unchanged chunks
 
-Build at: 2026-01-15T21:34:29.082Z - Hash: de540e4ffa4a00d4 - Time: 1196ms
+Error: src/app/features/preview/preview.component.ts:680:40 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
 
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.35 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:34:39.018Z - Hash: a7d740107548a8ed - Time: 1126ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.96 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:34:47.649Z - Hash: 1f771aea5ece2b30 - Time: 925ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.96 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:35:04.093Z - Hash: c3aabea43a1aa6e2 - Time: 1048ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:43:06.551Z - Hash: cc35760242950786 - Time: 1037ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.56 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:43:19.342Z - Hash: 95b9e81b14929f86 - Time: 1098ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.56 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:43:26.795Z - Hash: 55893e7f8b98fa7e - Time: 941ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.23 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:45:35.613Z - Hash: f387581798b7063e - Time: 1101ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.23 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-15T21:45:42.839Z - Hash: 1001c4cdf324e34c - Time: 922ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.27 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T00:16:20.185Z - Hash: 532b1dc1d01c91ba - Time: 1645ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 400.31 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T00:16:24.730Z - Hash: 1a76fe40ad1ce1df - Time: 1240ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:730:16 - error TS2339: Property 'preloadAllDependencies' does not exist on type 'ActionDefinitionComponent'.
-
-730           this.preloadAllDependencies();
-                   ~~~~~~~~~~~~~~~~~~~~~~
+680       const linkageField = fieldConfig.dependency.field;
+                                           ~~~~~~~~~~
 
 
 
@@ -222,50 +107,23 @@ Error: src/app/features/action-definition/action-definition.component.ts:730:16 
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 401.54 kB | 
+main.js             | main    | 433.46 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T00:16:47.964Z - Hash: da8266d8d9ff327e - Time: 1609ms
+Build at: 2026-01-16T23:44:25.378Z - Hash: f9dd4ca5dd46c740 - Time: 591ms
 
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
+Error: src/app/features/preview/preview.component.ts:679:56 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
 
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 401.86 kB | 
-runtime.js          | runtime |   6.50 kB | 
+679     if (fieldConfig?.hasSecondaryLookup && fieldConfig.dependency?.field) {
+                                                           ~~~~~~~~~~
 
-3 unchanged chunks
 
-Build at: 2026-01-16T00:17:03.159Z - Hash: 4561786ccd2ec0fd - Time: 1228ms
+Error: src/app/features/preview/preview.component.ts:680:40 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
 
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 401.86 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T00:17:14.528Z - Hash: d4270fd6d7a905a8 - Time: 1081ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 392.80 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T00:36:04.898Z - Hash: 85d78049aa2723e1 - Time: 1200ms
-
-Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
-
-423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
-                                                            ~~~~~~~~~~~~~~~~~~
+680       const linkageField = fieldConfig.dependency.field;
+                                           ~~~~~~~~~~
 
 
 
@@ -274,185 +132,23 @@ Error: src/app/features/action-definition/action-definition.component.ts:423:57 
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 407.23 kB | 
+main.js             | main    | 433.46 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T00:36:13.197Z - Hash: 519e14b8bc840efc - Time: 1319ms
+Build at: 2026-01-16T23:44:39.622Z - Hash: 7aab16677512aa12 - Time: 666ms
 
-Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+Error: src/app/features/preview/preview.component.ts:679:56 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
 
-423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
-                                                            ~~~~~~~~~~~~~~~~~~
+679     if (fieldConfig?.hasSecondaryLookup && fieldConfig.dependency?.field) {
+                                                           ~~~~~~~~~~
 
 
-Error: src/app/features/action-definition/action-definition.component.ts:536:19 - error TS2339: Property 'isModalOpen' does not exist on type 'ActionDefinitionComponent'.
+Error: src/app/features/preview/preview.component.ts:680:40 - error TS2339: Property 'dependency' does not exist on type '{ key: string; label: string; type: string; editable: boolean; required: boolean; unique: boolean; refService?: string | undefined; refDisplay?: string | undefined; refDescriptionService?: string | undefined; showIdWithDescription?: boolean | undefined; dependsOn?: string | undefined; hasSecondaryLookup?: boolean | ...'.
 
-536       <div *ngIf="isModalOpen" class="custom-modal-backdrop animate-in">
-                      ~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:541:41 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-541               Configurar Referencia: {{ editingPropKey }}
-                                            ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:543:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
-
-543             <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
-                                 ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:556:67 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
-                                                                      ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:556:83 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
-                                                                                      ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:562:73 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                            ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:562:89 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                                            ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:566:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
-                                                                        ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:566:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
-                                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:568:63 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
-                                                                  ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:568:82 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
-                                                                                     ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:576:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                        ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:576:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:582:59 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
-                                                              ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:582:78 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
-                                                                                 ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:597:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
-
-597             <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
-                                 ~~~~~~~~~~
+680       const linkageField = fieldConfig.dependency.field;
+                                           ~~~~~~~~~~
 
 
 
@@ -461,185 +157,100 @@ Error: src/app/features/action-definition/action-definition.component.ts:597:30 
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 407.93 kB | 
+main.js             | main    | 433.46 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T00:36:24.288Z - Hash: e2b9d862a403f995 - Time: 1109ms
+Build at: 2026-01-16T23:46:11.877Z - Hash: ef34211bd5408057 - Time: 846ms
 
-Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
-423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
-                                                            ~~~~~~~~~~~~~~~~~~
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 433.46 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
+3 unchanged chunks
 
-Error: src/app/features/action-definition/action-definition.component.ts:536:19 - error TS2339: Property 'isModalOpen' does not exist on type 'ActionDefinitionComponent'.
+Build at: 2026-01-16T23:46:29.467Z - Hash: d8f4e9ceb11014d1 - Time: 576ms
 
-536       <div *ngIf="isModalOpen" class="custom-modal-backdrop animate-in">
-                      ~~~~~~~~~~~
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 432.51 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
-Error: src/app/features/action-definition/action-definition.component.ts:541:41 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+3 unchanged chunks
 
-541               Configurar Referencia: {{ editingPropKey }}
-                                            ~~~~~~~~~~~~~~
+Build at: 2026-01-16T23:50:18.107Z - Hash: f1316259e656596a - Time: 903ms
 
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
-Error: src/app/features/action-definition/action-definition.component.ts:543:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 432.51 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
-543             <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
-                                 ~~~~~~~~~~
+3 unchanged chunks
 
+Build at: 2026-01-16T23:50:25.754Z - Hash: 590938eb8b1ed788 - Time: 676ms
 
-Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                          ~~~~~~~~~~~~~~
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 432.71 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
+3 unchanged chunks
 
-Error: src/app/features/action-definition/action-definition.component.ts:555:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+Build at: 2026-01-16T23:52:56.531Z - Hash: 5b663209ee316a12 - Time: 871ms
 
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                          ~~~~~~~~~~~~~~
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 432.71 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
-Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+3 unchanged chunks
 
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                                          ~~~~~~~~~~
+Build at: 2026-01-16T23:53:02.953Z - Hash: d17d8cbeb3c0ef5b - Time: 597ms
 
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
-Error: src/app/features/action-definition/action-definition.component.ts:555:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 432.71 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
-555                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).refService"
-                                                                          ~~~~~~~~~~
+3 unchanged chunks
 
+Build at: 2026-01-16T23:53:11.115Z - Hash: 29a936f40e6756ab - Time: 526ms
 
-Error: src/app/features/action-definition/action-definition.component.ts:556:67 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
 
-556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
-                                                                      ~~~~~~~~~~~~~~
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 330.32 kB | 
+runtime.js          | runtime |   6.50 kB | 
 
+3 unchanged chunks
 
-Error: src/app/features/action-definition/action-definition.component.ts:556:83 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
+Build at: 2026-01-17T00:18:40.116Z - Hash: a7f0d4f36f6d7af9 - Time: 680ms
 
-556                           (ngModelChange)="onDependencyTypeChange(editingPropKey, editingTab)">
-                                                                                      ~~~~~~~~~~
+Error: src/app/features/action-definition/action-definition.component.ts:684:9 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
 
+684         </div>
+            ~~~~~~
 
-Error: src/app/features/action-definition/action-definition.component.ts:562:73 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
 
-562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                            ~~~~~~~~~~~~~~
+Error: src/app/features/action-definition/action-definition.component.ts:685:7 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
 
-
-Error: src/app/features/action-definition/action-definition.component.ts:562:89 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-562                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                                            ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:565:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-565                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:566:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
-                                                                        ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:566:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-566                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
-                                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:568:63 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
-                                                                  ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:568:82 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-568                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
-                                                                                     ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:576:69 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                        ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:576:85 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-576               <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                                                                                        ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:55 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                          ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:580:71 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-580                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                                                                          ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:582:59 - error TS2339: Property 'editingTab' does not exist on type 'ActionDefinitionComponent'.
-
-582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
-                                                              ~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:582:78 - error TS2339: Property 'editingPropKey' does not exist on type 'ActionDefinitionComponent'.
-
-582                     <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
-                                                                                 ~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:597:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
-
-597             <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
-                                 ~~~~~~~~~~
+685       </div>
+          ~~~~~~
 
 
 
@@ -648,29 +259,23 @@ Error: src/app/features/action-definition/action-definition.component.ts:597:30 
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 408.03 kB | 
+main.js             | main    | 330.32 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T00:36:28.448Z - Hash: f172e67e5bfa82bc - Time: 1149ms
+Build at: 2026-01-17T00:18:50.224Z - Hash: 3f7a3959f398f975 - Time: 251ms
 
-Error: src/app/features/action-definition/action-definition.component.ts:423:57 - error TS2339: Property 'openReferenceModal' does not exist on type 'ActionDefinitionComponent'.
+Error: src/app/features/action-definition/action-definition.component.ts:684:9 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
 
-423                                        <button (click)="openReferenceModal(prop.key, activeTab)"
-                                                            ~~~~~~~~~~~~~~~~~~
-
-
-Error: src/app/features/action-definition/action-definition.component.ts:543:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
-
-543             <button (click)="closeModal()" class="btn-close btn-close-white shadow-none"></button>
-                                 ~~~~~~~~~~
+684         </div>
+            ~~~~~~
 
 
-Error: src/app/features/action-definition/action-definition.component.ts:597:30 - error TS2339: Property 'closeModal' does not exist on type 'ActionDefinitionComponent'.
+Error: src/app/features/action-definition/action-definition.component.ts:685:7 - error NG5002: Unexpected closing tag "div". It may happen when the tag has already been closed by another tag. For more info see https://www.w3.org/TR/html5/syntax.html#closing-elements-that-have-implied-end-tags
 
-597             <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">ACEPTAR Y CERRAR</button>
-                                 ~~~~~~~~~~
+685       </div>
+          ~~~~~~
 
 
 
@@ -679,154 +284,151 @@ Error: src/app/features/action-definition/action-definition.component.ts:597:30 
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 408.50 kB | 
+main.js             | main    | 435.55 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T00:36:35.039Z - Hash: 9709f01721143b91 - Time: 970ms
+Build at: 2026-01-17T00:20:39.602Z - Hash: f413b5edfe2993aa - Time: 1440ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 408.50 kB | 
+main.js             | main    | 435.55 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T00:36:43.318Z - Hash: b4912836e5a2e58f - Time: 885ms
+Build at: 2026-01-17T00:20:47.062Z - Hash: 24ad3d5680e3550d - Time: 1160ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 408.53 kB | 
+main.js             | main    | 435.65 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:08:41.720Z - Hash: 521d614c2226164d - Time: 1286ms
+Build at: 2026-01-17T00:22:41.737Z - Hash: 9a7d9732a8cc9276 - Time: 800ms
+
+Error: src/app/features/preview/preview.component.ts:272:99 - error TS2339: Property 'getParentLabel' does not exist on type 'PreviewComponent'.
+
+272                       <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ getParentLabel(prop.dependsOn) }}</strong> primero.
+                                                                                                      ~~~~~~~~~~~~~~
+
+
+
+
+× Failed to compile.
+✔ Browser application bundle generation complete.
+
+Initial chunk files | Names   |  Raw size
+main.js             | main    | 435.94 kB | 
+runtime.js          | runtime |   6.50 kB | 
+
+3 unchanged chunks
+
+Build at: 2026-01-17T00:22:50.662Z - Hash: 8d0552e4284df10d - Time: 763ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 410.94 kB | 
+main.js             | main    | 435.94 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:08:49.967Z - Hash: 5ca69e29b8d6f012 - Time: 1099ms
+Build at: 2026-01-17T00:22:58.997Z - Hash: 8ff5c52b37fb9cfd - Time: 604ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 410.94 kB | 
+main.js             | main    | 435.93 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:08:56.852Z - Hash: 2b9e1e85dc8d8fa2 - Time: 1200ms
+Build at: 2026-01-17T00:31:00.594Z - Hash: 4e25ed90a7c9d885 - Time: 838ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 411.01 kB | 
+main.js             | main    | 436.34 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:01.972Z - Hash: 6f1b8ffea4c28f42 - Time: 551ms
+Build at: 2026-01-17T00:33:44.391Z - Hash: e2d692c2eaaad468 - Time: 733ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 411.98 kB | 
+main.js             | main    | 436.34 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:08.829Z - Hash: d1c455b72ab31396 - Time: 508ms
+Build at: 2026-01-17T00:35:31.240Z - Hash: 59305f7e9685173f - Time: 500ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.06 kB | 
+main.js             | main    | 431.46 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:15.007Z - Hash: a3945ef42b7c2cb1 - Time: 666ms
+Build at: 2026-01-17T00:38:18.538Z - Hash: 2c611609ba4bf51b - Time: 1658ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.15 kB | 
+main.js             | main    | 434.29 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:21.995Z - Hash: a98166582e409c87 - Time: 553ms
+Build at: 2026-01-17T00:46:22.730Z - Hash: 323a7507e67b2054 - Time: 1823ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.18 kB | 
+main.js             | main    | 435.94 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:27.716Z - Hash: 54c74b32f8024143 - Time: 558ms
+Build at: 2026-01-17T00:46:24.011Z - Hash: 8ff5c52b37fb9cfd - Time: 1247ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.18 kB | 
+main.js             | main    | 436.16 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:34.593Z - Hash: 997628c1a4c5eeb6 - Time: 618ms
+Build at: 2026-01-17T00:47:22.937Z - Hash: f1fa1e9abc0f1cf2 - Time: 997ms
 
 √ Compiled successfully.
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.18 kB | 
+main.js             | main    | 436.16 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
 3 unchanged chunks
 
-Build at: 2026-01-16T01:09:40.031Z - Hash: 3e61814516f31331 - Time: 1134ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.33 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T01:19:13.173Z - Hash: 1ebcb41a2aa5e191 - Time: 1290ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 412.33 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-01-16T01:19:23.886Z - Hash: 5728c668b8568af9 - Time: 1151ms
+Build at: 2026-01-17T00:47:32.020Z - Hash: d5ecc6da2a51e6f8 - Time: 618ms
 
 √ Compiled successfully.
