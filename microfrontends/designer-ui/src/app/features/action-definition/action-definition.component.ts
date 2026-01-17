@@ -1613,11 +1613,21 @@ export class ActionDefinitionComponent implements OnInit {
     
     switch(sug.id) {
       case 'fix_rol_key':
-        if (config.dependency) config.dependency.field = 'id_rol';
+        if (config.dependency) {
+          config.dependency.field = 'id_rol';
+          // Recargar campos si hay un endpoint seleccionado
+          if (config.dependency.target) {
+            this.loadTargetFields(this.editingPropKey, this.editingTab, config.dependency.target);
+          }
+        }
         break;
       case 'enable_secondary':
         config.hasSecondaryLookup = true;
         this.onSecondaryLookupToggle(this.editingPropKey, this.editingTab);
+        // Si hay un servicio relacionado configurado, cargar sus endpoints
+        if (config.secondaryDependency?.type) {
+          this.loadTargetEndpoints(this.editingPropKey, this.editingTab, config.secondaryDependency.type, true);
+        }
         break;
       case 'show_id':
         config.showIdWithDescription = true;
@@ -1628,8 +1638,23 @@ export class ActionDefinitionComponent implements OnInit {
     this.aiSuggestions = this.aiSuggestions?.filter(s => s.id !== sug.id) || null;
     this.chatHistory.push({ 
       role: 'ai', 
-      content: `¡Listo! He aplicado el cambio: **${sug.action}**. ¿Deseas analizar algo más?` 
+      content: `✅ **Cambio aplicado:** ${sug.action}\n\nEl modal de configuración ha sido actualizado. Puedes cerrar este estudio y verificar los cambios en el modal de referencia.` 
     });
+
+    // Cerrar el estudio y volver al modal de referencia para que el usuario vea los cambios
+    setTimeout(() => {
+      this.showHelpModal = false;
+      // Forzar actualización del modal de referencia si está abierto
+      if (this.isModalOpen) {
+        // Recargar endpoints y campos para reflejar los cambios
+        if (config.refService) {
+          this.loadTargetEndpoints(this.editingPropKey, this.editingTab, config.refService);
+        }
+        if (config.hasSecondaryLookup && config.secondaryDependency?.type) {
+          this.loadTargetEndpoints(this.editingPropKey, this.editingTab, config.secondaryDependency.type, true);
+        }
+      }
+    }, 1500);
   }
 
   openReferenceModal(propKey: string, tab: string) {
