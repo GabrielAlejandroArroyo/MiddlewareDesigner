@@ -1,1 +1,37 @@
 Iniciando Angular... 
+
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues. You might need to use "--disable-host-check" if that's the
+case.
+    
+- Generating browser application bundles (phase: setup)...
+✔ Browser application bundle generation complete.
+
+Initial chunk files   | Names         |  Raw size
+vendor.js             | vendor        |   2.80 MB | 
+main.js               | main          | 508.55 kB | 
+polyfills.js          | polyfills     | 262.57 kB | 
+styles.css, styles.js | styles        | 186.05 kB | 
+runtime.js            | runtime       |   6.50 kB | 
+
+                      | Initial total |   3.74 MB
+
+Build at: 2026-01-17T03:32:19.759Z - Hash: 48a020020093fdf2 - Time: 2984ms
+
+** Angular Live Development Server is listening on 0.0.0.0:4200, open your browser on http://localhost:4200/ **
+
+
+√ Compiled successfully.
+✔ Browser application bundle generation complete.
+
+
+
+5 unchanged chunks
+
+Build at: 2026-01-17T03:32:20.803Z - Hash: 48a020020093fdf2 - Time: 975ms
+
+√ Compiled successfully.
