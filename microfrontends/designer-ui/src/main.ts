@@ -86,8 +86,8 @@ const routes: Routes = [
       </aside>
 
       <!-- Main Content Area -->
-      <div class="flex-grow-1 overflow-auto main-content-area">
-        <header class="app-header border-bottom px-4 py-3 d-flex align-items-center justify-content-between shadow-sm">
+      <div class="flex-grow-1 overflow-auto main-content-area d-flex flex-column">
+        <header class="app-header border-bottom px-4 py-3 d-flex align-items-center justify-content-between shadow-sm sticky-header">
           <h5 class="mb-0 fw-bold d-lg-none me-3" *ngIf="isCollapsed">
             <span class="text-info">MD</span>
           </h5>
@@ -103,8 +103,10 @@ const routes: Routes = [
             </button>
           </div>
         </header>
-        <main class="p-0">
-          <router-outlet></router-outlet>
+        <main class="p-0 flex-grow-1 overflow-auto main-content-wrapper">
+          <div class="router-outlet-container">
+            <router-outlet></router-outlet>
+          </div>
         </main>
       </div>
     </div>
@@ -147,6 +149,42 @@ const routes: Routes = [
         background-color: var(--md-header-bg);
         color: var(--md-header-text);
         border-color: var(--md-border-color);
+      }
+
+      .sticky-header {
+        position: fixed;
+        top: 0;
+        z-index: 200;
+        background-color: var(--md-header-bg) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px var(--md-shadow-sm) !important;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        width: calc(100% - 280px);
+        left: 280px;
+      }
+
+      /* Ajustar posición del header cuando sidebar está colapsado */
+      aside.collapsed ~ .main-content-area .sticky-header {
+        width: calc(100% - 80px);
+        left: 80px;
+      }
+
+      .main-content-area {
+        position: relative;
+        padding-top: 60px !important;
+      }
+
+      .main-content-wrapper {
+        position: relative;
+        z-index: 1;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
       }
       
       body { overflow: hidden; }

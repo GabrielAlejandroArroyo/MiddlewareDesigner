@@ -10,30 +10,45 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="container-fluid px-4 py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0 fw-bold text-dark">Gestión de Microservicios</h2>
-        <div class="d-flex gap-2">
-          <!-- Botón para abrir modal de registro (Solo en Activos o Todos) -->
-          <button *ngIf="filterTab !== 'inactive'" (click)="showRegisterModal = true" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-            <span class="fs-4 line-height-1">+</span> Registrar Backend
-          </button>
-          
-          <div class="btn-group shadow-sm" role="group">
-            <button type="button" class="btn btn-outline-secondary" 
-                    [class.active]="viewMode === 'cards'"
-                    (click)="viewMode = 'cards'">
-              <span class="small">Cuadrícula</span>
+      <!-- Header Flotante -->
+      <div class="page-header-sticky">
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+              <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                  <a routerLink="/" class="text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>Inicio
+                  </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Gestión de Microservicios</li>
+              </ol>
+            </nav>
+            <h2 class="mb-0 fw-bold">Gestión de Microservicios</h2>
+          </div>
+          <div class="d-flex gap-2">
+            <!-- Botón para abrir modal de registro (Solo en Activos o Todos) -->
+            <button *ngIf="filterTab !== 'inactive'" (click)="showRegisterModal = true" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+              <span class="fs-4 line-height-1">+</span> Registrar Backend
             </button>
-            <button type="button" class="btn btn-outline-secondary" 
-                    [class.active]="viewMode === 'list'"
-                    (click)="viewMode = 'list'">
-              <span class="small">Lista</span>
+            
+            <div class="btn-group shadow-sm" role="group">
+              <button type="button" class="btn btn-outline-secondary" 
+                      [class.active]="viewMode === 'cards'"
+                      (click)="viewMode = 'cards'">
+                <span class="small">Cuadrícula</span>
+              </button>
+              <button type="button" class="btn btn-outline-secondary" 
+                      [class.active]="viewMode === 'list'"
+                      (click)="viewMode = 'list'">
+                <span class="small">Lista</span>
+              </button>
+            </div>
+
+            <button class="btn btn-light border shadow-sm" (click)="loadServices()">
+              <i class="bi bi-arrow-repeat me-1"></i> Refrescar
             </button>
           </div>
-
-          <button class="btn btn-light border shadow-sm" (click)="loadServices()">
-            Refrescar
-          </button>
         </div>
       </div>
 
@@ -278,6 +293,57 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
         </div>
       </div>
     </div>
+
+    <style>
+      /* Header Flotante Global */
+      .page-header-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: var(--md-bg-secondary);
+        border-bottom: 1px solid var(--md-border-color);
+        margin: -1rem -1rem 1.5rem -1rem;
+        padding: 0 1rem;
+        box-shadow: 0 2px 4px var(--md-shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .page-header-sticky .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+
+      .page-header-sticky .breadcrumb-item a {
+        color: var(--md-text-secondary);
+        transition: color 0.2s ease;
+        font-weight: 500;
+      }
+
+      .page-header-sticky .breadcrumb-item a:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+      }
+
+      .page-header-sticky .breadcrumb-item.active {
+        color: var(--md-text-primary);
+        font-weight: 600;
+      }
+
+      .page-header-sticky .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--md-text-muted);
+        content: "/";
+        padding: 0 0.5rem;
+      }
+
+      .page-header-sticky h2 {
+        color: var(--md-text-primary);
+      }
+
+      .page-header-sticky .text-muted {
+        color: var(--md-text-secondary) !important;
+      }
+    </style>
   `
 })
 export class BackendManagementComponent implements OnInit {

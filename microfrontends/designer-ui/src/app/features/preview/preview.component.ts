@@ -11,25 +11,45 @@ import { HttpClient } from '@angular/common/http';
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="container-fluid px-4 py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1">
-              <li class="breadcrumb-item"><a routerLink="/">Gestión</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Previsualización</li>
-            </ol>
-          </nav>
-          <h2 class="mb-0 fw-bold">Previsualización de Aplicación</h2>
+      <!-- Header Flotante con Breadcrumb -->
+      <div class="preview-header-sticky">
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <div class="flex-grow-1">
+            <nav aria-label="breadcrumb" class="mb-2">
+              <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                  <a routerLink="/" class="text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>Inicio
+                  </a>
+                </li>
+                <li class="breadcrumb-item">
+                  <a routerLink="/backends" class="text-decoration-none">Gestión de Microservicios</a>
+                </li>
+                <li class="breadcrumb-item" *ngIf="selectedServiceId && selectedServiceRaw">
+                  <a [routerLink]="['/inspect', selectedServiceId]" class="text-decoration-none">
+                    {{ selectedServiceRaw.id | uppercase }}
+                  </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                  Previsualización
+                  <span *ngIf="selectedServiceId && selectedServiceRaw" class="text-muted">
+                    - {{ selectedServiceRaw.nombre }}
+                  </span>
+                </li>
+              </ol>
+            </nav>
+            <h2 class="mb-0 fw-bold">Previsualización de Aplicación</h2>
+          </div>
+          <button class="btn btn-light border shadow-sm ms-3" (click)="loadEnabledServices()">
+            <i class="bi bi-arrow-repeat me-2"></i> Actualizar Datos
+          </button>
         </div>
-        <button class="btn btn-light border shadow-sm" (click)="loadEnabledServices()">
-          Actualizar Datos
-        </button>
       </div>
 
-      <div class="row g-4">
+      <div class="row g-4 preview-content">
         <!-- Sidebar: Servicios Habilitados -->
         <div class="col-md-3">
-          <div class="card shadow-sm border-0 sticky-top" style="top: 20px">
+          <div class="card shadow-sm border-0 sticky-top preview-sidebar">
             <div class="card-header bg-primary text-white fw-bold py-3">
               <i class="bi bi-list-nested me-2"></i> Módulos Generados
             </div>
@@ -387,6 +407,110 @@ import { HttpClient } from '@angular/common/http';
         </div>
       </div>
     </div>
+
+    <style>
+      /* Header Flotante Global */
+      .preview-header-sticky,
+      .page-header-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: var(--md-bg-secondary) !important;
+        border-bottom: 1px solid var(--md-border-color);
+        margin: -1rem -1rem 0 -1rem;
+        padding: 0 1rem 1rem 1rem;
+        box-shadow: 0 2px 8px var(--md-shadow-sm);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .preview-header-sticky .breadcrumb,
+      .page-header-sticky .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+
+      .preview-header-sticky .breadcrumb-item a,
+      .page-header-sticky .breadcrumb-item a {
+        color: var(--md-text-secondary);
+        transition: color 0.2s ease;
+        font-weight: 500;
+      }
+
+      .preview-header-sticky .breadcrumb-item a:hover,
+      .page-header-sticky .breadcrumb-item a:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+      }
+
+      .preview-header-sticky .breadcrumb-item.active,
+      .page-header-sticky .breadcrumb-item.active {
+        color: var(--md-text-primary);
+        font-weight: 600;
+      }
+
+      .preview-header-sticky .breadcrumb-item.active .text-muted,
+      .page-header-sticky .breadcrumb-item.active .text-muted {
+        color: var(--md-text-secondary) !important;
+        font-weight: 400;
+      }
+
+      .preview-header-sticky .breadcrumb-item + .breadcrumb-item::before,
+      .page-header-sticky .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--md-text-muted);
+        content: "/";
+        padding: 0 0.5rem;
+      }
+
+      .preview-header-sticky h2,
+      .page-header-sticky h2 {
+        color: var(--md-text-primary);
+      }
+
+      .preview-header-sticky .text-muted,
+      .page-header-sticky .text-muted {
+        color: var(--md-text-secondary) !important;
+      }
+
+      /* Ajustar contenido para que no quede oculto */
+      .container-fluid {
+        position: relative;
+      }
+
+      /* Asegurar que el sidebar sticky funcione correctamente con el header flotante */
+      .preview-sidebar {
+        top: 100px !important;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+      }
+
+      /* Scrollbar personalizado para sidebar */
+      .preview-sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .preview-sidebar::-webkit-scrollbar-track {
+        background: var(--md-bg-secondary);
+      }
+
+      .preview-sidebar::-webkit-scrollbar-thumb {
+        background: var(--md-border-color);
+        border-radius: 3px;
+      }
+
+      .preview-sidebar::-webkit-scrollbar-thumb:hover {
+        background: var(--md-text-muted);
+      }
+
+      .preview-content {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+    </style>
   `
 })
 export class PreviewComponent implements OnInit {

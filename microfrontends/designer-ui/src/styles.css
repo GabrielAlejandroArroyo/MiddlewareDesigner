@@ -981,6 +981,40 @@ small {
 }
 
 /* Asegurar visibilidad en todos los contextos */
+/* ============================================
+   HEADER FLOTANTE - PREVENIR SOLAPAMIENTO
+   ============================================ */
+
+/* Asegurar que el header principal tenga fondo sólido */
+.sticky-header {
+  background-color: var(--md-header-bg) !important;
+  box-shadow: 0 2px 8px var(--md-shadow-sm) !important;
+}
+
+/* Contenedor principal - asegurar que el contenido no quede oculto */
+.main-content-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* Headers de página - deben estar debajo del header principal */
+.page-header-sticky,
+.preview-header-sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  background-color: var(--md-bg-secondary) !important;
+  border-bottom: 1px solid var(--md-border-color) !important;
+  box-shadow: 0 2px 4px var(--md-shadow-sm) !important;
+  margin-top: 0 !important;
+}
+
+/* Contenedor de contenido de página */
+.page-content-container {
+  position: relative;
+  z-index: 1;
+}
+
 .container-fluid {
   background-color: var(--md-bg-secondary);
   color: var(--md-text-primary);

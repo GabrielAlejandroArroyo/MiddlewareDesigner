@@ -10,27 +10,38 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="container-fluid px-4 py-4">
-      <!-- Encabezado -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1">
-              <li class="breadcrumb-item"><a routerLink="/">Gestión</a></li>
-              <li class="breadcrumb-item"><a [routerLink]="['/inspect', serviceId]">Contrato</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Definir Acción</li>
-            </ol>
-          </nav>
-          <h2 class="mb-0 fw-bold text-primary">
-            Configurar Acción: <code class="text-dark">{{ path }}</code>
-          </h2>
-          <div class="mt-2">
-            <span class="badge py-2 px-3" [ngClass]="getMethodClass(method)">{{ method }}</span>
-            <span class="ms-2 text-muted small">Servicio: {{ serviceId }}</span>
+      <!-- Header Flotante -->
+      <div class="page-header-sticky">
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+              <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                  <a routerLink="/" class="text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>Inicio
+                  </a>
+                </li>
+                <li class="breadcrumb-item">
+                  <a routerLink="/backends" class="text-decoration-none">Gestión de Microservicios</a>
+                </li>
+                <li class="breadcrumb-item">
+                  <a [routerLink]="['/inspect', serviceId]" class="text-decoration-none">Contrato</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Definir Acción</li>
+              </ol>
+            </nav>
+            <h2 class="mb-0 fw-bold">
+              Configurar Acción: <code>{{ path }}</code>
+            </h2>
+            <div class="mt-2">
+              <span class="badge py-2 px-3" [ngClass]="getMethodClass(method)">{{ method }}</span>
+              <span class="ms-2 text-muted small">Servicio: {{ serviceId }}</span>
+            </div>
           </div>
+          <button class="btn btn-light border shadow-sm ms-3" [routerLink]="['/inspect', serviceId]">
+            <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
+          </button>
         </div>
-        <button class="btn btn-light border shadow-sm" [routerLink]="['/inspect', serviceId]">
-          Cancelar y Volver
-        </button>
       </div>
 
       <div *ngIf="loading" class="text-center py-5">
@@ -1077,6 +1088,63 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         box-shadow: none;
         background-color: rgba(255, 255, 255, 0.15) !important;
         border-color: #0dcaf0 !important;
+      }
+
+      /* Header Flotante Global */
+      .page-header-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: var(--md-bg-secondary);
+        border-bottom: 1px solid var(--md-border-color);
+        margin: -1rem -1rem 1.5rem -1rem;
+        padding: 0 1rem;
+        box-shadow: 0 2px 4px var(--md-shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .page-header-sticky .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+
+      .page-header-sticky .breadcrumb-item a {
+        color: var(--md-text-secondary);
+        transition: color 0.2s ease;
+        font-weight: 500;
+      }
+
+      .page-header-sticky .breadcrumb-item a:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+      }
+
+      .page-header-sticky .breadcrumb-item.active {
+        color: var(--md-text-primary);
+        font-weight: 600;
+      }
+
+      .page-header-sticky .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--md-text-muted);
+        content: "/";
+        padding: 0 0.5rem;
+      }
+
+      .page-header-sticky h2 {
+        color: var(--md-text-primary);
+      }
+
+      .page-header-sticky .text-muted {
+        color: var(--md-text-secondary) !important;
+      }
+
+      .page-header-sticky code {
+        background-color: var(--md-bg-tertiary);
+        color: var(--md-text-primary);
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.9em;
       }
     </style>
   `

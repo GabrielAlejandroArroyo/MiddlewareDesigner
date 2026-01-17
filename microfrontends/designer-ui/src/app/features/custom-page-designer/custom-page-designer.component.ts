@@ -27,23 +27,30 @@ interface MenuItem {
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="container-fluid px-4 py-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1">
-              <li class="breadcrumb-item"><a routerLink="/">Gestión</a></li>
-              <li class="breadcrumb-item active">Creación de Páginas Customizadas</li>
-            </ol>
-          </nav>
-          <h2 class="mb-0 fw-bold">Diseñador de Flujos y Páginas</h2>
-        </div>
-        <div class="d-flex gap-2">
+      <!-- Header Flotante -->
+      <div class="page-header-sticky">
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+              <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                  <a routerLink="/" class="text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>Inicio
+                  </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Diseñador de Flujos y Páginas</li>
+              </ol>
+            </nav>
+            <h2 class="mb-0 fw-bold">Diseñador de Flujos y Páginas</h2>
+          </div>
+          <div class="d-flex gap-2">
             <button class="btn btn-outline-primary shadow-sm fw-bold" (click)="createNewFlow()">
-                <i class="bi bi-plus-lg me-2"></i> Nuevo Proyecto
+              <i class="bi bi-plus-lg me-2"></i> Nuevo Proyecto
             </button>
             <button class="btn btn-primary shadow-sm fw-bold" *ngIf="activeFlow" (click)="saveFlow()">
-                <i class="bi bi-save me-2"></i> Guardar Proyecto
+              <i class="bi bi-save me-2"></i> Guardar Proyecto
             </button>
+          </div>
         </div>
       </div>
 
@@ -202,6 +209,55 @@ interface MenuItem {
       .btn-xs { padding: 0.1rem 0.25rem; font-size: 0.75rem; }
       .bg-primary-subtle { background-color: #cfe2ff !important; }
       .bg-info-subtle { background-color: #cff4fc !important; }
+
+      /* Header Flotante Global */
+      .page-header-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: var(--md-bg-secondary);
+        border-bottom: 1px solid var(--md-border-color);
+        margin: -1rem -1rem 1.5rem -1rem;
+        padding: 0 1rem;
+        box-shadow: 0 2px 4px var(--md-shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .page-header-sticky .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+
+      .page-header-sticky .breadcrumb-item a {
+        color: var(--md-text-secondary);
+        transition: color 0.2s ease;
+        font-weight: 500;
+      }
+
+      .page-header-sticky .breadcrumb-item a:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+      }
+
+      .page-header-sticky .breadcrumb-item.active {
+        color: var(--md-text-primary);
+        font-weight: 600;
+      }
+
+      .page-header-sticky .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--md-text-muted);
+        content: "/";
+        padding: 0 0.5rem;
+      }
+
+      .page-header-sticky h2 {
+        color: var(--md-text-primary);
+      }
+
+      .page-header-sticky .text-muted {
+        color: var(--md-text-secondary) !important;
+      }
     </style>
   `
 })

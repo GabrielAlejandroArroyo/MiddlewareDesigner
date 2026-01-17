@@ -10,23 +10,32 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="container-fluid px-4 py-4">
-      <!-- Encabezado -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1">
-              <li class="breadcrumb-item"><a routerLink="/">Gestión de Microservicios</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Inspección de Contrato</li>
-            </ol>
-          </nav>
-          <h2 class="mb-0 fw-bold text-primary" *ngIf="inspectionData">
-            {{ inspectionData.service_name }}
-          </h2>
-          <p class="text-muted mb-0 small" *ngIf="inspectionData">ID: {{ inspectionData.service_id }}</p>
+      <!-- Header Flotante -->
+      <div class="page-header-sticky">
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+              <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                  <a routerLink="/" class="text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>Inicio
+                  </a>
+                </li>
+                <li class="breadcrumb-item">
+                  <a routerLink="/backends" class="text-decoration-none">Gestión de Microservicios</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Inspección de Contrato</li>
+              </ol>
+            </nav>
+            <h2 class="mb-0 fw-bold" *ngIf="inspectionData">
+              {{ inspectionData.service_name }}
+            </h2>
+            <p class="text-muted mb-0 small mt-1" *ngIf="inspectionData">ID: {{ inspectionData.service_id }}</p>
+          </div>
+          <button class="btn btn-light border shadow-sm ms-3" routerLink="/">
+            <i class="bi bi-arrow-left me-2"></i> Volver al listado
+          </button>
         </div>
-        <button class="btn btn-light border shadow-sm" routerLink="/">
-          Volver al listado
-        </button>
       </div>
 
       <!-- Loading / Error -->
@@ -88,6 +97,57 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
         </div>
       </div>
     </div>
+
+    <style>
+      /* Header Flotante Global */
+      .page-header-sticky {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: var(--md-bg-secondary);
+        border-bottom: 1px solid var(--md-border-color);
+        margin: -1rem -1rem 1.5rem -1rem;
+        padding: 0 1rem;
+        box-shadow: 0 2px 4px var(--md-shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .page-header-sticky .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+
+      .page-header-sticky .breadcrumb-item a {
+        color: var(--md-text-secondary);
+        transition: color 0.2s ease;
+        font-weight: 500;
+      }
+
+      .page-header-sticky .breadcrumb-item a:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+      }
+
+      .page-header-sticky .breadcrumb-item.active {
+        color: var(--md-text-primary);
+        font-weight: 600;
+      }
+
+      .page-header-sticky .breadcrumb-item + .breadcrumb-item::before {
+        color: var(--md-text-muted);
+        content: "/";
+        padding: 0 0.5rem;
+      }
+
+      .page-header-sticky h2 {
+        color: var(--md-text-primary);
+      }
+
+      .page-header-sticky .text-muted {
+        color: var(--md-text-secondary) !important;
+      }
+    </style>
   `
 })
 export class EndpointInspectorComponent implements OnInit {
