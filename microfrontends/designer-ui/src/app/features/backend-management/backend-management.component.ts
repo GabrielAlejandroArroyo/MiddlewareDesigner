@@ -272,6 +272,81 @@ import { MiddlewareService, BackendService } from '../../core/services/middlewar
         <div class="p-4">
           <p class="mb-4">¿Cómo deseas proceder con la eliminación de <strong>{{ serviceToDelete.id }}</strong>?</p>
           
+          <!-- Mapeos Configurados -->
+          <div class="card mb-4 border-info bg-info bg-opacity-10">
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex gap-2">
+                  <span class="text-info fw-bold">ℹ</span>
+                  <span class="small fw-bold">Mapeos Configurados para este Servicio</span>
+                </div>
+                <span class="badge bg-info text-white">{{ serviceMappings.length }}</span>
+              </div>
+              
+              <div *ngIf="loadingMappings" class="text-center py-2">
+                <div class="spinner-border spinner-border-sm text-info" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+              
+              <div *ngIf="!loadingMappings && serviceMappings.length === 0" class="text-muted small py-2">
+                No hay mapeos configurados para este servicio.
+              </div>
+              
+              <div *ngIf="!loadingMappings && serviceMappings.length > 0" class="mt-2">
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                  <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="small">Método</th>
+                        <th class="small">Endpoint</th>
+                        <th class="small">Label</th>
+                        <th class="small text-center">Estado</th>
+                        <th class="small text-end">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let mapping of serviceMappings" [class.table-warning]="mapping.has_changes">
+                        <td>
+                          <span class="badge" [ngClass]="{
+                            'bg-primary': mapping.metodo === 'GET',
+                            'bg-success': mapping.metodo === 'POST',
+                            'bg-warning': mapping.metodo === 'PUT' || mapping.metodo === 'PATCH',
+                            'bg-danger': mapping.metodo === 'DELETE'
+                          }">{{ mapping.metodo }}</span>
+                        </td>
+                        <td class="small">
+                          <code>{{ mapping.endpoint_path }}</code>
+                          <div *ngIf="mapping.has_changes && mapping.current_path" class="text-danger x-small mt-1">
+                            <i class="bi bi-arrow-right"></i> Actual: <code>{{ mapping.current_path }}</code>
+                          </div>
+                        </td>
+                        <td class="small">
+                          {{ mapping.label }}
+                          <div *ngIf="mapping.has_changes && mapping.change_reason" class="text-danger x-small mt-1">
+                            <i class="bi bi-exclamation-triangle"></i> {{ mapping.change_reason }}
+                          </div>
+                        </td>
+                        <td class="text-center">
+                          <span *ngIf="!mapping.has_changes" class="badge bg-success">✓ Válido</span>
+                          <span *ngIf="mapping.has_changes" class="badge bg-danger">⚠ Cambio</span>
+                        </td>
+                        <td class="text-end">
+                          <button 
+                            class="btn btn-sm btn-outline-danger" 
+                            (click)="deleteMapping(mapping)"
+                            title="Eliminar mapeo">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="card mb-4 border-warning bg-warning bg-opacity-10">
             <div class="card-body p-3">
               <div class="d-flex gap-2 mb-2">
@@ -356,6 +431,8 @@ export class BackendManagementComponent implements OnInit {
   editingService: Partial<BackendService> | null = null;
   showRegisterModal = false;
   serviceToDelete: BackendService | null = null;
+  serviceMappings: any[] = [];
+  loadingMappings = false;
   viewMode: 'cards' | 'list' = 'cards';
   filterTab: 'active' | 'inactive' | 'all' = 'active';
   loading = false;
@@ -478,6 +555,21 @@ export class BackendManagementComponent implements OnInit {
 
   confirmDelete(svc: BackendService) {
     this.serviceToDelete = svc;
+    this.serviceMappings = [];
+    this.loadingMappings = true;
+    
+    // Cargar los mapeos configurados para este servicio
+    this.service.getBackendMappings(svc.id).subscribe({
+      next: (data) => {
+        this.serviceMappings = data.mappings || [];
+        this.loadingMappings = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar mapeos:', err);
+        this.serviceMappings = [];
+        this.loadingMappings = false;
+      }
+    });
   }
 
   reactivate(id: string) {
@@ -490,6 +582,28 @@ export class BackendManagementComponent implements OnInit {
     });
   }
 
+  deleteMapping(mapping: any) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar el mapeo:\n${mapping.metodo} ${mapping.endpoint_path}?`)) {
+      return;
+    }
+
+    this.service.removeEndpointMapping(
+      this.serviceToDelete!.id,
+      mapping.endpoint_path,
+      mapping.metodo
+    ).subscribe({
+      next: () => {
+        // Recargar los mapeos después de eliminar
+        this.confirmDelete(this.serviceToDelete!);
+        this.loadServices(); // También refrescar la lista de servicios
+      },
+      error: (err) => {
+        const msg = err.error?.detail || err.message;
+        alert('Error al eliminar mapeo:\n' + (typeof msg === 'string' ? msg : JSON.stringify(msg)));
+      }
+    });
+  }
+
   delete(physical: boolean) {
     if (!this.serviceToDelete) return;
 
@@ -497,6 +611,7 @@ export class BackendManagementComponent implements OnInit {
       next: (res) => {
         alert(res.message);
         this.serviceToDelete = null;
+        this.serviceMappings = [];
         this.loadServices();
       },
       error: (err) => {

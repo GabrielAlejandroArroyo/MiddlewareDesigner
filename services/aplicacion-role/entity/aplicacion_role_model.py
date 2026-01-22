@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, DateTime, UniqueConstraint, Integer
+from sqlalchemy import String, Boolean, DateTime, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from typing import Optional
@@ -7,8 +7,7 @@ from config.database import Base
 class AplicacionRoleModel(Base):
     __tablename__ = "aplicacion_roles"
 
-    internal_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    id: Mapped[str] = mapped_column(String(50), nullable=False) # ID que se puede repetir
+    id: Mapped[str] = mapped_column(String(50), primary_key=True)
     id_aplicacion: Mapped[str] = mapped_column(String(50), nullable=False)
     id_role: Mapped[str] = mapped_column(String(50), nullable=False)
     

@@ -8,6 +8,7 @@ from dto.rol_delete_dto import RolDeleteDTO
 from services.rol_service import (
     get_rol_by_id,
     get_all_roles,
+    get_roles_by_id_aplicacion,
     create_rol,
     update_rol,
     delete_rol,
@@ -28,6 +29,18 @@ async def listar_roles(include_baja_logica: bool = True):
     Implementa el patrón RORO devolviendo un objeto con la lista y el total.
     """
     return await get_all_roles(include_baja_logica=include_baja_logica)
+
+@router.get("/aplicacion/{id_aplicacion}", 
+    response_model=RolListDTO, 
+    status_code=status.HTTP_200_OK,
+    summary="Obtener roles por ID de aplicación",
+    response_description="Listado de roles asociados a una aplicación específica")
+async def obtener_roles_por_aplicacion(id_aplicacion: str, include_baja_logica: bool = True):
+    """
+    Obtiene todos los roles asociados a una aplicación específica.
+    Implementa el patrón RORO devolviendo un objeto con la lista y el total.
+    """
+    return await get_roles_by_id_aplicacion(id_aplicacion, include_baja_logica=include_baja_logica)
 
 @router.get("/{rol_id}", 
     response_model=RolReadDTO, 

@@ -44,14 +44,14 @@ async def get_all(include_baja: bool = True) -> AplicacionRoleListDTO:
         result = await session.execute(query)
         items = result.scalars().all()
         
-        total = await session.scalar(select(func.count(AplicacionRoleModel.internal_id)))
+        total = await session.scalar(select(func.count(AplicacionRoleModel.id)))
         
         dtos = [AplicacionRoleReadDTO.model_validate(i) for i in items]
         return AplicacionRoleListDTO(aplicacion_roles=dtos, total=total or 0)
 
-async def get_by_internal_id(internal_id: int) -> Optional[AplicacionRoleReadDTO]:
+async def get_by_id(id: str) -> Optional[AplicacionRoleReadDTO]:
     async with AsyncSessionLocal() as session:
-        item = await session.get(AplicacionRoleModel, internal_id)
+        item = await session.get(AplicacionRoleModel, id)
         if item:
             return AplicacionRoleReadDTO.model_validate(item)
         return None
@@ -83,9 +83,9 @@ async def create(data: AplicacionRoleCreateDTO) -> AplicacionRoleReadDTO:
         await session.refresh(new_item)
         return AplicacionRoleReadDTO.model_validate(new_item)
 
-async def update(internal_id: int, data: Union[AplicacionRoleUpdateDTO, AplicacionRolePutDTO]) -> AplicacionRoleReadDTO:
+async def update(id: str, data: Union[AplicacionRoleUpdateDTO, AplicacionRolePutDTO]) -> AplicacionRoleReadDTO:
     async with AsyncSessionLocal() as session:
-        item = await session.get(AplicacionRoleModel, internal_id)
+        item = await session.get(AplicacionRoleModel, id)
         if not item:
             raise HTTPException(status_code=404, detail="Vínculo no encontrado")
 
@@ -100,7 +100,7 @@ async def update(internal_id: int, data: Union[AplicacionRoleUpdateDTO, Aplicaci
             dup_query = select(AplicacionRoleModel).where(
                 AplicacionRoleModel.id_aplicacion == new_app,
                 AplicacionRoleModel.id_role == new_role,
-                AplicacionRoleModel.internal_id != internal_id
+                AplicacionRoleModel.id != id
             )
             dup = await session.execute(dup_query)
             if dup.scalar_one_or_none():
@@ -114,19 +114,19 @@ async def update(internal_id: int, data: Union[AplicacionRoleUpdateDTO, Aplicaci
         await session.refresh(item)
         return AplicacionRoleReadDTO.model_validate(item)
 
-async def delete(internal_id: int) -> AplicacionRoleDeleteDTO:
+async def delete(id: str) -> AplicacionRoleDeleteDTO:
     async with AsyncSessionLocal() as session:
-        item = await session.get(AplicacionRoleModel, internal_id)
+        item = await session.get(AplicacionRoleModel, id)
         if not item:
-            return AplicacionRoleDeleteDTO(internal_id=internal_id, success=False, mensaje="No encontrado")
+            return AplicacionRoleDeleteDTO(id=id, success=False, mensaje="No encontrado")
         
         await session.delete(item)
         await session.commit()
-        return AplicacionRoleDeleteDTO(internal_id=internal_id, success=True, mensaje="Eliminado correctamente")
+        return AplicacionRoleDeleteDTO(id=id, success=True, mensaje="Eliminado correctamente")
 
-async def toggle_baja(internal_id: int, state: bool) -> AplicacionRoleReadDTO:
+async def toggle_baja(id: str, state: bool) -> AplicacionRoleReadDTO:
     async with AsyncSessionLocal() as session:
-        item = await session.get(AplicacionRoleModel, internal_id)
+        item = await session.get(AplicacionRoleModel, id)
         if not item:
             raise HTTPException(status_code=404, detail="No encontrado")
         

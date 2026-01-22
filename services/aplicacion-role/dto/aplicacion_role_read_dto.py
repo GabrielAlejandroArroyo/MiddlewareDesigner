@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from dto.aplicacion_role_base_dto import AplicacionRoleBaseDTO
 
 class AplicacionRoleReadDTO(AplicacionRoleBaseDTO):
-    internal_id: int = Field(..., title="ID Interno", description="Clave primaria real")
+    id: str = Field(..., title="ID", description="Identificador único del vínculo Aplicación-Role")
     baja_logica: bool = Field(..., title="Baja Lógica")
     fecha_alta_creacion: datetime = Field(..., title="Fecha de Creación")
     fecha_alta_modificacion: Optional[datetime] = Field(None, title="Fecha de Modificación")

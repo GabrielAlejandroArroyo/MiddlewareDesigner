@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
 class AplicacionRoleDeleteDTO(BaseModel):
-    internal_id: int = Field(..., title="ID Interno")
+    id: str = Field(..., title="ID")
     success: bool = Field(..., title="Éxito")
     mensaje: str = Field(..., title="Mensaje")

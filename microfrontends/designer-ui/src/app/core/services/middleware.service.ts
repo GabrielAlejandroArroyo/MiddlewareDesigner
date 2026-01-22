@@ -80,4 +80,8 @@ export class MiddlewareService {
   getBackendServicesWithChanges(includeDeleted: boolean = false): Observable<BackendService[]> {
     return this.http.get<BackendService[]>(`${this.apiUrl}/backend-services?include_deleted=${includeDeleted}&check_changes=true`);
   }
+
+  getBackendMappings(serviceId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/backend-services/${serviceId}/mappings`);
+  }
 }

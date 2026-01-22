@@ -53,6 +53,24 @@ async def get_rol_by_id(rol_id: str) -> Optional[RolReadDTO]:
             return RolReadDTO.model_validate(rol)
         return None
 
+async def get_roles_by_id_aplicacion(id_aplicacion: str, include_baja_logica: bool = True) -> RolListDTO:
+    """Obtiene todos los roles asociados a una aplicación específica."""
+    async with AsyncSessionLocal() as session:
+        query = select(RolModel).where(RolModel.id_aplicacion == id_aplicacion)
+        if not include_baja_logica:
+            query = query.where(RolModel.baja_logica == False)
+        
+        result = await session.execute(query)
+        roles = result.scalars().all()
+        
+        total_query = select(func.count(RolModel.id)).where(RolModel.id_aplicacion == id_aplicacion)
+        if not include_baja_logica:
+            total_query = total_query.where(RolModel.baja_logica == False)
+        total = await session.scalar(total_query)
+
+        dtos = [RolReadDTO.model_validate(rol) for rol in roles]
+        return RolListDTO(roles=dtos, total=total if total is not None else 0)
+
 async def create_rol(rol_data: RolCreateDTO) -> RolReadDTO:
     async with AsyncSessionLocal() as session:
         # Validar existencia de Aplicación

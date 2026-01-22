@@ -586,14 +586,17 @@ export class PreviewComponent implements OnInit {
     });
   }
 
-  openTester(ep: any, preserveFormData: boolean = false) {
+  openTester(ep: any, preserveFormData: boolean = false, preserveSelectedId: boolean = false) {
     this.activeTest = ep;
     this.testData = [];
     
     // Solo limpiar formData y selectedId si no se debe preservar (para edición)
     if (!preserveFormData) {
       this.formData = {};
-      this.selectedId = '';
+      // Solo limpiar selectedId si no se debe preservar (para DELETE desde grilla)
+      if (!preserveSelectedId) {
+        this.selectedId = '';
+      }
     }
     
     this.testResponse = null;
@@ -1060,6 +1063,20 @@ export class PreviewComponent implements OnInit {
       next: (res) => {
         this.testResponse = { success: true, data: res };
         this.selectedId = ''; // Limpiar tras éxito
+        
+        // Si tenemos el endpoint original de la grilla, volver a la grilla después de eliminar
+        if (this.originalGridEndpoint) {
+          setTimeout(() => {
+            // Cerrar el diálogo de eliminación
+            this.activeTest = null;
+            this.testResponse = null;
+            this.selectedId = '';
+            
+            // Volver a abrir la grilla original y ejecutar el GET para refrescar
+            this.openTester(this.originalGridEndpoint, false);
+            this.originalGridEndpoint = null; // Limpiar referencia
+          }, 500); // Pequeño delay para que el usuario vea el mensaje de éxito
+        }
       },
       error: (err) => {
         console.error('Error en DELETE:', err);
@@ -1157,9 +1174,14 @@ export class PreviewComponent implements OnInit {
           
           // Abrir el tester preservando los datos del formulario
           this.openTester(targetEp, true);
+        } else if (type === 'delete') {
+          // Guardar el endpoint GET original (grilla) para volver después de eliminar
+          this.originalGridEndpoint = this.activeTest;
+          // Para delete, preservar el selectedId que acabamos de establecer
+          this.openTester(targetEp, false, true);
         } else {
-          // Para create y delete, abrir normalmente sin preservar datos
-          this.openTester(targetEp, false);
+          // Para create, abrir normalmente sin preservar datos
+          this.openTester(targetEp, false, false);
         }
       } else {
         // Si no hay rowData, abrir normalmente

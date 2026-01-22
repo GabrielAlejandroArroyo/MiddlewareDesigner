@@ -222,6 +222,71 @@ async def list_backend_services(include_deleted: bool = False, check_changes: bo
         raise HTTPException(status_code=500, detail=f"Error al listar servicios: {str(e)}")
 
 
+@router.get("/backend-services/{service_id}/mappings")
+async def get_backend_service_mappings(service_id: str):
+    """Obtiene los mapeos configurados para un servicio backend y valida contra el Swagger actual."""
+    async with AsyncSessionLocal() as session:
+        search_id = service_id.lower().strip()
+        svc = await session.get(BackendService, search_id)
+        
+        if not svc:
+            raise HTTPException(status_code=404, detail=f"Servicio con ID '{search_id}' no encontrado")
+        
+        # Obtener Swagger actual para validar
+        spec = await openapi_service.fetch_spec_by_url(svc.openapi_url)
+        current_endpoints = []
+        if "error" not in spec:
+            current_endpoints = openapi_service.extract_endpoints(spec)
+        current_endpoints_dict = {f"{ep['method']}:{ep['path']}": ep for ep in current_endpoints}
+        
+        # Obtener todos los mapeos para este backend
+        mappings_query = select(BackendMapping).where(BackendMapping.backend_service_id == search_id)
+        mappings_result = await session.execute(mappings_query)
+        mappings = mappings_result.scalars().all()
+        
+        # Formatear los mapeos para la respuesta y validar contra Swagger
+        mappings_list = []
+        for m in mappings:
+            endpoint_key = f"{m.metodo}:{m.endpoint_path}"
+            current_endpoint = current_endpoints_dict.get(endpoint_key)
+            
+            # Detectar cambios
+            has_changes = False
+            change_reason = None
+            
+            if not current_endpoint:
+                # El endpoint no existe en el Swagger actual
+                has_changes = True
+                change_reason = "Endpoint no existe en el Swagger actual"
+            else:
+                # Verificar si el path cambió (por ejemplo, de {internal_id} a {id})
+                # Comparar paths normalizados (sin parámetros)
+                mapping_path_normalized = m.endpoint_path.replace('{', '').replace('}', '')
+                current_path_normalized = current_endpoint['path'].replace('{', '').replace('}', '')
+                
+                # Si los paths normalizados son diferentes, hay un cambio
+                if m.endpoint_path != current_endpoint['path']:
+                    has_changes = True
+                    change_reason = f"Path cambió: '{m.endpoint_path}' → '{current_endpoint['path']}'"
+            
+            mappings_list.append({
+                "id": m.id,
+                "frontend_service_id": m.frontend_service_id,
+                "endpoint_path": m.endpoint_path,
+                "metodo": m.metodo,
+                "configuracion_ui": m.configuracion_ui,
+                "label": m.configuracion_ui.get("label", f"{m.metodo} {m.endpoint_path}") if m.configuracion_ui else f"{m.metodo} {m.endpoint_path}",
+                "has_changes": has_changes,
+                "change_reason": change_reason,
+                "current_path": current_endpoint['path'] if current_endpoint else None
+            })
+        
+        return {
+            "service_id": search_id,
+            "total": len(mappings_list),
+            "mappings": mappings_list
+        }
+
 @router.delete("/backend-services/{service_id}")
 async def delete_backend_service(service_id: str, physical: bool = Query(False)):
     """Elimina un backend. Si physical=True, valida que no tenga referencias."""

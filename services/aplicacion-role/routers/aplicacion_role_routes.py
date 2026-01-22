@@ -12,9 +12,9 @@ router = APIRouter(prefix="/aplicacion-roles", tags=["Aplicacion-Role"])
 async def list_all(include_baja: bool = True):
     return await service.get_all(include_baja)
 
-@router.get("/{internal_id}", response_model=AplicacionRoleReadDTO)
-async def get_one(internal_id: int):
-    item = await service.get_by_internal_id(internal_id)
+@router.get("/{id}", response_model=AplicacionRoleReadDTO)
+async def get_one(id: str):
+    item = await service.get_by_id(id)
     if not item:
         raise HTTPException(status_code=404, detail="No encontrado")
     return item
@@ -23,22 +23,22 @@ async def get_one(internal_id: int):
 async def create(data: AplicacionRoleCreateDTO):
     return await service.create(data)
 
-@router.put("/{internal_id}", response_model=AplicacionRoleReadDTO)
-async def update_full(internal_id: int, data: AplicacionRolePutDTO):
-    return await service.update(internal_id, data)
+@router.put("/{id}", response_model=AplicacionRoleReadDTO)
+async def update_full(id: str, data: AplicacionRolePutDTO):
+    return await service.update(id, data)
 
-@router.patch("/{internal_id}", response_model=AplicacionRoleReadDTO)
-async def update_partial(internal_id: int, data: AplicacionRoleUpdateDTO):
-    return await service.update(internal_id, data)
+@router.patch("/{id}", response_model=AplicacionRoleReadDTO)
+async def update_partial(id: str, data: AplicacionRoleUpdateDTO):
+    return await service.update(id, data)
 
-@router.delete("/{internal_id}", response_model=AplicacionRoleDeleteDTO)
-async def delete(internal_id: int):
-    return await service.delete(internal_id)
+@router.delete("/{id}", response_model=AplicacionRoleDeleteDTO)
+async def delete(id: str):
+    return await service.delete(id)
 
-@router.patch("/{internal_id}/baja-logica", response_model=AplicacionRoleReadDTO)
-async def set_baja(internal_id: int):
-    return await service.toggle_baja(internal_id, True)
+@router.patch("/{id}/baja-logica", response_model=AplicacionRoleReadDTO)
+async def set_baja(id: str):
+    return await service.toggle_baja(id, True)
 
-@router.patch("/{internal_id}/alta-logica", response_model=AplicacionRoleReadDTO)
-async def set_alta(internal_id: int):
-    return await service.toggle_baja(internal_id, False)
+@router.patch("/{id}/alta-logica", response_model=AplicacionRoleReadDTO)
+async def set_alta(id: str):
+    return await service.toggle_baja(id, False)
