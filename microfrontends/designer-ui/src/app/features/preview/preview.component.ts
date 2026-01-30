@@ -4,6 +4,7 @@ import { MiddlewareService, BackendService, Endpoint } from '../../core/services
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-preview',
@@ -281,15 +282,26 @@ import { HttpClient } from '@angular/common/http';
                       <span class="input-group-text bg-light">
                         <i class="bi bi-link-45deg"></i>
                       </span>
-                      <select class="form-select" [(ngModel)]="formData[prop.key]" [disabled]="!prop.editable || activeTest.method === 'GET'" [title]="'Atributo técnico: ' + prop.key">
-                        <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
-                        <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn, prop)" [value]="getOptionValue(opt, prop)">
-                          {{ getOptionLabel(opt, prop) }}
-                        </option>
-                      </select>
+                      <div class="position-relative flex-grow-1">
+                        <select class="form-select" 
+                                [(ngModel)]="formData[prop.key]" 
+                                [disabled]="!prop.editable || activeTest.method === 'GET' || isLoadingOptions(prop)" 
+                                [title]="'Atributo técnico: ' + prop.key"
+                                (ngModelChange)="onFieldChange(prop)">
+                          <option [value]="undefined">Seleccione {{ prop.refService }}...</option>
+                          <option *ngFor="let opt of getFilteredOptions(prop.refService, prop.dependsOn, prop); trackBy: trackByOption" [value]="getOptionValue(opt, prop)">
+                            {{ getOptionLabel(opt, prop) }}
+                          </option>
+                        </select>
+                        <div *ngIf="isLoadingOptions(prop)" class="position-absolute top-50 start-50 translate-middle" style="pointer-events: none; z-index: 10;">
+                          <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div *ngIf="prop.dependsOn && !formData[prop.dependsOn] && activeTest.method !== 'GET'" class="small text-warning mt-2 d-flex align-items-center">
-                      <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ getParentLabel(prop.dependsOn) }}</strong> primero.
+                    <div *ngIf="getShouldShowWarning(prop) && activeTest.method !== 'GET'" class="small text-warning mt-2 d-flex align-items-center">
+                      <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ getParentLabel(prop.dependsOn || prop.dependency?.filterByField) }}</strong> primero.
                     </div>
 
                     <!-- Caso ESTÁNDAR -->
@@ -516,6 +528,7 @@ import { HttpClient } from '@angular/common/http';
 export class PreviewComponent implements OnInit {
   private middlewareService = inject(MiddlewareService);
   private http = inject(HttpClient);
+  private cdr = inject(ChangeDetectorRef);
   
   services: BackendService[] = [];
   loading = true;
@@ -526,6 +539,18 @@ export class PreviewComponent implements OnInit {
   
   // Cache para datos de referencias externas
   refDataCache: {[key: string]: any[]} = {};
+  
+  // Cache para opciones filtradas (evita recálculos en cada render)
+  filteredOptionsCache: {[key: string]: any[]} = {};
+  
+  // Flag para evitar múltiples llamadas HTTP simultáneas
+  loadingRefData: {[key: string]: boolean} = {};
+  
+  // Indicadores de carga por campo
+  loadingOptions: {[key: string]: boolean} = {};
+  
+  // Timeout para debounce de onFieldChange
+  private fieldChangeTimeout: any = null;
 
   // Tester State
   activeTest: any = null;
@@ -547,7 +572,6 @@ export class PreviewComponent implements OnInit {
     showIdWithDescription?: boolean, 
     dependsOn?: string,
     hasSecondaryLookup?: boolean,
-    secondaryDependency?: any,
     dependency?: any
   }[] = [];
 
@@ -611,28 +635,106 @@ export class PreviewComponent implements OnInit {
       this.generateUniqueIds();
     }
 
-    // Cargar datos para referencias externas si existen
+    // Limpiar cache de opciones filtradas al abrir nuevo tester
+    this.filteredOptionsCache = {};
+    this.loadingOptions = {};
+    
+    // Cargar datos para referencias externas si existen (solo una vez)
+    const servicesToLoad = new Set<string>();
     this.testerFields.forEach(f => {
-      if (f.refService) this.fetchRefData(f.refService);
-      if (f.hasSecondaryLookup && f.secondaryDependency?.type) {
-        this.fetchRefData(f.secondaryDependency.type);
-      }
+      if (f.refService) servicesToLoad.add(f.refService);
       if (f.refDescriptionService && f.refDescriptionService !== f.refService) {
-        this.fetchRefData(f.refDescriptionService);
+        servicesToLoad.add(f.refDescriptionService);
       }
     });
 
     // También revisar las columnas del GET por si tienen referencias
     const responseConfig = ep.configuracion_ui?.fields_config?.response || {};
     Object.values(responseConfig).forEach((c: any) => {
-      if (c.refService) this.fetchRefData(c.refService);
-      if (c.hasSecondaryLookup && c.secondaryDependency?.type) {
-        this.fetchRefData(c.secondaryDependency.type);
-      }
+      if (c.refService) servicesToLoad.add(c.refService);
       if (c.refDescriptionService && c.refDescriptionService !== c.refService) {
-        this.fetchRefData(c.refDescriptionService);
+        servicesToLoad.add(c.refDescriptionService);
       }
     });
+    
+    // Cargar cada servicio solo una vez de forma asíncrona
+    // Usar setTimeout para no bloquear el render inicial
+    setTimeout(() => {
+      // Función auxiliar para cargar campos dependientes después de que se carguen los padres
+      const loadDependentFields = () => {
+        this.testerFields.forEach(field => {
+          if (field.hasSecondaryLookup && field.dependency?.filterByField && field.refService && field.dependency?.target) {
+            const filterFieldName = field.dependency.filterByField;
+            const filterValue = this.formData[filterFieldName];
+            
+            // Convertir a string y verificar que no esté vacío
+            const filterValueStr = filterValue ? String(filterValue).trim() : '';
+            
+            if (filterValueStr) {
+              const cacheKey = `${field.refService}_${filterFieldName}_${filterValueStr}`;
+              
+              console.log(`Verificando campo dependiente: ${field.key}, filtro=${filterFieldName}, valor=${filterValueStr}, cacheKey=${cacheKey}`);
+              
+              // Solo cargar si no está ya en cache y no se está cargando
+              if (!this.refDataCache[cacheKey] && !this.loadingRefData[cacheKey]) {
+                console.log(`Cargando datos filtrados para ${field.key} con filtro ${filterFieldName}=${filterValueStr}`);
+                // Marcar como cargando
+                this.loadingOptions[field.key] = true;
+                // Cargar datos filtrados directamente usando el endpoint configurado
+                this.fetchRefDataWithFilter(
+                  field.refService,
+                  filterFieldName,
+                  filterValueStr,
+                  field
+                );
+                // Remover el servicio de la lista para evitar carga duplicada
+                servicesToLoad.delete(field.refService);
+              } else if (this.refDataCache[cacheKey]) {
+                // Si ya está en cache, asegurar que también esté en la clave del servicio
+                console.log(`Usando datos en cache para ${field.key}: ${this.refDataCache[cacheKey].length} registros`);
+                this.refDataCache[field.refService] = this.refDataCache[cacheKey];
+                this.clearFilteredOptionsCache(field.refService);
+                this.clearLoadingForService(field.refService);
+                this.cdr.detectChanges();
+              } else if (this.loadingRefData[cacheKey]) {
+                console.log(`Ya se está cargando datos para ${field.key}, esperando...`);
+              }
+            } else {
+              console.log(`Campo dependiente ${field.key} no tiene valor de filtro (${filterFieldName})`);
+            }
+          }
+        });
+      };
+
+      // Primero, verificar campos con hasSecondaryLookup que tienen valores iniciales
+      // Estos necesitan cargar datos filtrados inmediatamente
+      loadDependentFields();
+
+      // Cargar servicios restantes (sin filtro o sin valores iniciales)
+      servicesToLoad.forEach(serviceId => {
+        const fieldConfig = this.testerFields.find(f => f.refService === serviceId);
+        // Marcar campos relacionados como cargando
+        this.testerFields.forEach(f => {
+          if (f.refService === serviceId) {
+            this.loadingOptions[f.key] = true;
+          }
+        });
+        this.fetchRefData(serviceId, fieldConfig);
+      });
+
+      // Después de un pequeño delay, verificar nuevamente campos dependientes
+      // Esto maneja el caso donde el campo padre se carga después o tiene un valor inicial
+      setTimeout(() => {
+        loadDependentFields();
+        this.cdr.detectChanges();
+      }, 300);
+      
+      // Un segundo intento después de más tiempo para casos donde el campo padre también es un desplegable
+      setTimeout(() => {
+        loadDependentFields();
+        this.cdr.detectChanges();
+      }, 1000);
+    }, 0);
 
     // AUTO-LISTAR: Si es un GET sin parámetros (Grilla), ejecutar la consulta automáticamente al abrir
     // Si tiene parámetros, no ejecutar automáticamente (se ejecutará desde openSubTester si es necesario)
@@ -655,75 +757,231 @@ export class PreviewComponent implements OnInit {
     }
   }
 
-  fetchRefData(serviceId: string) {
-    if (this.refDataCache[serviceId]) return;
+  fetchRefData(serviceId: string | undefined, fieldConfig?: any) {
+    if (!serviceId) return;
+    // Si tiene hasSecondaryLookup y filterByField, usar el endpoint configurado
+    if (fieldConfig?.hasSecondaryLookup && fieldConfig?.dependency?.target && fieldConfig?.dependency?.filterByField) {
+      const filterValue = this.formData[fieldConfig.dependency.filterByField];
+      if (filterValue) {
+        this.fetchRefDataWithFilter(serviceId, fieldConfig.dependency.filterByField, filterValue, fieldConfig);
+        return;
+      }
+    }
+    
+    // Cache key para datos sin filtro
+    const cacheKey = `${serviceId}_all`;
+    if (this.refDataCache[cacheKey]) {
+      this.refDataCache[serviceId] = this.refDataCache[cacheKey];
+      // Limpiar indicadores de carga para campos relacionados
+      this.clearLoadingForService(serviceId);
+      return;
+    }
+    
+    // Evitar múltiples llamadas simultáneas
+    if (this.loadingRefData[cacheKey]) return;
+    this.loadingRefData[cacheKey] = true;
 
     const service = this.services.find(s => s.id === serviceId);
-    if (!service) return;
+    if (!service) {
+      this.loadingRefData[cacheKey] = false;
+      this.clearLoadingForService(serviceId);
+      return;
+    }
 
-    // Intentar encontrar el endpoint GET principal del servicio referenciado
-    this.middlewareService.inspectService(serviceId).subscribe(data => {
-      const getEndpoint = data.endpoints.find((e: any) => e.method === 'GET' && !e.path.includes('{'));
-      if (getEndpoint) {
-        let baseUrl = service.host;
-        if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
-        const url = `${baseUrl}:${service.puerto}${getEndpoint.path}`;
+    // Ejecutar de forma asíncrona para no bloquear
+    Promise.resolve().then(() => {
+      // Intentar encontrar el endpoint GET principal del servicio referenciado
+      this.middlewareService.inspectService(serviceId).subscribe({
+        next: (data) => {
+          const getEndpoint = data.endpoints.find((e: any) => e.method === 'GET' && !e.path.includes('{'));
+          if (getEndpoint) {
+            let baseUrl = service.host;
+            if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+            const url = `${baseUrl}:${service.puerto}${getEndpoint.path}`;
 
-        this.http.get<any>(url).subscribe(res => {
-          // Extraer la lista (manejo de patrón RORO)
-          const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
-          this.refDataCache[serviceId] = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
-        });
+            this.http.get<any>(url).subscribe({
+              next: (res) => {
+                // Ejecutar procesamiento en el próximo ciclo para no bloquear
+                setTimeout(() => {
+                  // Extraer la lista (manejo de patrón RORO)
+                  const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
+                  const dataList = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
+                  this.refDataCache[cacheKey] = dataList;
+                  this.refDataCache[serviceId] = dataList;
+                  // Limpiar cache de opciones filtradas para forzar recálculo
+                  this.clearFilteredOptionsCache(serviceId);
+                  this.loadingRefData[cacheKey] = false;
+                  this.clearLoadingForService(serviceId);
+                }, 0);
+              },
+              error: () => {
+                this.loadingRefData[cacheKey] = false;
+                this.clearLoadingForService(serviceId);
+              }
+            });
+          } else {
+            this.loadingRefData[cacheKey] = false;
+            this.clearLoadingForService(serviceId);
+          }
+        },
+        error: () => {
+          this.loadingRefData[cacheKey] = false;
+          this.clearLoadingForService(serviceId);
+        }
+      });
+    });
+  }
+  
+  clearLoadingForService(serviceId: string) {
+    // Limpiar indicadores de carga para todos los campos que usan este servicio
+    this.testerFields.forEach(f => {
+      if (f.refService === serviceId) {
+        this.loadingOptions[f.key] = false;
       }
     });
   }
 
-  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string, showId: boolean = false, fieldConfig?: any): string {
-    // 1. Caso Lookup Secundario: El valor descriptivo viene de otro microservicio
-    if (fieldConfig?.hasSecondaryLookup && fieldConfig?.secondaryDependency?.type) {
-      const primaryList = this.refDataCache[serviceId];
-      const secondaryServiceId = fieldConfig.secondaryDependency.type;
-      const secondaryDisplayField = fieldConfig.secondaryDependency.field;
-      const secondaryList = this.refDataCache[secondaryServiceId];
-      
-      if (primaryList && secondaryList && val) {
-        // 1. Encontrar el registro puente en el primer servicio
-        const searchValPrimary = String(val).trim().toLowerCase();
-        const bridgeRecord = primaryList.find(i => {
-           return Object.entries(i).some(([k, v]) => 
-             (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
-             String(v).trim().toLowerCase() === searchValPrimary
-           );
-        });
-
-        if (bridgeRecord) {
-          const linkageField = fieldConfig.dependency?.field || 'id';
-          let linkageValue = bridgeRecord[linkageField];
-          
-          if (linkageValue === null || linkageValue === undefined) {
-            linkageValue = bridgeRecord.id || bridgeRecord.id_rol || bridgeRecord.id_aplicacion || bridgeRecord.codigo;
-          }
-          
-          if (linkageValue) {
-            const searchValSecondary = String(linkageValue).trim().toLowerCase();
-            // 2. Encontrar el registro descriptivo en el segundo servicio
-            const secondaryItem = secondaryList.find(i => {
-              return Object.entries(i).some(([k, v]) => 
-                (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
-                String(v).trim().toLowerCase() === searchValSecondary
-              );
-            });
-
-            if (secondaryItem) {
-              const desc = secondaryItem[secondaryDisplayField] || secondaryItem.descripcion || secondaryItem.nombre || String(linkageValue);
-              return showId ? `${desc} (ID: ${linkageValue})` : desc;
-            }
-          }
-        }
-      }
+  fetchRefDataWithFilter(serviceId: string | undefined, filterField: string | undefined, filterValue: any, fieldConfig: any) {
+    if (!serviceId || !filterField) {
+      if (serviceId) this.clearLoadingForService(serviceId);
+      return;
+    }
+    
+    const service = this.services.find(s => s.id === serviceId);
+    if (!service || !fieldConfig?.dependency?.target) {
+      console.warn(`No se puede cargar datos filtrados: servicio=${serviceId}, target=${fieldConfig?.dependency?.target}`);
+      this.clearLoadingForService(serviceId);
+      return;
     }
 
-    // 2. Caso estándar o fallback
+    // Normalizar el valor del filtro
+    const filterValueStr = String(filterValue).trim();
+    if (!filterValueStr) {
+      this.clearLoadingForService(serviceId);
+      return;
+    }
+
+    // Cache key específico para este filtro
+    const cacheKey = `${serviceId}_${filterField}_${filterValueStr}`;
+    if (this.refDataCache[cacheKey]) {
+      this.refDataCache[serviceId] = this.refDataCache[cacheKey];
+      // Limpiar cache de opciones filtradas para forzar recálculo
+      this.clearFilteredOptionsCache(serviceId);
+      this.clearLoadingForService(serviceId);
+      this.cdr.detectChanges();
+      return;
+    }
+    
+    // Evitar múltiples llamadas simultáneas
+    if (this.loadingRefData[cacheKey]) return;
+    this.loadingRefData[cacheKey] = true;
+
+    // Ejecutar de forma asíncrona para no bloquear
+    Promise.resolve().then(() => {
+      // Construir la URL del endpoint configurado con el parámetro de filtro
+      let baseUrl = service.host;
+      if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+      
+      let url = `${baseUrl}:${service.puerto}${fieldConfig.dependency.target}`;
+      
+      // Reemplazar el parámetro del path con el valor del filtro
+      if (url.includes('{')) {
+        const paramMatch = fieldConfig.dependency.target.match(/\{(\w+)\}/);
+        if (paramMatch) {
+          const paramName = paramMatch[1];
+          url = url.replace(`{${paramName}}`, encodeURIComponent(filterValueStr));
+        } else {
+          url = `${url}?${filterField}=${encodeURIComponent(filterValueStr)}`;
+        }
+      }
+
+      console.log(`Cargando datos filtrados: ${url}`);
+
+      this.http.get<any>(url).subscribe({
+        next: (res) => {
+          // Ejecutar procesamiento en el próximo ciclo para no bloquear
+          setTimeout(() => {
+            // Extraer la lista (manejo de patrón RORO)
+            // Buscar primero en propiedades comunes del response
+            let dataList: any[] = [];
+            
+            if (Array.isArray(res)) {
+              // Si la respuesta es directamente un array
+              dataList = res;
+            } else if (res && typeof res === 'object') {
+              // Buscar propiedades que sean arrays (patrón RORO común)
+              const arrayKeys = Object.keys(res).filter(k => Array.isArray(res[k]));
+              
+              if (arrayKeys.length > 0) {
+                // Usar la primera propiedad que sea un array
+                // Priorizar nombres comunes como 'provincia', 'data', 'items', 'results'
+                const preferredKeys = ['provincia', 'provincias', 'data', 'items', 'results', 'content'];
+                const preferredKey = preferredKeys.find(k => arrayKeys.includes(k));
+                dataList = res[preferredKey || arrayKeys[0]];
+              } else {
+                // Si no hay arrays, tratar el objeto como un único elemento
+                dataList = [res];
+              }
+            }
+            
+            // Validar que tenemos datos
+            if (!Array.isArray(dataList) || dataList.length === 0) {
+              console.warn(`No se encontraron datos en la respuesta filtrada para ${serviceId}:`, res);
+              dataList = [];
+            }
+            
+            // Guardar en cache
+            this.refDataCache[cacheKey] = dataList;
+            this.refDataCache[serviceId] = dataList;
+            
+            // Limpiar cache de opciones filtradas para forzar recálculo
+            this.clearFilteredOptionsCache(serviceId);
+            this.loadingRefData[cacheKey] = false;
+            this.clearLoadingForService(serviceId);
+            
+            // Forzar detección de cambios para actualizar la vista
+            this.cdr.detectChanges();
+            
+            console.log(`Datos filtrados cargados para ${serviceId}: ${dataList.length} registros`);
+          }, 0);
+        },
+        error: (err) => {
+          console.error(`Error cargando datos filtrados para ${serviceId} con filtro ${filterField}=${filterValue}:`, err);
+          console.error(`URL intentada: ${url}`);
+          // Error silencioso - usar datos sin filtro si existen
+          const cacheKeyAll = `${serviceId}_all`;
+          if (this.refDataCache[cacheKeyAll]) {
+            this.refDataCache[serviceId] = this.refDataCache[cacheKeyAll];
+          }
+          this.loadingRefData[cacheKey] = false;
+          this.clearLoadingForService(serviceId);
+          this.cdr.detectChanges();
+        }
+      });
+    });
+  }
+  
+  clearFilteredOptionsCache(serviceId: string) {
+    // Limpiar cache de opciones filtradas para un servicio específico
+    Object.keys(this.filteredOptionsCache).forEach(key => {
+      if (key.startsWith(serviceId + '_')) {
+        delete this.filteredOptionsCache[key];
+      }
+    });
+  }
+
+  extractPathParam(endpointPath: string, filterField: string): string | null {
+    // Extraer el nombre del parámetro del path
+    // Ejemplo: /api/v1/roles/aplicacion/{id_aplicacion} -> id_aplicacion
+    const paramMatch = endpointPath.match(/\{(\w+)\}/);
+    if (paramMatch) {
+      return paramMatch[1];
+    }
+    return null;
+  }
+
+  getRefValue(val: any, serviceId: string, display: string, descriptionServiceId?: string, showId: boolean = false, fieldConfig?: any): string {
+    // Caso estándar
     const sourceServiceId = display === 'desc' && descriptionServiceId ? descriptionServiceId : serviceId;
     const list = this.refDataCache[sourceServiceId];
     if (!list || !val) return val;
@@ -740,7 +998,16 @@ export class PreviewComponent implements OnInit {
 
     if (display === 'desc') {
       const desc = item.descripcion || item.nombre || item.label || val;
-      return showId ? `${desc} (ID: ${val})` : desc;
+      if (showId && fieldConfig?.showIdWithDescription) {
+        // Si hay un campo específico configurado, usar ese; si no, usar el ID
+        const fieldToShow = fieldConfig.showIdWithDescriptionField || fieldConfig.dependency?.field || 'id';
+        const valueToShow = item[fieldToShow] !== undefined && item[fieldToShow] !== null 
+          ? item[fieldToShow] 
+          : val;
+        const fieldLabel = fieldToShow === 'id' || fieldToShow === fieldConfig.dependency?.field ? 'ID' : fieldToShow;
+        return `${desc} (${fieldLabel}: ${valueToShow})`;
+      }
+      return desc;
     }
     return val;
   }
@@ -748,108 +1015,172 @@ export class PreviewComponent implements OnInit {
   getOptionLabel(opt: any, fieldConfig: any): string {
     if (!opt) return '';
     
-    // 1. Identificar el valor de unión (ID técnico que vincula los servicios)
-    // Intentamos usar el campo configurado, pero si falla o es igual al dependsOn, buscamos otros
-    const linkageField = fieldConfig?.dependency?.field || 'id';
-    let linkageValue = opt[linkageField];
-
-    // Heurística: Si no hay valor, buscamos cualquier campo que parezca un ID en el objeto
-    if (linkageValue === null || linkageValue === undefined) {
-      linkageValue = opt.id || opt.id_rol || opt.id_aplicacion || opt.codigo || 
-                     Object.entries(opt).find(([k,v]) => k.toLowerCase().includes('id') && v)?.[1];
+    // Identificar el campo configurado para mostrar (dependency.field)
+    // Según la configuración estándar: dependency.field es el atributo del response_dto que se usa como valor
+    const displayField = fieldConfig?.dependency?.field || 'id';
+    
+    // Obtener el valor del campo configurado
+    let displayValue = opt[displayField];
+    
+    // Si no se encuentra el campo configurado, buscar en campos comunes
+    if (displayValue === null || displayValue === undefined) {
+      // Buscar en campos comunes primero
+      displayValue = opt.id || opt.codigo || opt[displayField];
+      if (!displayValue) {
+        // Buscar cualquier campo que contenga el nombre del campo configurado
+        const found = Object.entries(opt).find(([k]) => 
+          k.toLowerCase() === displayField.toLowerCase() || 
+          k.toLowerCase().includes(displayField.toLowerCase())
+        );
+        displayValue = found?.[1];
+      }
     }
     
-    if (linkageValue === null || linkageValue === undefined) {
-      return opt.descripcion || opt.nombre || opt.label || 'Sin valor';
+    // Obtener la descripción (siempre mostrar descripción si está disponible)
+    const desc = opt.descripcion || opt.nombre || opt.label || displayValue || 'Sin valor';
+    
+    // Si showIdWithDescription está activo, mostrar el atributo junto a la descripción
+    if (fieldConfig?.showIdWithDescription) {
+      const fieldToShow = fieldConfig.showIdWithDescriptionField || displayField;
+      const valueToShow = opt[fieldToShow] !== undefined && opt[fieldToShow] !== null 
+        ? opt[fieldToShow] 
+        : displayValue;
+      
+      const fieldLabel = fieldToShow === displayField ? 'ID' : fieldToShow;
+      return `${desc} (${fieldLabel}: ${valueToShow})`;
     }
-
-    // 2. Si tiene búsqueda secundaria (JOIN entre microservicios)
-    if (fieldConfig?.hasSecondaryLookup && fieldConfig?.secondaryDependency?.type) {
-      const secondaryServiceId = fieldConfig.secondaryDependency.type;
-      const secondaryDisplayField = fieldConfig.secondaryDependency.field;
-      const secondaryList = this.refDataCache[secondaryServiceId];
-      
-      if (secondaryList && secondaryList.length > 0) {
-        const searchVal = String(linkageValue).trim().toLowerCase();
-        const secondaryItem = secondaryList.find(i => {
-          // Búsqueda profunda en campos identificadores del catálogo secundario
-          return Object.entries(i).some(([k, v]) => 
-            (k.toLowerCase() === 'id' || k.toLowerCase().includes('id_') || k.toLowerCase().includes('_id') || k.toLowerCase() === 'codigo') &&
-            String(v).trim().toLowerCase() === searchVal
-          );
-        });
-
-        if (secondaryItem) {
-          const desc = secondaryItem[secondaryDisplayField] || secondaryItem.descripcion || secondaryItem.nombre || linkageValue;
-          return fieldConfig.showIdWithDescription ? `${desc} (ID: ${linkageValue})` : desc;
-        }
-      }
-      
-      // Fallback: Si el servicio secundario no tiene el dato, intentamos buscar una descripción en el propio registro
-      const localDesc = opt.descripcion || opt.nombre || opt.label;
-      if (localDesc) return fieldConfig.showIdWithDescription ? `${localDesc} (ID: ${linkageValue})` : localDesc;
-      
-      return fieldConfig.showIdWithDescription ? `Cargando... (ID: ${linkageValue})` : String(linkageValue);
-    }
-
-    // 3. Fallback estándar (Sin búsqueda secundaria)
-    const desc = opt.descripcion || opt.nombre || opt.label || linkageValue;
-    return fieldConfig?.showIdWithDescription ? `${desc} (ID: ${linkageValue})` : String(desc);
+    
+    // Por defecto, mostrar la descripción
+    return String(desc);
   }
 
   getOptionValue(opt: any, fieldConfig: any): any {
     if (!opt) return undefined;
-    // Siempre priorizamos el campo de referencia configurado por el usuario
-    const refField = fieldConfig?.dependency?.field || 'id';
-    const val = opt[refField];
-    if (val !== null && val !== undefined) return val;
     
-    // Heurística de respaldo si el campo configurado no existe en el objeto real
-    return opt.id || opt.id_rol || opt.id_aplicacion || opt.codigo || Object.values(opt)[0];
+    // Usar el campo configurado en dependency.field como valor
+    // Este es el campo del response_dto que se guardará en formData
+    const refField = fieldConfig?.dependency?.field || 'id';
+    let val = opt[refField];
+    
+    // Si no se encuentra directamente, buscar variaciones del nombre
+    if (val === null || val === undefined) {
+      // Buscar exactamente el campo configurado (case insensitive)
+      const found = Object.entries(opt).find(([k]) => 
+        k.toLowerCase() === refField.toLowerCase()
+      );
+      val = found?.[1];
+    }
+    
+    // Si aún no se encuentra, buscar en campos comunes
+    if (val === null || val === undefined) {
+      val = opt.id || opt.codigo;
+    }
+    
+    // Si aún no se encuentra, usar el primer valor disponible
+    if (val === null || val === undefined && Object.keys(opt).length > 0) {
+      val = Object.values(opt)[0];
+    }
+    
+    return val;
   }
 
   getFilteredOptions(refService: string, dependsOn?: string, fieldConfig?: any): any[] {
-    const data = this.refDataCache[refService] || [];
-    if (data.length === 0) return [];
+    // Si tiene hasSecondaryLookup activo, usar filterByField en lugar de dependsOn
+    const useFilterBy = fieldConfig?.hasSecondaryLookup && fieldConfig?.dependency?.filterByField;
+    const filterField = useFilterBy ? fieldConfig.dependency.filterByField : dependsOn;
     
-    let filtered = [...data];
+    // Si hay filterByField configurado pero no hay valor en el formulario, retornar vacío
+    if (useFilterBy && filterField && !this.formData[filterField]) {
+      return [];
+    }
+    
+    // Construir cache key para opciones filtradas
+    const filterValue = filterField ? this.formData[filterField] : null;
+    const filterValueStr = filterValue ? String(filterValue).trim() : null;
+    const optionsCacheKey = `${refService}_${filterField || 'none'}_${filterValueStr || 'none'}_${dependsOn || 'none'}`;
+    
+    // Si ya tenemos las opciones en cache, retornarlas directamente
+    if (this.filteredOptionsCache[optionsCacheKey]) {
+      return this.filteredOptionsCache[optionsCacheKey];
+    }
+    
+    // Si tiene hasSecondaryLookup y hay un valor de filtro, usar datos filtrados del cache
+    let cacheKey = refService;
+    if (useFilterBy && filterField && filterValueStr) {
+      cacheKey = `${refService}_${filterField}_${filterValueStr}`;
+    }
+    
+    const data = this.refDataCache[cacheKey] || this.refDataCache[refService] || [];
+    
+    // Si no hay datos, retornar vacío (no hacer llamada HTTP aquí)
+    if (data.length === 0) {
+      return [];
+    }
+    
+    // Procesar datos de forma eficiente
+    let filtered = data;
 
-    // 1. Filtrado por cascada (Dependencia de otro campo)
-    if (dependsOn && dependsOn !== 'null' && this.formData[dependsOn]) {
-      const parentVal = String(this.formData[dependsOn]).toLowerCase();
+    // 1. Filtrado por cascada (solo si NO es hasSecondaryLookup, porque esos datos ya vienen filtrados del servidor)
+    if (!useFilterBy && filterField && filterField !== 'null' && filterValue) {
+      const parentVal = String(filterValue).toLowerCase();
+      const filterLower = filterField.toLowerCase();
+      
+      // Optimizar: pre-calcular patrones de búsqueda
+      const searchPatterns = [
+        filterLower,
+        filterLower + '_id',
+        'id_' + filterLower
+      ];
+      
       filtered = data.filter(item => {
-        // Buscamos cualquier campo que coincida con el valor del padre
-        return Object.entries(item).some(([k, v]) => {
+        // Buscar coincidencias de forma optimizada
+        for (const [k, v] of Object.entries(item)) {
           const keyLower = k.toLowerCase();
-          const depLower = dependsOn.toLowerCase();
-          const isRelatedKey = keyLower === depLower || 
-                               keyLower === (depLower + '_id') || 
-                               keyLower === ('id_' + depLower) ||
-                               keyLower.includes('id_') || 
-                               keyLower.includes('_id');
+          const matchesPattern = searchPatterns.some(p => keyLower === p) || 
+                                 keyLower.includes('id_') || 
+                                 keyLower.includes('_id');
           
-          return isRelatedKey && String(v).toLowerCase() === parentVal;
-        });
+          if (matchesPattern && String(v).toLowerCase() === parentVal) {
+            return true;
+          }
+        }
+        return false;
       });
       
-      // Si el filtro es demasiado estricto y no devuelve nada, intentamos un filtro más relajado
+      // Si el filtro es demasiado estricto, intentar un filtro más relajado
       if (filtered.length === 0) {
         filtered = data.filter(item => Object.values(item).some(v => String(v).toLowerCase() === parentVal));
       }
     }
 
-    // 2. De-duplicación por VALOR TÉCNICO + ETIQUETA
-    // Usamos una combinación para asegurar que no perdemos opciones válidas pero evitamos repetidos visuales
-    const seen = new Set();
-    return filtered.filter(item => {
+    // 2. De-duplicación optimizada
+    const seen = new Set<string>();
+    const result: any[] = [];
+    
+    for (const item of filtered) {
       const label = this.getOptionLabel(item, fieldConfig);
       const val = this.getOptionValue(item, fieldConfig);
       const uniqueKey = `${val}-${label}`;
       
-      if (!label || seen.has(uniqueKey)) return false;
-      seen.add(uniqueKey);
-      return true;
-    });
+      if (label && !seen.has(uniqueKey)) {
+        seen.add(uniqueKey);
+        result.push(item);
+      }
+    }
+    
+    // Cachear el resultado para evitar recálculos
+    this.filteredOptionsCache[optionsCacheKey] = result;
+    return result;
+  }
+
+  getShouldShowWarning(prop: any): boolean {
+    if (prop.hasSecondaryLookup && prop.dependency?.filterByField) {
+      return !this.formData[prop.dependency.filterByField];
+    }
+    if (prop.dependsOn) {
+      return !this.formData[prop.dependsOn];
+    }
+    return false;
   }
 
   getParentLabel(key: string): string {
@@ -857,6 +1188,21 @@ export class PreviewComponent implements OnInit {
     // Buscar en testerFields el label amigable
     const parent = this.testerFields.find(f => f.key === key || f.key.toLowerCase() === key.toLowerCase());
     return parent ? parent.label : key;
+  }
+  
+  trackByOption(index: number, item: any): any {
+    // Usar el valor de la opción como trackBy para mejorar rendimiento
+    return item?.id || item?.codigo || index;
+  }
+  
+  isLoadingOptions(prop: any): boolean {
+    if (!prop?.refService) return false;
+    // Verificar si se está cargando el servicio referenciado
+    const cacheKey = `${prop.refService}_all`;
+    const loadingKey = prop.hasSecondaryLookup && prop.dependency?.filterByField && this.formData[prop.dependency.filterByField]
+      ? `${prop.refService}_${prop.dependency.filterByField}_${this.formData[prop.dependency.filterByField]}`
+      : cacheKey;
+    return this.loadingRefData[loadingKey] === true || this.loadingOptions[prop.key] === true;
   }
 
   calculateColumns(ep: any): { key: string, label: string }[] {
@@ -910,7 +1256,6 @@ export class PreviewComponent implements OnInit {
         showIdWithDescription: config[k]?.showIdWithDescription === true,
         dependsOn: config[k]?.dependsOn,
         hasSecondaryLookup: config[k]?.hasSecondaryLookup === true,
-        secondaryDependency: config[k]?.secondaryDependency,
         dependency: config[k]?.dependency
       }))
       .filter(f => config[f.key]?.show !== false)
@@ -922,57 +1267,64 @@ export class PreviewComponent implements OnInit {
   executeGet() {
     if (!this.selectedServiceRaw || !this.activeTest) return;
     
-    let baseUrl = this.selectedServiceRaw.host;
-    if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+    // Mostrar indicador de carga
+    this.testResponse = { success: true, data: 'Cargando...' };
     
-    let url = `${baseUrl}:${this.selectedServiceRaw.puerto}${this.activeTest.path}`;
-    
-    // Si el path tiene parámetros (como {pais_id}), reemplazarlos con selectedId o formData
-    if (url.includes('{')) {
-      // Primero intentar con formData (para casos donde el parámetro tiene un nombre específico)
-      Object.keys(this.formData).forEach(key => {
-        if (this.formData[key]) {
-          url = url.replace(`{${key}}`, this.formData[key]);
-          url = url.replace(`{${key}_id}`, this.formData[key]);
+    // Ejecutar de forma asíncrona para no bloquear
+    Promise.resolve().then(() => {
+      let baseUrl = this.selectedServiceRaw!.host;
+      if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
+      
+      let url = `${baseUrl}:${this.selectedServiceRaw!.puerto}${this.activeTest!.path}`;
+      
+      // Si el path tiene parámetros (como {pais_id}), reemplazarlos con selectedId o formData
+      if (url.includes('{')) {
+        // Primero intentar con formData (para casos donde el parámetro tiene un nombre específico)
+        Object.keys(this.formData).forEach(key => {
+          if (this.formData[key]) {
+            url = url.replace(`{${key}}`, this.formData[key]);
+            url = url.replace(`{${key}_id}`, this.formData[key]);
+          }
+        });
+        
+        // Si aún hay parámetros sin reemplazar, usar selectedId
+        if (url.includes('{') && this.selectedId) {
+          url = url.replace(/\{.*?\}/, this.selectedId);
+        }
+        
+        // Si aún hay parámetros, intentar extraer el nombre del parámetro del path
+        if (url.includes('{')) {
+          const paramMatch = this.activeTest!.path.match(/\{(\w+)\}/);
+          if (paramMatch && this.formData[paramMatch[1]]) {
+            url = url.replace(/\{.*?\}/, this.formData[paramMatch[1]]);
+          }
+        }
+      }
+      
+      this.http.get<any>(url).subscribe({
+        next: (res) => {
+          // Procesar respuesta en el próximo ciclo para no bloquear
+          setTimeout(() => {
+            // Si es un GET por ID (tiene parámetros en el path), mostrar como objeto único
+            if (this.activeTest!.path.includes('{')) {
+              this.testData = Array.isArray(res) ? res : [res];
+              this.testResponse = { success: true, data: res };
+            } else {
+              // GET de lista: procesar como array
+              if (res && typeof res === 'object') {
+                const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
+                this.testData = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
+              }
+              this.testResponse = { success: true, data: res };
+            }
+          }, 0);
+        },
+        error: (err) => {
+          const errorMsg = err.error?.detail || err.message || 'Error de conexión con el microservicio';
+          this.testResponse = { success: false, data: errorMsg };
+          this.testData = [];
         }
       });
-      
-      // Si aún hay parámetros sin reemplazar, usar selectedId
-      if (url.includes('{') && this.selectedId) {
-        url = url.replace(/\{.*?\}/, this.selectedId);
-      }
-      
-      // Si aún hay parámetros, intentar extraer el nombre del parámetro del path
-      if (url.includes('{')) {
-        const paramMatch = this.activeTest.path.match(/\{(\w+)\}/);
-        if (paramMatch && this.formData[paramMatch[1]]) {
-          url = url.replace(/\{.*?\}/, this.formData[paramMatch[1]]);
-        }
-      }
-    }
-    
-    this.http.get<any>(url).subscribe({
-      next: (res) => {
-        // Si es un GET por ID (tiene parámetros en el path), mostrar como objeto único
-        if (this.activeTest.path.includes('{')) {
-          // Para visualización, mostrar el objeto directamente
-          this.testData = Array.isArray(res) ? res : [res];
-          this.testResponse = { success: true, data: res };
-        } else {
-          // GET de lista: procesar como array
-          if (res && typeof res === 'object') {
-            const listKey = Object.keys(res).find(k => Array.isArray(res[k]));
-            this.testData = listKey ? res[listKey] : (Array.isArray(res) ? res : [res]);
-          }
-          this.testResponse = { success: true, data: res };
-        }
-      },
-      error: (err) => {
-        console.error('Error en GET:', err);
-        const errorMsg = err.error?.detail || err.message || 'Error de conexión con el microservicio';
-        this.testResponse = { success: false, data: errorMsg };
-        this.testData = [];
-      }
     });
   }
 
@@ -1039,7 +1391,6 @@ export class PreviewComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error en Mutation:', err);
         const errorMsg = err.error?.detail || err.message || 'Error al procesar la solicitud';
         this.testResponse = { success: false, data: errorMsg };
       }
@@ -1079,7 +1430,6 @@ export class PreviewComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error en DELETE:', err);
         const errorMsg = err.error?.detail || err.message || 'Error al eliminar el registro';
         this.testResponse = { success: false, data: errorMsg };
       }
@@ -1188,6 +1538,57 @@ export class PreviewComponent implements OnInit {
         this.openTester(targetEp, false);
       }
     }
+  }
+
+  onFieldChange(field: any) {
+    // Debounce: cancelar timeout anterior si existe
+    if (this.fieldChangeTimeout) {
+      clearTimeout(this.fieldChangeTimeout);
+    }
+    
+    // Limpiar cache de opciones filtradas cuando cambia cualquier campo
+    this.clearFilteredOptionsCache('');
+    
+    // Usar debounce para evitar múltiples llamadas rápidas
+    this.fieldChangeTimeout = setTimeout(() => {
+      // Ejecutar en el próximo ciclo de eventos para no bloquear
+      requestAnimationFrame(() => {
+        this.testerFields.forEach(f => {
+          if (f.hasSecondaryLookup && f.dependency?.filterByField === field.key && f.refService) {
+            const filterValue = this.formData[field.key];
+            const refService = f.refService; // Guardar en variable local para type safety
+            if (filterValue && f.dependency?.target && refService) {
+              // Marcar como cargando
+              this.loadingOptions[f.key] = true;
+              
+              // Limpiar cache y recargar datos filtrados usando el endpoint configurado
+              const cacheKey = `${refService}_${field.key}_${filterValue}`;
+              delete this.refDataCache[cacheKey];
+              delete this.refDataCache[refService];
+              
+              // Ejecutar de forma asíncrona
+              Promise.resolve().then(() => {
+                this.fetchRefDataWithFilter(refService, field.key, filterValue, f);
+              });
+            } else if (refService) {
+              // Si se limpia el filtro, limpiar cache y cargar todos los datos
+              this.loadingOptions[f.key] = true;
+              delete this.refDataCache[refService];
+              
+              // Limpiar todos los caches relacionados con este servicio de forma asíncrona
+              Promise.resolve().then(() => {
+                Object.keys(this.refDataCache).forEach(key => {
+                  if (key.startsWith(`${refService}_`)) {
+                    delete this.refDataCache[key];
+                  }
+                });
+                this.fetchRefData(refService);
+              });
+            }
+          }
+        });
+      });
+    }, 300); // Debounce de 300ms
   }
 
   getViewFields(): { key: string, label: string, value: any, refService?: string, refDisplay?: string, refDescriptionService?: string, showIdWithDescription?: boolean }[] {

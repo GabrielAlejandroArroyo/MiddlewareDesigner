@@ -46,6 +46,21 @@ async def get_provincia_by_id(provincia_id: str) -> Optional[ProvinciaReadDTO]:
         provincia = result.scalar_one_or_none()
         return ProvinciaReadDTO.model_validate(provincia) if provincia else None
 
+async def get_provincias_by_id_pais(id_pais: str, include_baja_logica: bool = True) -> ProvinciaListDTO:
+    """Obtiene todas las provincias filtradas por id_pais"""
+    async with AsyncSessionLocal() as session:
+        query = select(ProvinciaModel).where(ProvinciaModel.id_pais == id_pais)
+        if not include_baja_logica:
+            query = query.where(ProvinciaModel.baja_logica == False)
+        
+        result = await session.execute(query)
+        provincias = result.scalars().all()
+        
+        return ProvinciaListDTO(
+            provincia=[ProvinciaReadDTO.model_validate(p) for p in provincias],
+            total=len(provincias)
+        )
+
 async def create_provincia(provincia_data: ProvinciaCreateDTO) -> ProvinciaReadDTO:
     async with AsyncSessionLocal() as session:
         now = datetime.utcnow()

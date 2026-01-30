@@ -1,0 +1,20 @@
+---
+description: Mantener PRD y documentacion en docs al cambiar el producto
+alwaysApply: true
+---
+
+# Actualizacion de documentacion
+
+Cuando implementes o aceptes cambios que afecten:
+
+- funcionalidades, rutas o pantallas del frontend
+- API, controladores o modelos del backend
+- flujos de usuario, permisos o despliegue
+
+debes tambien actualizar:
+
+- docs/PRD.md (secciones afectadas: descripcion del producto, flujos, API, modelo de datos, frontend, backend)
+- docs/README.md si cambia la lista de documentos
+- cualquier otro doc en docs/ que corresponda
+
+La documentacion del producto vive en docs/ y debe reflejar el estado actual del sistema.

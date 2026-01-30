@@ -8,6 +8,7 @@ from dto.provincia_delete_dto import ProvinciaDeleteDTO
 from services.provincia_service import (
     get_provincia_by_id,
     get_all_provincias,
+    get_provincias_by_id_pais,
     create_provincia,
     update_provincia,
     delete_provincia,
@@ -29,6 +30,19 @@ async def listar_provincias(include_baja_logica: bool = True, id_pais: Optional[
     Permite filtrar por estado de baja lógica y por ID de país.
     """
     return await get_all_provincias(include_baja_logica=include_baja_logica, id_pais=id_pais)
+
+@router.get("/pais/{id_pais}", 
+    response_model=ProvinciaListDTO, 
+    status_code=status.HTTP_200_OK,
+    summary="Obtener provincias por ID de país",
+    response_description="Listado de provincias filtradas por país")
+async def obtener_provincias_por_pais(id_pais: str, include_baja_logica: bool = True):
+    """
+    Obtiene todas las provincias asociadas a un país específico.
+    Permite filtrar por estado de baja lógica.
+    """
+    provincias = await get_provincias_by_id_pais(id_pais, include_baja_logica)
+    return provincias
 
 @router.get("/{provincia_id}", 
     response_model=ProvinciaReadDTO, 

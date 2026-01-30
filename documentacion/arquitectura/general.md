@@ -10,8 +10,8 @@ graph TD
     MFE[Microfrontend Designer UI]
     MW[Middleware Designer]
     DB_MW[(Middleware Config DB)]
-    
-    subgraph Microservicios Backend (FastAPI)
+
+    subgraph backend [Microservicios Backend - FastAPI]
         SVC_P[Servicio País]
         SVC_PR[Servicio Provincia]
         SVC_L[Servicio Localidad]
@@ -22,11 +22,11 @@ graph TD
     User --> MFE
     MFE --> MW
     MW --> DB_MW
-    MW -.->|Inspección Resiliente OpenAPI| SVC_P
-    MW -.->|Inspección Resiliente OpenAPI| SVC_PR
-    MW -.->|Inspección Resiliente OpenAPI| SVC_L
-    MW -.->|Inspección Resiliente OpenAPI| SVC_C
-    MW -.->|Inspección Resiliente OpenAPI| SVC_E
+    MW -.->|"Inspección Resiliente OpenAPI"| SVC_P
+    MW -.->|"Inspección Resiliente OpenAPI"| SVC_PR
+    MW -.->|"Inspección Resiliente OpenAPI"| SVC_L
+    MW -.->|"Inspección Resiliente OpenAPI"| SVC_C
+    MW -.->|"Inspección Resiliente OpenAPI"| SVC_E
 ```
 
 ## 2. Componentes Críticos

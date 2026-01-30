@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -496,6 +496,26 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                      <option [value]="null">Deshabilitado</option>
                                      <option *ngFor="let ep of getEndpointsByMethod('POST')" [value]="ep.path">{{ ep.path }}</option>
                                    </select>
+                                   
+                                   <!-- Opción de navegación para CREAR -->
+                                   <div class="mt-3 animate-in" *ngIf="endpoint!.configuracion_ui.linked_actions.create">
+                                     <div class="form-check form-switch mb-2">
+                                       <input class="form-check-input" type="checkbox" 
+                                              id="createNavigateEnabled"
+                                              [(ngModel)]="endpoint!.configuracion_ui.linked_actions.create_navigate_enabled">
+                                       <label class="form-check-label x-small fw-bold" for="createNavigateEnabled">
+                                         Navegar después de crear
+                                       </label>
+                                     </div>
+                                     <select class="form-select form-select-sm" 
+                                             *ngIf="endpoint!.configuracion_ui.linked_actions.create_navigate_enabled"
+                                             [(ngModel)]="endpoint!.configuracion_ui.linked_actions.create_navigate_to">
+                                       <option [value]="null">Seleccione acción...</option>
+                                       <option *ngFor="let ep of getAllAvailableEndpoints()" [value]="ep.path">
+                                         {{ ep.method }} {{ ep.path }}
+                                       </option>
+                                     </select>
+                                   </div>
                                  </div>
                                  <div class="col-md-3">
                                    <label class="form-label x-small text-muted fw-bold mb-1 text-uppercase">Editar (PUT/PATCH)</label>
@@ -503,6 +523,26 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                                      <option [value]="null">Deshabilitado</option>
                                      <option *ngFor="let ep of getEndpointsByMethod(['PUT', 'PATCH'])" [value]="ep.path">{{ ep.path }}</option>
                                    </select>
+                                   
+                                   <!-- Opción de navegación para EDITAR -->
+                                   <div class="mt-3 animate-in" *ngIf="endpoint!.configuracion_ui.linked_actions.edit">
+                                     <div class="form-check form-switch mb-2">
+                                       <input class="form-check-input" type="checkbox" 
+                                              id="editNavigateEnabled"
+                                              [(ngModel)]="endpoint!.configuracion_ui.linked_actions.edit_navigate_enabled">
+                                       <label class="form-check-label x-small fw-bold" for="editNavigateEnabled">
+                                         Navegar después de editar
+                                       </label>
+                                     </div>
+                                     <select class="form-select form-select-sm" 
+                                             *ngIf="endpoint!.configuracion_ui.linked_actions.edit_navigate_enabled"
+                                             [(ngModel)]="endpoint!.configuracion_ui.linked_actions.edit_navigate_to">
+                                       <option [value]="null">Seleccione acción...</option>
+                                       <option *ngFor="let ep of getAllAvailableEndpoints()" [value]="ep.path">
+                                         {{ ep.method }} {{ ep.path }}
+                                       </option>
+                                     </select>
+                                   </div>
                                  </div>
                                  <div class="col-md-3">
                                    <label class="form-label x-small text-muted fw-bold mb-1 text-uppercase">Eliminar (DELETE)</label>
@@ -575,111 +615,147 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
 
                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                  <span class="label-title">2. ENDPOINT (ACCESO A DATOS)</span>
+                  <span class="label-title">
+                    2. ENDPOINT (ACCESO A DATOS)
+                    <span class="text-danger">*</span>
+                  </span>
                   <select class="form-select form-select-sm custom-select" 
+                          [class.is-invalid]="getFieldConfig(editingPropKey, editingTab).refService && !getFieldConfig(editingPropKey, editingTab).dependency?.target"
                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
-                          (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)">
+                          (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)"
+                          [required]="getFieldConfig(editingPropKey, editingTab).refService">
                     <option [value]="null">Seleccione un endpoint GET...</option>
                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
                       {{ ep.method }} {{ ep.path }}
                     </option>
                   </select>
+                  <div *ngIf="getFieldConfig(editingPropKey, editingTab).refService && !getFieldConfig(editingPropKey, editingTab).dependency?.target" class="x-small text-danger mt-1">
+                    <i class="bi bi-exclamation-triangle"></i> Este campo es obligatorio cuando se ha seleccionado un servicio origen.
+                  </div>
                 </div>
               </div>
 
-              <!-- CHECK: BÚSQUEDA DE VALORES RELACIONADOS -->
+              <!-- CHECK: FILTRAR POR -->
               <div class="border-top pt-3 mb-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target">
-                <div class="form-check form-switch">
+                <div class="form-check form-switch mb-3">
                   <input class="form-check-input" type="checkbox" id="checkRelacionados"
                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup"
                          (ngModelChange)="onSecondaryLookupToggle(editingPropKey, editingTab)">
                   <label class="form-check-label fw-bold text-primary small" for="checkRelacionados">
-                    Búsqueda de valores relacionados (Cascada o Catálogo Secundario)
+                    Filtrar por
                   </label>
+                </div>
+                
+                <!-- DESPLEGABLE DE ATRIBUTOS DEL DTO ACTUAL (cuando el switch está activado) -->
+                <div class="dep-row mb-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup">
+                  <div class="dep-block bg-warning bg-opacity-10 border-warning border-opacity-25">
+                    <span class="label-title text-warning">
+                      FILTRADO POR (ATRIBUTO DEL DTO ACTUAL)
+                      <span class="text-danger">*</span>
+                    </span>
+                    <div *ngIf="getCurrentDtoFields(editingPropKey, editingTab).length > 0">
+                      <select class="form-select form-select-sm custom-select" 
+                              [class.is-invalid]="!getFieldConfig(editingPropKey, editingTab).dependency?.filterByField"
+                              [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.filterByField"
+                              (ngModelChange)="onFilterByFieldChange(editingPropKey, editingTab)"
+                              required>
+                        <option [value]="null">Seleccione atributo del DTO actual...</option>
+                        <option *ngFor="let f of getCurrentDtoFields(editingPropKey, editingTab)" [value]="f">
+                          {{ f }}
+                        </option>
+                      </select>
+                      <div *ngIf="!getFieldConfig(editingPropKey, editingTab).dependency?.filterByField" class="x-small text-danger mt-1">
+                        <i class="bi bi-exclamation-triangle"></i> Debe seleccionar un atributo del DTO actual para filtrar.
+                      </div>
+                      <div *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.filterByField" class="x-small text-muted mt-1">
+                        Este atributo del formulario actual ({{ editingTab === 'request' ? 'request_dto' : 'response_dto' }}) se utilizará para filtrar los resultados del servicio origen.
+                      </div>
+                      <div class="x-small text-success mt-1">
+                        <i class="bi bi-check-circle"></i> {{ getCurrentDtoFields(editingPropKey, editingTab).length }} atributo(s) disponible(s) del DTO {{ editingTab === 'request' ? 'request' : 'response' }} (excluyendo {{ editingPropKey }}).
+                      </div>
+                    </div>
+                    <div *ngIf="getCurrentDtoFields(editingPropKey, editingTab).length === 0" class="alert alert-warning py-2 px-3 mb-0 mt-2">
+                      <i class="bi bi-exclamation-triangle me-2"></i>
+                      <small>No hay atributos disponibles en el DTO {{ editingTab === 'request' ? 'request' : 'response' }}. Verifique que el endpoint tenga un DTO configurado.</small>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <!-- MODO A: CHECK DESACTIVADO (ATRIBUTO DE REFERENCIA DIRECTO) -->
-              <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target && !getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup">
+              <!-- 3. ATRIBUTO A MOSTRAR (SIEMPRE DISPONIBLE, INDEPENDIENTE DEL SWITCH) -->
+              <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target">
                 <div class="dep-block bg-light">
-                  <span class="label-title">3. ATRIBUTO DE REFERENCIA (VALOR DIRECTO)</span>
+                  <span class="label-title">
+                    3. ATRIBUTO A MOSTRAR
+                    <span class="text-danger">*</span>
+                  </span>
                   <select class="form-select form-select-sm custom-select" 
-                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                    <option [value]="null">Seleccione atributo del DTO...</option>
-                    <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
+                          [class.is-invalid]="!getFieldConfig(editingPropKey, editingTab).dependency?.field"
+                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field"
+                          (ngModelChange)="onDependencyFieldChange(editingPropKey, editingTab)"
+                          required>
+                    <option [value]="null">Seleccione atributo del DTO del endpoint...</option>
+                    <option *ngFor="let f of getTargetFields(editingTab, editingPropKey)" [value]="f">
                       {{ f }}
                     </option>
                   </select>
+                  <div *ngIf="!getFieldConfig(editingPropKey, editingTab).dependency?.field" class="x-small text-danger mt-1">
+                    <i class="bi bi-exclamation-triangle"></i> Este campo es obligatorio. Debe seleccionar un atributo del DTO del endpoint.
+                  </div>
+                  <div class="x-small text-muted mt-1" *ngIf="getTargetFieldsCount(editingTab, editingPropKey) === 0">
+                    <i class="bi bi-info-circle"></i> No hay campos disponibles. Verifique que el endpoint tenga un response_dto configurado.
+                  </div>
+                  <div class="x-small text-muted mt-1" *ngIf="getTargetFieldsCount(editingTab, editingPropKey) > 0 && getFieldConfig(editingPropKey, editingTab).dependency?.field">
+                    <i class="bi bi-check-circle"></i> {{ getTargetFieldsCount(editingTab, editingPropKey) }} atributo(s) disponible(s) del response_dto del endpoint seleccionado.
+                  </div>
                 </div>
               </div>
 
-              <!-- MODO B: CHECK ACTIVADO (FLUJO CON SERVICIO RELACIONADO) -->
+              <!-- MODO B: CHECK ACTIVADO (BÚSQUEDA DE VALORES RELACIONADOS) -->
               <div class="animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup">
                 
-                <!-- PASO INTERMEDIO: ATRIBUTO QUE ACTÚA COMO LLAVE (PUENTE) -->
-                <div class="dep-row mb-3">
-                  <div class="dep-block border-info">
-                    <span class="label-title text-info">ATRIBUTO LLAVE (PROVIENE DE SERVICIO ORIGEN)</span>
-                    <select class="form-select form-select-sm custom-select" 
-                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.field">
-                      <option [value]="null">Seleccione atributo llave...</option>
-                      <option *ngFor="let f of targetFields[editingTab + '_' + editingPropKey]" [value]="f">
-                        {{ f }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- SELECCIÓN DE SERVICIO Y ENDPOINT RELACIONADO -->
-                <div class="dep-row mb-3" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.field">
-                  <div class="dep-block">
-                    <span class="label-title">SERVICIO RELACIONADO</span>
-                    <select class="form-select form-select-sm custom-select" 
-                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).secondaryDependency.type"
-                            (ngModelChange)="onSecondaryDependencyTypeChange(editingPropKey, editingTab)">
-                      <option [value]="null">Seleccione servicio...</option>
-                      <option *ngFor="let s of allServices" [value]="s.id">{{ s.id }}</option>
-                    </select>
-                  </div>
-
-                  <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).secondaryDependency?.type">
-                    <span class="label-title">ENDPOINT RELACIONADO (RECIBE LLAVE)</span>
-                    <select class="form-select form-select-sm custom-select" 
-                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).secondaryDependency.target"
-                            (ngModelChange)="onSecondaryDependencyTargetChange(editingPropKey, editingTab)">
-                      <option [value]="null">Seleccione endpoint...</option>
-                      <option *ngFor="let ep of secondaryTargetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
-                        {{ ep.method }} {{ ep.path }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- SELECCIÓN DE ATRIBUTO A MOSTRAR (LABEL) -->
-                <div class="dep-row animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).secondaryDependency?.target">
-                  <div class="dep-block bg-success bg-opacity-10 border-success border-opacity-25">
-                    <span class="label-title text-success">ATRIBUTO A MOSTRAR (LABEL EN UI)</span>
-                    <select class="form-select form-select-sm custom-select" 
-                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).secondaryDependency.field">
-                      <option [value]="null">Seleccione el campo descriptivo...</option>
-                      <option *ngFor="let f of secondaryTargetFields[editingTab + '_' + editingPropKey]" [value]="f">
-                        {{ f }}
-                      </option>
-                    </select>
+                <!-- Mensaje si no hay field configurado -->
+                <div class="dep-row mb-3 animate-in" *ngIf="!getFieldConfig(editingPropKey, editingTab).dependency?.field">
+                  <div class="alert alert-warning py-2 px-3 mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>Primero debes seleccionar un "Atributo de Referencia" en el modo directo (desactivando este check) para poder renombrarlo.</small>
                   </div>
                 </div>
               </div>
 
               <!-- OPCIONES DE VISTA (BAJO DE TODO) -->
               <div class="border-top mt-4 pt-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
-                <div class="d-flex align-items-center">
-                  <span class="label-title me-3 mb-0" style="font-size: 0.75rem">OPCIONES DE VISTA:</span>
-                  <div class="form-check form-switch mb-0">
+                <div class="mb-3">
+                  <span class="label-title mb-2 d-block" style="font-size: 0.75rem">OPCIONES DE VISTA:</span>
+                  <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="showIdCheckBottom"
-                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescription">
+                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescription"
+                           (ngModelChange)="onShowIdWithDescriptionToggle(editingPropKey, editingTab)">
                     <label class="form-check-label small fw-bold" for="showIdCheckBottom">
-                      Mostrar ID junto a la descripción
+                      Mostrar atributo junto a la descripción
                     </label>
+                  </div>
+                  
+                  <!-- Selector de atributo a mostrar (solo cuando el switch está activo) -->
+                  <div class="animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).showIdWithDescription && getFieldConfig(editingPropKey, editingTab).dependency?.target">
+                    <div class="dep-block bg-info bg-opacity-10 border-info border-opacity-25">
+                      <span class="label-title text-info">
+                        ATRIBUTO A MOSTRAR JUNTO A LA DESCRIPCIÓN
+                      </span>
+                      <select class="form-select form-select-sm custom-select" 
+                              [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescriptionField">
+                        <option [value]="null">Seleccione atributo del DTO del endpoint...</option>
+                        <option *ngFor="let f of getTargetFields(editingTab, editingPropKey)" [value]="f">
+                          {{ f }}
+                        </option>
+                      </select>
+                      <div class="x-small text-muted mt-1" *ngIf="getTargetFieldsCount(editingTab, editingPropKey) === 0">
+                        <i class="bi bi-info-circle"></i> No hay campos disponibles. Verifique que el endpoint tenga un response_dto configurado.
+                      </div>
+                      <div class="x-small text-muted mt-1" *ngIf="getTargetFieldsCount(editingTab, editingPropKey) > 0">
+                        <i class="bi bi-check-circle"></i> {{ getTargetFieldsCount(editingTab, editingPropKey) }} atributo(s) disponible(s) del response_dto del endpoint seleccionado.
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -688,7 +764,13 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
           </div>
           
           <div class="modal-footer bg-light p-3 border-top">
-            <button (click)="closeModal()" class="btn btn-primary fw-bold px-4 shadow-sm">GUARDAR CONFIGURACIÓN</button>
+            <button (click)="saveReferenceConfig()" 
+                    class="btn btn-primary fw-bold px-4 shadow-sm"
+                    [disabled]="!canSaveReferenceConfig"
+                    [class.btn-secondary]="!canSaveReferenceConfig"
+                    [class.btn-primary]="canSaveReferenceConfig">
+              <i class="bi bi-save me-1"></i> GUARDAR CONFIGURACIÓN
+            </button>
           </div>
         </div>
       </div>
@@ -1153,6 +1235,7 @@ export class ActionDefinitionComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private middlewareService = inject(MiddlewareService);
+  private cdr = inject(ChangeDetectorRef);
 
   serviceId: string = '';
   path: string = '';
@@ -1178,9 +1261,10 @@ export class ActionDefinitionComponent implements OnInit {
   // Cache para dependencias externas
   targetEndpoints: { [key: string]: Endpoint[] } = {};
   targetFields: { [key: string]: string[] } = {};
-  secondaryTargetEndpoints: { [key: string]: Endpoint[] } = {};
-  secondaryTargetFields: { [key: string]: string[] } = {};
   private serviceEndpointsCache: { [serviceId: string]: Endpoint[] } = {};
+  
+  // Contador para forzar detección de cambios cuando se modifica la configuración
+  private configChangeCounter: number = 0;
 
   // Drag and Drop State
   draggedKey: string | null = null;
@@ -1200,6 +1284,9 @@ export class ActionDefinitionComponent implements OnInit {
   userQuestion = '';
   chatHistory: { role: 'user' | 'ai', content: string }[] = [];
   isAskingAI = false;
+
+  // Estado inicial del modal de referencia para detectar cambios
+  initialReferenceConfig: any = null;
 
   get helpContext() {
     const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
@@ -1278,7 +1365,11 @@ export class ActionDefinitionComponent implements OnInit {
               edit: null,
               delete: null,
               view: null,
-              id_field: 'id'
+              id_field: 'id',
+              create_navigate_enabled: false,
+              create_navigate_to: null,
+              edit_navigate_enabled: false,
+              edit_navigate_to: null
             };
 
             // Intentar encontrar un ID mejor si 'id' no existe en las propiedades de la respuesta
@@ -1286,6 +1377,20 @@ export class ActionDefinitionComponent implements OnInit {
             if (itemProps && !itemProps['id']) {
               const idLike = Object.keys(itemProps).find(k => k.toLowerCase().includes('id'));
               if (idLike) found.configuracion_ui.linked_actions.id_field = idLike;
+            }
+          } else {
+            // Asegurar que las propiedades de navegación existan si linked_actions ya existe
+            if (found.configuracion_ui.linked_actions.create_navigate_enabled === undefined) {
+              found.configuracion_ui.linked_actions.create_navigate_enabled = false;
+            }
+            if (found.configuracion_ui.linked_actions.create_navigate_to === undefined) {
+              found.configuracion_ui.linked_actions.create_navigate_to = null;
+            }
+            if (found.configuracion_ui.linked_actions.edit_navigate_enabled === undefined) {
+              found.configuracion_ui.linked_actions.edit_navigate_enabled = false;
+            }
+            if (found.configuracion_ui.linked_actions.edit_navigate_to === undefined) {
+              found.configuracion_ui.linked_actions.edit_navigate_to = null;
             }
           }
 
@@ -1357,7 +1462,8 @@ export class ActionDefinitionComponent implements OnInit {
         dependency: null,
         hasSecondaryLookup: false,
         secondaryDependency: null,
-        showIdWithDescription: false
+        showIdWithDescription: false,
+        showIdWithDescriptionField: null
       };
     }
 
@@ -1368,6 +1474,8 @@ export class ActionDefinitionComponent implements OnInit {
       field.dependency = null;
       field.hasSecondaryLookup = false;
       field.secondaryDependency = null;
+      field.showIdWithDescription = false;
+      field.showIdWithDescriptionField = null;
     }
 
     // Asegurar objeto dependency si existe refService
@@ -1375,18 +1483,29 @@ export class ActionDefinitionComponent implements OnInit {
       field.dependency = {
         type: field.refService,
         target: null,
-        field: null
+        field: null,
+        fieldRenamed: null,
+        filterByField: null
       };
+    }
+    
+    // Asegurar que dependency tenga los campos necesarios si ya existe
+    if (field.dependency) {
+      if (!field.dependency.hasOwnProperty('fieldRenamed')) {
+        field.dependency.fieldRenamed = null;
+      }
+      if (!field.dependency.hasOwnProperty('filterByField')) {
+        field.dependency.filterByField = null;
+      }
+    }
+    
+    // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
+    if (field.refService) {
+      field.editable = true;
     }
 
-    // Inicialización de secondaryDependency si el flag está activo
-    if (field.hasSecondaryLookup && !field.secondaryDependency) {
-      field.secondaryDependency = {
-        type: null,
-        target: null,
-        field: null
-      };
-    }
+    // Eliminar secondaryDependency completamente (pero mantener hasSecondaryLookup si el usuario lo activó)
+    field.secondaryDependency = null;
 
     // Asegurar que siempre tenga un visualName para evitar campos vacíos
     if (!config[category][propKey].visualName) {
@@ -1408,23 +1527,19 @@ export class ActionDefinitionComponent implements OnInit {
           if (config.refService) {
              this.loadTargetEndpoints(propKey, cat, config.refService);
           }
-          if (config.hasSecondaryLookup && config.secondaryDependency?.type) {
-             this.loadTargetEndpoints(propKey, cat, config.secondaryDependency.type, true);
-          }
         });
       }
     });
   }
 
-  loadTargetEndpoints(propKey: string, type: string, serviceId: string, isSecondary: boolean = false) {
+  loadTargetEndpoints(propKey: string, type: string, serviceId: string) {
     if (!serviceId || serviceId === 'null' || serviceId === 'Sin referencia') return;
     const cacheKey = `${type}_${propKey}`;
-    const targetMap = isSecondary ? this.secondaryTargetEndpoints : this.targetEndpoints;
 
     // 1. Si ya tenemos los endpoints de este servicio en el caché global, usarlos (filtrando por GET y Activos)
     if (this.serviceEndpointsCache[serviceId]) {
-      targetMap[cacheKey] = this.serviceEndpointsCache[serviceId].filter((e: any) => e.method === 'GET' && e.is_enabled);
-      this.afterEndpointsLoaded(propKey, type, isSecondary);
+      this.targetEndpoints[cacheKey] = this.serviceEndpointsCache[serviceId].filter((e: any) => e.method === 'GET' && e.is_enabled);
+      this.afterEndpointsLoaded(propKey, type);
       return;
     }
 
@@ -1434,31 +1549,28 @@ export class ActionDefinitionComponent implements OnInit {
         const endpoints = data.endpoints || [];
         this.serviceEndpointsCache[serviceId] = endpoints;
         // REGLA: Solo permitir métodos GET que estén ACTIVOS en la definición
-        targetMap[cacheKey] = endpoints.filter((e: any) => e.method === 'GET' && e.is_enabled);
-        this.afterEndpointsLoaded(propKey, type, isSecondary);
+        this.targetEndpoints[cacheKey] = endpoints.filter((e: any) => e.method === 'GET' && e.is_enabled);
+        this.afterEndpointsLoaded(propKey, type);
       },
       error: (err) => {
-        console.error(`Error al cargar servicio ${serviceId}:`, err);
-        targetMap[cacheKey] = [];
+        // Error silencioso - el servicio no está disponible
+        this.targetEndpoints[cacheKey] = [];
       }
     });
   }
 
-  private afterEndpointsLoaded(propKey: string, type: string, isSecondary: boolean = false) {
+  private afterEndpointsLoaded(propKey: string, type: string) {
     const config = this.getFieldConfig(propKey, type);
-    const dep = isSecondary ? config.secondaryDependency : config.dependency;
-    if (dep?.target) {
-      this.loadTargetFields(propKey, type, dep.target, isSecondary);
+    if (config.dependency?.target) {
+      this.loadTargetFields(propKey, type, config.dependency.target);
     }
   }
 
-  loadTargetFields(propKey: string, type: string, path: string, isSecondary: boolean = false) {
+  loadTargetFields(propKey: string, type: string, path: string) {
     if (!path) return;
     const cacheKey = `${type}_${propKey}`;
-    const sourceMap = isSecondary ? this.secondaryTargetEndpoints : this.targetEndpoints;
-    const targetMap = isSecondary ? this.secondaryTargetFields : this.targetFields;
+    const endpoints = this.targetEndpoints[cacheKey];
     
-    const endpoints = sourceMap[cacheKey];
     if (!endpoints || endpoints.length === 0) return;
 
     // Normalización de path para búsqueda (quitar slashes extras)
@@ -1470,12 +1582,13 @@ export class ActionDefinitionComponent implements OnInit {
     );
 
     if (!endpoint || !endpoint.response_dto) {
-      console.warn(`No se encontró DTO de respuesta para el endpoint: ${path}`);
-      targetMap[cacheKey] = [];
+      this.targetFields[cacheKey] = [];
       return;
     }
 
-    targetMap[cacheKey] = this.extractPropsFromDto(endpoint.response_dto);
+    // Extraer campos del response_dto del endpoint seleccionado
+    const fields = this.extractPropsFromDto(endpoint.response_dto);
+    this.targetFields[cacheKey] = fields;
   }
 
   private extractPropsFromDto(dto: any): string[] {
@@ -1501,56 +1614,123 @@ export class ActionDefinitionComponent implements OnInit {
       config.refService = null;
       config.dependency = null;
       config.editable = true;
+      config.showIdWithDescription = false;
+      config.showIdWithDescriptionField = null;
       delete this.targetEndpoints[cacheKey];
       delete this.targetFields[cacheKey];
     } else {
+      // Si se selecciona un servicio, inicializar dependency y limpiar target para forzar selección
       config.dependency = {
         type: config.refService,
-        target: null,
-        field: null
+        target: null, // Limpiar target para forzar selección obligatoria
+        field: null,
+        fieldRenamed: null,
+        filterByField: null
       };
-      config.editable = false;
+      // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
+      config.editable = true;
       this.loadTargetEndpoints(propKey, type, config.refService);
     }
   }
 
   onDependencyTargetChange(propKey: string, type: string) {
     const config = this.getFieldConfig(propKey, type);
-    if (config.dependency?.target) {
+    // Si se selecciona null o el valor por defecto, limpiar el target
+    if (!config.dependency?.target || config.dependency.target === 'null') {
+      if (config.dependency) {
+        config.dependency.target = null;
+        config.dependency.field = null;
+        config.dependency.fieldRenamed = null;
+        config.dependency.filterByField = null;
+      }
+    } else if (config.dependency?.target) {
+      // Si se selecciona un endpoint válido, cargar sus campos
       config.dependency.field = null;
+      config.dependency.fieldRenamed = null;
+      config.dependency.filterByField = null;
+      // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
+      if (config.refService) {
+        config.editable = true;
+      }
       this.loadTargetFields(propKey, type, config.dependency.target);
     }
   }
 
   onSecondaryLookupToggle(propKey: string, type: string) {
-    const config = this.getFieldConfig(propKey, type);
-    if (config.hasSecondaryLookup) {
-      config.secondaryDependency = {
-        type: null,
-        target: null,
-        field: null
-      };
-    } else {
-      config.secondaryDependency = null;
-      const cacheKey = `${type}_${propKey}`;
-      delete this.secondaryTargetEndpoints[cacheKey];
-      delete this.secondaryTargetFields[cacheKey];
-    }
+    // IMPORTANTE: Esperar a que Angular actualice el modelo antes de verificar cambios
+    // El ngModelChange se ejecuta ANTES de que el modelo se actualice, así que necesitamos esperar
+    setTimeout(() => {
+      const config = this.getFieldConfig(propKey, type);
+      
+      // Asegurar que dependency existe antes de usarlo
+      if (!config.dependency && config.refService) {
+        config.dependency = {
+          type: config.refService,
+          target: null,
+          field: null,
+          fieldRenamed: null,
+          filterByField: null
+        };
+      }
+      
+      // Cuando se activa, asegurar que los campos estén disponibles
+      if (config.hasSecondaryLookup) {
+        if (config.dependency) {
+          if (!config.dependency.hasOwnProperty('fieldRenamed')) {
+            config.dependency.fieldRenamed = null;
+          }
+          if (!config.dependency.hasOwnProperty('filterByField')) {
+            config.dependency.filterByField = null;
+          }
+        }
+        
+        // Forzar detección de cambios y verificar campos disponibles
+        this.getCurrentDtoFields(propKey, type);
+      }
+      
+      // Cuando se desactiva, limpiar campos
+      if (!config.hasSecondaryLookup && config.dependency) {
+        config.dependency.fieldRenamed = null;
+        config.dependency.filterByField = null;
+      }
+      
+      // Incrementar contador para forzar re-evaluación del getter
+      this.configChangeCounter++;
+      
+      // Forzar detección de cambios para actualizar el botón
+      // Usar múltiples estrategias para asegurar que Angular detecte el cambio
+      this.cdr.markForCheck();
+      
+      // Ejecutar en el próximo ciclo de detección de cambios
+      setTimeout(() => {
+        this.cdr.detectChanges();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      }, 0);
+    }, 0);
   }
 
-  onSecondaryDependencyTypeChange(propKey: string, type: string) {
-    const config = this.getFieldConfig(propKey, type);
-    const cacheKey = `${type}_${propKey}`;
-    if (config.secondaryDependency) {
-      config.secondaryDependency.target = null;
-      config.secondaryDependency.field = null;
-      delete this.secondaryTargetEndpoints[cacheKey];
-      delete this.secondaryTargetFields[cacheKey];
-      
-      if (config.secondaryDependency.type) {
-        this.loadTargetEndpoints(propKey, type, config.secondaryDependency.type, true);
-      }
-    }
+  getTargetFields(tab: string, propKey: string): string[] {
+    const cacheKey = `${tab}_${propKey}`;
+    const fields = this.targetFields[cacheKey];
+    return fields && Array.isArray(fields) ? fields : [];
+  }
+
+  getTargetFieldsCount(tab: string, propKey: string): number {
+    return this.getTargetFields(tab, propKey).length;
+  }
+
+  getCurrentDtoFields(propKey: string, tab: string): string[] {
+    if (!this.endpoint) return [];
+    
+    const dto = tab === 'request' ? this.endpoint.request_dto : this.endpoint.response_dto;
+    if (!dto) return [];
+    
+    const fields = this.extractPropsFromDto(dto);
+    if (fields.length === 0) return [];
+    
+    // Excluir el atributo que se está configurando actualmente (editingPropKey)
+    return fields.filter(f => f !== propKey && f.toLowerCase() !== propKey.toLowerCase());
   }
 
   formatAIResponse(text: string): string {
@@ -1562,12 +1742,110 @@ export class ActionDefinitionComponent implements OnInit {
       .replace(/\n/g, '<br>');
   }
 
-  onSecondaryDependencyTargetChange(propKey: string, type: string) {
+
+
+  onFilterByFieldChange(propKey: string, type: string) {
+    // IMPORTANTE: Esperar a que Angular actualice el modelo antes de verificar cambios
+    setTimeout(() => {
+      const config = this.getFieldConfig(propKey, type);
+      
+      // Incrementar contador para forzar re-evaluación del getter
+      this.configChangeCounter++;
+      
+      // Forzar detección de cambios cuando se selecciona un valor en "FILTRADO POR"
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+    }, 0);
+  }
+
+  onShowIdWithDescriptionToggle(propKey: string, type: string) {
     const config = this.getFieldConfig(propKey, type);
-    if (config.secondaryDependency?.target) {
-      config.secondaryDependency.field = null;
-      this.loadTargetFields(propKey, type, config.secondaryDependency.target, true);
+    // Si se desactiva el switch, limpiar el campo
+    if (!config.showIdWithDescription) {
+      config.showIdWithDescriptionField = null;
     }
+    // Si se activa el switch, NO establecer ningún valor por defecto
+    // El usuario debe seleccionar manualmente el atributo que desea mostrar
+    // Incrementar contador para forzar re-evaluación
+    this.configChangeCounter++;
+    this.cdr.markForCheck();
+  }
+
+  onDependencyFieldChange(propKey: string, type: string) {
+    const config = this.getFieldConfig(propKey, type);
+    // Si se selecciona null o el valor por defecto, limpiar el field
+    if (!config.dependency?.field || config.dependency.field === 'null') {
+      if (config.dependency) {
+        config.dependency.field = null;
+        config.dependency.fieldRenamed = null;
+      }
+      // Si se limpia el campo, también limpiar showIdWithDescriptionField
+      if (config.showIdWithDescriptionField) {
+        config.showIdWithDescriptionField = null;
+      }
+    } else if (config.dependency?.field) {
+      // Si se selecciona un campo válido, limpiar el nombre renombrado
+      config.dependency.fieldRenamed = null;
+      // NO establecer showIdWithDescriptionField automáticamente
+      // Debe ser una selección independiente del usuario
+      // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
+      if (config.refService) {
+        config.editable = true;
+      }
+    }
+    
+    // Forzar detección de cambios cuando se selecciona un atributo a mostrar
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
+  }
+
+
+  isReferenceModalValid(): boolean {
+    if (!this.editingPropKey || !this.editingTab) return false;
+    
+    const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
+    
+    // Si hay servicio seleccionado, el endpoint es obligatorio
+    if (config.refService) {
+      if (!config.dependency?.target) return false;
+      
+      // El "ATRIBUTO A MOSTRAR" es siempre obligatorio (independiente del switch)
+      if (!config.dependency?.field) return false;
+      
+      // Si el switch "Filtrar por" está activado, validar campos adicionales
+      if (config.hasSecondaryLookup) {
+        // "FILTRADO POR" es obligatorio cuando el switch está activo
+        // PERO: Si hay cambios detectados (por ejemplo, se acaba de activar el switch),
+        // permitimos habilitar el botón para que el usuario pueda seleccionar el valor
+        // La validación completa se hará en saveReferenceConfig() antes de guardar
+        if (!config.dependency?.filterByField) {
+          // NO bloqueamos aquí - permitimos que continúe la validación
+          // El usuario puede seleccionar el valor después de activar el switch
+        }
+        
+        // Si hay field configurado, el "NOMBRE TÉCNICO DEL ATRIBUTO LLAVE (RENOMBRADO)" es obligatorio
+        // PERO: Solo si ya hay un field seleccionado (no cuando se acaba de activar el switch)
+      }
+    }
+    
+    // Verificar que haya cambios en la configuración
+    // Si hay cambios, habilitamos el botón (incluso si faltan algunos campos obligatorios)
+    // La validación completa se hará en saveReferenceConfig() antes de guardar
+    return this.hasReferenceConfigChanged();
+  }
+  
+  // Getter para forzar evaluación en cada ciclo de detección de cambios
+  // Este getter se evalúa en cada ciclo de detección de cambios de Angular
+  // Incluimos configChangeCounter para forzar re-evaluación cuando cambia
+  get canSaveReferenceConfig(): boolean {
+    if (!this.isModalOpen || !this.editingPropKey || !this.editingTab) {
+      return false;
+    }
+    // Forzar evaluación accediendo al contador (aunque no lo usemos, fuerza re-evaluación)
+    const _ = this.configChangeCounter;
+    const result = this.isReferenceModalValid();
+    return result;
   }
 
   analyzeWithAI() {
@@ -1613,7 +1891,7 @@ export class ActionDefinitionComponent implements OnInit {
             '¿Cómo mejora la productividad? -> El usuario no tiene que recordar códigos de memoria.',
             '¿Afecta el rendimiento? -> No, el middleware cachea estas relaciones.'
           ],
-          action: 'CAMBIO SUGERIDO: Activar "Búsqueda de valores relacionados".'
+          action: 'CAMBIO SUGERIDO: Activar "Filtrar por".'
         });
       }
 
@@ -1679,7 +1957,7 @@ export class ActionDefinitionComponent implements OnInit {
           detailResponse = `He verificado el flujo. Asegúrate de que el endpoint devuelva un esquema compatible con los campos elegidos.`;
         }
       } else if (question.includes('llave') || question.includes('id')) {
-        detailResponse = `La "Llave" es vital. Si el servicio origen te da un ID numérico, ese mismo ID debe existir en el servicio relacionado.`;
+        detailResponse = `La "Llave" es vital para vincular correctamente los datos entre servicios.`;
       } else {
         detailResponse = `He analizado tu duda sobre "${userMsg}". Te sugiero revisar si este campo debe ser obligatorio en la pantalla principal.`;
       }
@@ -1697,6 +1975,167 @@ export class ActionDefinitionComponent implements OnInit {
     this.isModalOpen = false;
     this.editingPropKey = '';
     this.editingTab = '';
+    this.initialReferenceConfig = null;
+    this.configChangeCounter = 0; // Reiniciar contador al cerrar
+  }
+
+  saveReferenceConfig() {
+    // Validar campos obligatorios y errores críticos antes de guardar
+    if (!this.editingPropKey || !this.editingTab) {
+      alert('Error: No se puede guardar la configuración. Falta información del campo.');
+      return;
+    }
+    
+    const config = this.getFieldConfig(this.editingPropKey, this.editingTab);
+    
+    // Validar campos obligatorios
+    if (config.refService) {
+      // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
+      config.editable = true;
+      
+      if (!config.dependency?.target) {
+        alert('Por favor seleccione un endpoint antes de guardar.');
+        return;
+      }
+      if (!config.dependency?.field) {
+        alert('Por favor seleccione un atributo a mostrar antes de guardar.');
+        return;
+      }
+      if (config.hasSecondaryLookup) {
+        if (!config.dependency?.filterByField) {
+          alert('Por favor seleccione un atributo para "Filtrar por" antes de guardar.');
+          return;
+        }
+      }
+    }
+    
+    // Verificar que haya cambios
+    if (!this.hasReferenceConfigChanged()) {
+      alert('No hay cambios para guardar.');
+      return;
+    }
+
+    if (!this.editingPropKey || !this.editingTab || !this.endpoint) {
+      alert('Error: No se puede guardar la configuración. Falta información del campo.');
+      return;
+    }
+
+    // La configuración ya está actualizada en this.endpoint.configuracion_ui.fields_config
+    // porque getFieldConfig() devuelve una referencia directa a la configuración
+    // Solo necesitamos persistir los cambios llamando a saveDefinition()
+    
+    const ep = this.endpoint;
+    if (!ep) {
+      alert('Error: No se encontró el endpoint para guardar.');
+      return;
+    }
+
+    const mapping = {
+      backend_service_id: this.serviceId,
+      endpoint_path: this.path,
+      metodo: this.method,
+      frontend_service_id: 'default',
+      configuracion_ui: {
+        ...ep.configuracion_ui,
+        label: this.actionName,
+        description: this.actionDescription,
+        parameters: ep.parameters,
+        request_dto: ep.request_dto,
+        response_dto: ep.response_dto
+      }
+    };
+
+    this.middlewareService.toggleEndpointMapping(mapping).subscribe({
+      next: () => {
+        // Actualizar el estado inicial después de guardar para que el botón se deshabilite
+        // IMPORTANTE: Normalizar de la misma manera que en openReferenceModal para comparaciones correctas
+        const currentConfig = this.getFieldConfig(this.editingPropKey, this.editingTab);
+        this.initialReferenceConfig = JSON.parse(JSON.stringify({
+          refService: currentConfig.refService || null,
+          dependency: currentConfig.dependency ? {
+            type: currentConfig.dependency.type || null,
+            target: currentConfig.dependency.target || null,
+            field: currentConfig.dependency.field || null,
+            fieldRenamed: currentConfig.dependency.fieldRenamed || null,
+            filterByField: currentConfig.dependency.filterByField || null
+          } : null,
+          hasSecondaryLookup: currentConfig.hasSecondaryLookup === true, // Normalizar a boolean explícito
+          refDisplay: currentConfig.refDisplay || null,
+          refDescriptionService: currentConfig.refDescriptionService || null,
+          showIdWithDescription: currentConfig.showIdWithDescription === true, // Normalizar a boolean explícito
+          showIdWithDescriptionField: currentConfig.showIdWithDescriptionField || null
+        }));
+        
+        
+        // Mostrar mensaje de éxito
+        alert('Configuración guardada correctamente');
+        
+        // Cerrar el modal después de guardar exitosamente
+        this.closeModal();
+      },
+      error: (err) => {
+        alert('Error al guardar la configuración: ' + (err.error?.detail || err.message || 'Error desconocido'));
+        // Error ya mostrado al usuario en alert
+      }
+    });
+  }
+
+  hasReferenceConfigChanged(): boolean {
+    if (!this.editingPropKey || !this.editingTab) return false;
+    
+    if (!this.initialReferenceConfig) {
+      const currentConfig = this.getFieldConfig(this.editingPropKey, this.editingTab);
+      return !!(currentConfig.refService || currentConfig.dependency);
+    }
+    
+    const currentConfig = this.getFieldConfig(this.editingPropKey, this.editingTab);
+    const initial = this.initialReferenceConfig;
+    
+    // Normalizar valores para comparación (undefined -> null, boolean explícito)
+    // IMPORTANTE: Usar comparación estricta para detectar cambios correctamente
+    const currentHasSecondary = currentConfig.hasSecondaryLookup === true;
+    const initialHasSecondary = initial.hasSecondaryLookup === true;
+    
+    // Comparar todos los campos relevantes
+    const currentRefService = currentConfig.refService || null;
+    const initialRefService = initial.refService || null;
+    if (currentRefService !== initialRefService) return true;
+    
+    // Comparar hasSecondaryLookup - CRÍTICO para detectar cambios del switch
+    if (currentHasSecondary !== initialHasSecondary) return true;
+    
+    if (currentConfig.refDisplay !== initial.refDisplay) return true;
+    if (currentConfig.refDescriptionService !== initial.refDescriptionService) return true;
+    
+    // Normalizar showIdWithDescription para comparación booleana explícita
+    const currentShowId = currentConfig.showIdWithDescription === true;
+    const initialShowId = initial.showIdWithDescription === true;
+    if (currentShowId !== initialShowId) return true;
+    
+    // Comparar showIdWithDescriptionField
+    const currentShowIdField = currentConfig.showIdWithDescriptionField || null;
+    const initialShowIdField = initial.showIdWithDescriptionField || null;
+    if (currentShowIdField !== initialShowIdField) return true;
+    
+    // Comparar dependency
+    if (!currentConfig.dependency && !initial.dependency) return false;
+    if (!currentConfig.dependency || !initial.dependency) return true;
+    
+    // Comparar campos de dependency (usando comparación segura para null/undefined)
+    const currentDep = currentConfig.dependency;
+    const initialDep = initial.dependency || {};
+    
+    if (currentDep.type !== initialDep.type) return true;
+    if (currentDep.target !== initialDep.target) return true;
+    if (currentDep.field !== initialDep.field) return true;
+    if (currentDep.fieldRenamed !== initialDep.fieldRenamed) return true;
+    
+    // Comparar filterByField (importante para detectar cambios cuando se activa el switch)
+    const currentFilter = currentDep.filterByField || null;
+    const initialFilter = initialDep.filterByField || null;
+    if (currentFilter !== initialFilter) return true;
+    
+    return false;
   }
 
   applyAISuggestion(sug: any) {
@@ -1715,13 +2154,11 @@ export class ActionDefinitionComponent implements OnInit {
       case 'enable_secondary':
         config.hasSecondaryLookup = true;
         this.onSecondaryLookupToggle(this.editingPropKey, this.editingTab);
-        // Si hay un servicio relacionado configurado, cargar sus endpoints
-        if (config.secondaryDependency?.type) {
-          this.loadTargetEndpoints(this.editingPropKey, this.editingTab, config.secondaryDependency.type, true);
-        }
         break;
       case 'show_id':
         config.showIdWithDescription = true;
+        // NO establecer showIdWithDescriptionField automáticamente
+        // Debe ser una selección independiente del usuario
         break;
     }
 
@@ -1741,9 +2178,6 @@ export class ActionDefinitionComponent implements OnInit {
         if (config.refService) {
           this.loadTargetEndpoints(this.editingPropKey, this.editingTab, config.refService);
         }
-        if (config.hasSecondaryLookup && config.secondaryDependency?.type) {
-          this.loadTargetEndpoints(this.editingPropKey, this.editingTab, config.secondaryDependency.type, true);
-        }
       }
     }, 1500);
   }
@@ -1753,16 +2187,39 @@ export class ActionDefinitionComponent implements OnInit {
     this.editingTab = tab;
     this.isModalOpen = true;
     
+    // Reiniciar contador de cambios
+    this.configChangeCounter = 0;
+    
+    // Guardar el estado inicial de la configuración para detectar cambios
+    // IMPORTANTE: Hacer una copia profunda ANTES de cualquier modificación
+    const config = this.getFieldConfig(propKey, tab);
+    
+    // Crear una copia profunda del estado actual para comparación
+    // Esto asegura que cualquier modificación posterior no afecte el estado inicial
+    const configCopy = {
+      refService: config.refService || null,
+      dependency: config.dependency ? {
+        type: config.dependency.type || null,
+        target: config.dependency.target || null,
+        field: config.dependency.field || null,
+        fieldRenamed: config.dependency.fieldRenamed || null,
+        filterByField: config.dependency.filterByField || null
+      } : null,
+      hasSecondaryLookup: Boolean(config.hasSecondaryLookup === true), // Normalizar a boolean explícito
+      refDisplay: config.refDisplay || null,
+      refDescriptionService: config.refDescriptionService || null,
+      showIdWithDescription: Boolean(config.showIdWithDescription === true) // Normalizar a boolean explícito
+    };
+    
+    // Hacer una copia profunda usando JSON para evitar referencias compartidas
+    this.initialReferenceConfig = JSON.parse(JSON.stringify(configCopy));
+    
     // Limpiar chat para el nuevo contexto
     this.chatHistory = [];
     this.aiSuggestions = null;
     this.userQuestion = '';
-    const config = this.getFieldConfig(propKey, tab);
     if (config.refService) {
       this.loadTargetEndpoints(propKey, tab, config.refService);
-    }
-    if (config.hasSecondaryLookup && config.secondaryDependency?.type) {
-      this.loadTargetEndpoints(propKey, tab, config.secondaryDependency.type, true);
     }
   }
 
@@ -1874,7 +2331,6 @@ export class ActionDefinitionComponent implements OnInit {
     this.detectedDtos = [];
     
     if (rootDto) {
-      console.log('Procesando DTO Raíz:', rootDto);
       this.extractAllDtos(rootDto, rootDto.name || 'DTO');
       
       if (this.detectedDtos.length > 0) {
@@ -2088,6 +2544,11 @@ export class ActionDefinitionComponent implements OnInit {
       }
       return true;
     });
+  }
+
+  getAllAvailableEndpoints(): Endpoint[] {
+    // Retorna todos los endpoints disponibles del servicio para navegación
+    return this.serviceEndpoints.filter(ep => ep.is_enabled);
   }
 
   // Lógica para Vista Previa UI

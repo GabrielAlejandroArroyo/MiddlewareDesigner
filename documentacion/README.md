@@ -10,6 +10,9 @@ Este monorepo es un ecosistema completo para el diseño de interfaces dinámicas
 
 ## 📂 Guía de Navegación
 
+### 📋 [Requisitos de producto (PRD)](PRD.md)
+Documento de requisitos del producto: descripción, usuarios, funcionalidades (backend, middleware, frontend), flujos, API, modelo de datos y criterios de éxito.
+
 ### 🏛️ [Arquitectura General](arquitectura/general.md)
 Diagramas C4 y de secuencia. Explica el flujo de datos desde el microservicio hasta la UI y el proceso de aplanamiento de herencia.
 
