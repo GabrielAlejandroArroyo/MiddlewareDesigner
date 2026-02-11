@@ -1,7 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { Component, inject } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter, Routes, RouterOutlet, RouterModule } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideRouter, Routes, RouterOutlet, RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BackendManagementComponent } from './app/features/backend-management/backend-management.component';
 import { EndpointInspectorComponent } from './app/features/endpoint-inspector/endpoint-inspector.component';
@@ -9,9 +9,13 @@ import { ActionDefinitionComponent } from './app/features/action-definition/acti
 import { PreviewComponent } from './app/features/preview/preview.component';
 import { CustomPageDesignerComponent } from './app/features/custom-page-designer/custom-page-designer.component';
 import { DashboardComponent } from './app/features/dashboard/dashboard.component';
+import { LoginComponent } from './app/features/login/login.component';
 import { ThemeService } from './app/core/services/theme.service';
+import { AuthService } from './app/core/services/auth.service';
+import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 
 const routes: Routes = [
+  { path: 'login', component: LoginComponent },
   { path: '', component: DashboardComponent },
   { path: 'backends', component: BackendManagementComponent },
   { path: 'preview', component: PreviewComponent },
@@ -26,7 +30,8 @@ const routes: Routes = [
   standalone: true,
   imports: [RouterOutlet, RouterModule, CommonModule],
   template: `
-    <div class="d-flex h-100 vh-100 overflow-hidden">
+    <router-outlet *ngIf="isLoginRoute()"></router-outlet>
+    <div class="d-flex h-100 vh-100 overflow-hidden" *ngIf="!isLoginRoute()">
       <!-- Sidebar Vertical -->
       <aside class="sidebar bg-dark text-white shadow d-flex flex-column transition-all" 
              [class.collapsed]="isCollapsed">
@@ -82,6 +87,9 @@ const routes: Routes = [
 
         <div class="sidebar-footer p-3 border-top border-secondary border-opacity-25" *ngIf="!isCollapsed">
           <div class="small text-muted text-center">v1.2.0-beta</div>
+          <button class="btn btn-sm btn-outline-secondary w-100 mt-2" (click)="logout()" *ngIf="authService.isLoggedIn()" title="Cerrar sesión">
+            <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+          </button>
         </div>
       </aside>
 
@@ -93,8 +101,14 @@ const routes: Routes = [
           </h5>
           <h5 class="mb-0 fw-bold">Middleware Designer</h5>
           
-          <!-- Toggle de Tema -->
+          <!-- Toggle de Tema, usuario y logout -->
           <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted me-2" *ngIf="authService.username() as u">{{ u }}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 d-flex align-items-center gap-2"
+                    (click)="logout()" *ngIf="authService.isLoggedIn()" title="Cerrar sesión">
+              <i class="bi bi-box-arrow-right"></i>
+              <span class="d-none d-md-inline fw-bold">Cerrar sesión</span>
+            </button>
             <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-flex align-items-center gap-2" 
                     (click)="themeService.toggleTheme()"
                     [title]="themeService.currentTheme() === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'">
@@ -193,12 +207,23 @@ const routes: Routes = [
 })
 export class App {
   themeService = inject(ThemeService);
+  authService = inject(AuthService);
+  router = inject(Router);
   isCollapsed = true;
+
+  isLoginRoute(): boolean {
+    return this.router.url === '/login' || this.router.url.startsWith('/login?');
+  }
+
+  logout(): void {
+    this.authService.clearCredentials();
+    this.router.navigate(['/login']);
+  }
 }
 
 bootstrapApplication(App, {
   providers: [
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(routes)
   ]
 }).catch(err => console.error(err));
