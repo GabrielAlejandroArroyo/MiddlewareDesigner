@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from typing import List
 from datetime import datetime
@@ -6,12 +6,17 @@ from urllib.parse import urlparse
 from config.database import AsyncSessionLocal
 from entity.config_models import FrontendService, BackendMapping, BackendService
 from dto.config_dtos import (
-    FrontendServiceCreate, FrontendServiceResponse, 
+    FrontendServiceCreate, FrontendServiceResponse,
     BackendMappingCreate, BackendServiceCreate, BackendServiceResponse
 )
 from services.openapi_service import OpenApiService
+from auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/config", tags=["Middleware Configuration"])
+router = APIRouter(
+    prefix="/config",
+    tags=["Middleware Configuration"],
+    dependencies=[Depends(get_current_user)],
+)
 openapi_service = OpenApiService()
 
 def _service_to_dto(svc: BackendService) -> BackendServiceResponse:

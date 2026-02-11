@@ -1,0 +1,48 @@
+# Product Requirements Document (PRD) — Middleware Designer
+
+Documento de requisitos del producto. Para el PRD completo (descripción, usuarios, funcionalidades por capa, flujos, API y modelo de datos) ver **[../documentacion/PRD.md](../documentacion/PRD.md)**.
+
+Esta página resume las secciones afectadas por **seguridad y autenticación** en el middleware.
+
+---
+
+## Seguridad y autenticación en el middleware
+
+### Descripción
+
+El middleware incluye un sistema de login configurable:
+
+- **Por defecto**: autenticación **Basic Auth** (usuario y contraseña configurados por variables de entorno).
+- **Preparado para**: conectar un IAM como **Keycloak** (OIDC/JWT) en el futuro, sin cambiar la lógica de rutas.
+
+### Rutas afectadas
+
+| Ruta | Protegida | Notas |
+|------|-----------|--------|
+| `GET /` | No | Health/welcome; útil para balanceadores y comprobación de que el servicio está vivo. |
+| `GET /docs`, `GET /openapi.json` | No | Documentación. |
+| `/api/v1/config/*` | Sí | Todas las operaciones de configuración (backends, mapeos, inspect, refresh, etc.) requieren autenticación. |
+
+### Flujo de usuario (Designer UI)
+
+1. El usuario accede al Designer UI. Si el middleware exige auth y no hay credenciales, la primera petición devuelve **401** y el frontend redirige a **/login**.
+2. En la pantalla de login el usuario introduce usuario y contraseña (Basic Auth).
+3. Tras un login correcto (petición de prueba con `Authorization: Basic ...` que devuelve 200), se redirige al panel principal.
+4. Un interceptor HTTP añade el header `Authorization` a todas las peticiones al middleware.
+5. Si en cualquier momento el middleware devuelve **401**, se limpian las credenciales y se redirige de nuevo a **/login**.
+
+### API y OpenAPI
+
+- Las rutas bajo `/api/v1/config` requieren el header `Authorization: Basic <base64(user:password)>` (o en el futuro `Bearer <JWT>`).
+- El OpenAPI del middleware declara el esquema de seguridad **BasicAuth** para que Swagger UI permita probar con usuario y contraseña.
+
+### Configuración
+
+Ver **[auth.md](auth.md)** para variables de entorno (`AUTH_TYPE`, `MIDDLEWARE_AUTH_USER`, `MIDDLEWARE_AUTH_PASSWORD`, y opciones OIDC para Keycloak) y detalles de implementación.
+
+---
+
+## Referencias
+
+- [documentacion/PRD.md](../documentacion/PRD.md) — PRD completo.
+- [auth.md](auth.md) — Autenticación en el middleware (Basic y preparado para Keycloak).
