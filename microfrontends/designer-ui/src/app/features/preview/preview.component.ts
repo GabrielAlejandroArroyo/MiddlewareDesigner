@@ -759,8 +759,10 @@ export class PreviewComponent implements OnInit {
 
   fetchRefData(serviceId: string | undefined, fieldConfig?: any) {
     if (!serviceId) return;
-    // Si tiene hasSecondaryLookup y filterByField, usar el endpoint configurado
-    if (fieldConfig?.hasSecondaryLookup && fieldConfig?.dependency?.target && fieldConfig?.dependency?.filterByField) {
+    // Variante B (GET con params en path): si tiene hasSecondaryLookup y filterByField, usar endpoint filtrado
+    const targetPath = fieldConfig?.dependency?.target;
+    const isVarianteB = targetPath && typeof targetPath === 'string' && targetPath.includes('{');
+    if (isVarianteB && fieldConfig?.hasSecondaryLookup && fieldConfig?.dependency?.filterByField) {
       const filterValue = this.formData[fieldConfig.dependency.filterByField];
       if (filterValue) {
         this.fetchRefDataWithFilter(serviceId, fieldConfig.dependency.filterByField, filterValue, fieldConfig);
@@ -768,7 +770,7 @@ export class PreviewComponent implements OnInit {
       }
     }
     
-    // Cache key para datos sin filtro
+    // Variante A (listado) o variante B sin valor de filtro: cache key para datos sin filtro
     const cacheKey = `${serviceId}_all`;
     if (this.refDataCache[cacheKey]) {
       this.refDataCache[serviceId] = this.refDataCache[cacheKey];
@@ -790,10 +792,14 @@ export class PreviewComponent implements OnInit {
 
     // Ejecutar de forma asíncrona para no bloquear
     Promise.resolve().then(() => {
-      // Intentar encontrar el endpoint GET principal del servicio referenciado
+      // Variante A: usar endpoint configurado (dependency.target) si es GET sin params; si no, primer GET listado
       this.middlewareService.inspectService(serviceId).subscribe({
         next: (data) => {
-          const getEndpoint = data.endpoints.find((e: any) => e.method === 'GET' && !e.path.includes('{'));
+          const configuredPath = fieldConfig?.dependency?.target;
+          const useConfigured = configuredPath && typeof configuredPath === 'string' && !configuredPath.includes('{');
+          const getEndpoint = useConfigured && data.endpoints
+            ? data.endpoints.find((e: any) => e.method === 'GET' && e.path === configuredPath)
+            : data.endpoints?.find((e: any) => e.method === 'GET' && !e.path.includes('{'));
           if (getEndpoint) {
             let baseUrl = service.host;
             if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
@@ -999,12 +1005,10 @@ export class PreviewComponent implements OnInit {
     if (display === 'desc') {
       const desc = item.descripcion || item.nombre || item.label || val;
       if (showId && fieldConfig?.showIdWithDescription) {
-        // Si hay un campo específico configurado, usar ese; si no, usar el ID
-        const fieldToShow = fieldConfig.showIdWithDescriptionField || fieldConfig.dependency?.field || 'id';
-        const valueToShow = item[fieldToShow] !== undefined && item[fieldToShow] !== null 
-          ? item[fieldToShow] 
-          : val;
-        const fieldLabel = fieldToShow === 'id' || fieldToShow === fieldConfig.dependency?.field ? 'ID' : fieldToShow;
+        // Valor entre paréntesis = Atributo interno (valueField), misma lógica que getOptionValue
+        const valueToShow = this.getInternalValueFromItem(item, fieldConfig);
+        const valueFieldForParens = fieldConfig?.dependency?.valueField ?? fieldConfig?.dependency?.field ?? 'id';
+        const fieldLabel = valueFieldForParens === 'id' ? 'id' : valueFieldForParens;
         return `${desc} (${fieldLabel}: ${valueToShow})`;
       }
       return desc;
@@ -1012,22 +1016,29 @@ export class PreviewComponent implements OnInit {
     return val;
   }
 
+  /** Valor del Atributo interno (valueField) desde un item del DTO; misma lógica que getOptionValue. */
+  private getInternalValueFromItem(item: any, fieldConfig: any): any {
+    if (!item) return undefined;
+    const refField = fieldConfig?.dependency?.valueField ?? fieldConfig?.dependency?.field ?? 'id';
+    let val = item[refField];
+    if (val === null || val === undefined) {
+      const found = Object.entries(item).find(([k]) => k.toLowerCase() === refField.toLowerCase());
+      val = found?.[1];
+    }
+    if (val === null || val === undefined) val = item.id || item.codigo;
+    if (val === null || val === undefined && Object.keys(item).length > 0) val = Object.values(item)[0];
+    return val;
+  }
+
   getOptionLabel(opt: any, fieldConfig: any): string {
     if (!opt) return '';
     
-    // Identificar el campo configurado para mostrar (dependency.field)
-    // Según la configuración estándar: dependency.field es el atributo del response_dto que se usa como valor
+    // Campo para el texto principal: Atributo a Mostrar (dependency.field)
     const displayField = fieldConfig?.dependency?.field || 'id';
-    
-    // Obtener el valor del campo configurado
     let displayValue = opt[displayField];
-    
-    // Si no se encuentra el campo configurado, buscar en campos comunes
     if (displayValue === null || displayValue === undefined) {
-      // Buscar en campos comunes primero
       displayValue = opt.id || opt.codigo || opt[displayField];
       if (!displayValue) {
-        // Buscar cualquier campo que contenga el nombre del campo configurado
         const found = Object.entries(opt).find(([k]) => 
           k.toLowerCase() === displayField.toLowerCase() || 
           k.toLowerCase().includes(displayField.toLowerCase())
@@ -1035,53 +1046,21 @@ export class PreviewComponent implements OnInit {
         displayValue = found?.[1];
       }
     }
-    
-    // Obtener la descripción (siempre mostrar descripción si está disponible)
     const desc = opt.descripcion || opt.nombre || opt.label || displayValue || 'Sin valor';
     
-    // Si showIdWithDescription está activo, mostrar el atributo junto a la descripción
+    // Si showIdWithDescription está activo: valor entre paréntesis = Atributo interno (valueField), misma lógica que getOptionValue
     if (fieldConfig?.showIdWithDescription) {
-      const fieldToShow = fieldConfig.showIdWithDescriptionField || displayField;
-      const valueToShow = opt[fieldToShow] !== undefined && opt[fieldToShow] !== null 
-        ? opt[fieldToShow] 
-        : displayValue;
-      
-      const fieldLabel = fieldToShow === displayField ? 'ID' : fieldToShow;
+      const valueToShow = this.getInternalValueFromItem(opt, fieldConfig);
+      const valueFieldForParens = fieldConfig?.dependency?.valueField ?? fieldConfig?.dependency?.field ?? 'id';
+      const fieldLabel = valueFieldForParens === 'id' ? 'id' : valueFieldForParens;
       return `${desc} (${fieldLabel}: ${valueToShow})`;
     }
     
-    // Por defecto, mostrar la descripción
     return String(desc);
   }
 
   getOptionValue(opt: any, fieldConfig: any): any {
-    if (!opt) return undefined;
-    
-    // Usar el campo configurado en dependency.field como valor
-    // Este es el campo del response_dto que se guardará en formData
-    const refField = fieldConfig?.dependency?.field || 'id';
-    let val = opt[refField];
-    
-    // Si no se encuentra directamente, buscar variaciones del nombre
-    if (val === null || val === undefined) {
-      // Buscar exactamente el campo configurado (case insensitive)
-      const found = Object.entries(opt).find(([k]) => 
-        k.toLowerCase() === refField.toLowerCase()
-      );
-      val = found?.[1];
-    }
-    
-    // Si aún no se encuentra, buscar en campos comunes
-    if (val === null || val === undefined) {
-      val = opt.id || opt.codigo;
-    }
-    
-    // Si aún no se encuentra, usar el primer valor disponible
-    if (val === null || val === undefined && Object.keys(opt).length > 0) {
-      val = Object.values(opt)[0];
-    }
-    
-    return val;
+    return this.getInternalValueFromItem(opt, fieldConfig);
   }
 
   getFilteredOptions(refService: string, dependsOn?: string, fieldConfig?: any): any[] {

@@ -616,7 +616,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
 
                 <div class="dep-block animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).refService">
                   <span class="label-title">
-                    2. ENDPOINT (ACCESO A DATOS)
+                    2. SELECCIONAR MÉTODO DEL SERVICIO
                     <span class="text-danger">*</span>
                   </span>
                   <select class="form-select form-select-sm custom-select" 
@@ -624,9 +624,9 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                           [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.target"
                           (ngModelChange)="onDependencyTargetChange(editingPropKey, editingTab)"
                           [required]="getFieldConfig(editingPropKey, editingTab).refService">
-                    <option [value]="null">Seleccione un endpoint GET...</option>
+                    <option [value]="null">Seleccione un método GET...</option>
                     <option *ngFor="let ep of targetEndpoints[editingTab + '_' + editingPropKey]" [value]="ep.path">
-                      {{ ep.method }} {{ ep.path }}
+                      {{ ep.method }} {{ ep.path }}{{ isGetWithPathParams(ep) ? ' (por id)' : ' (listado)' }}
                     </option>
                   </select>
                   <div *ngIf="getFieldConfig(editingPropKey, editingTab).refService && !getFieldConfig(editingPropKey, editingTab).dependency?.target" class="x-small text-danger mt-1">
@@ -635,8 +635,8 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
               </div>
 
-              <!-- CHECK: FILTRAR POR -->
-              <div class="border-top pt-3 mb-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target">
+              <!-- CHECK: FILTRAR POR (solo variante B: GET con parámetros en path) -->
+              <div class="border-top pt-3 mb-3 animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target && isEditingDependencyTargetWithPathParams()">
                 <div class="form-check form-switch mb-3">
                   <input class="form-check-input" type="checkbox" id="checkRelacionados"
                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup"
@@ -711,6 +711,31 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                 </div>
               </div>
 
+              <!-- 4. ATRIBUTO INTERNO (valor asignado a la entidad al seleccionar en el desplegable) -->
+              <div class="dep-row animate-in mt-3" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.target">
+                <div class="dep-block bg-light">
+                  <span class="label-title">
+                    4. ATRIBUTO INTERNO
+                    <span class="text-danger">*</span>
+                  </span>
+                  <select class="form-select form-select-sm custom-select" 
+                          [class.is-invalid]="!getFieldConfig(editingPropKey, editingTab).dependency?.valueField"
+                          [(ngModel)]="getFieldConfig(editingPropKey, editingTab).dependency.valueField"
+                          required>
+                    <option [value]="null">Seleccione atributo interno (valor a asignar)...</option>
+                    <option *ngFor="let f of getTargetFields(editingTab, editingPropKey)" [value]="f">
+                      {{ f }}
+                    </option>
+                  </select>
+                  <div *ngIf="!getFieldConfig(editingPropKey, editingTab).dependency?.valueField" class="x-small text-danger mt-1">
+                    <i class="bi bi-exclamation-triangle"></i> Este campo es obligatorio. Es el atributo con el que se asigna el valor a la entidad al seleccionar en el desplegable.
+                  </div>
+                  <div class="x-small text-muted mt-1" *ngIf="getFieldConfig(editingPropKey, editingTab).dependency?.valueField">
+                    <i class="bi bi-check-circle"></i> Valor que se guardará en el formulario al elegir una opción (p. ej. id).
+                  </div>
+                </div>
+              </div>
+
               <!-- MODO B: CHECK ACTIVADO (BÚSQUEDA DE VALORES RELACIONADOS) -->
               <div class="animate-in" *ngIf="getFieldConfig(editingPropKey, editingTab).hasSecondaryLookup">
                 
@@ -732,7 +757,7 @@ import { MiddlewareService, Endpoint } from '../../core/services/middleware.serv
                            [(ngModel)]="getFieldConfig(editingPropKey, editingTab).showIdWithDescription"
                            (ngModelChange)="onShowIdWithDescriptionToggle(editingPropKey, editingTab)">
                     <label class="form-check-label small fw-bold" for="showIdCheckBottom">
-                      Mostrar atributo junto a la descripción
+                      Mostrar atributo junto a la descripción (id entre paréntesis)
                     </label>
                   </div>
                   
@@ -1485,7 +1510,8 @@ export class ActionDefinitionComponent implements OnInit {
         target: null,
         field: null,
         fieldRenamed: null,
-        filterByField: null
+        filterByField: null,
+        valueField: null
       };
     }
     
@@ -1496,6 +1522,9 @@ export class ActionDefinitionComponent implements OnInit {
       }
       if (!field.dependency.hasOwnProperty('filterByField')) {
         field.dependency.filterByField = null;
+      }
+      if (!field.dependency.hasOwnProperty('valueField')) {
+        field.dependency.valueField = null;
       }
     }
     
@@ -1625,7 +1654,8 @@ export class ActionDefinitionComponent implements OnInit {
         target: null, // Limpiar target para forzar selección obligatoria
         field: null,
         fieldRenamed: null,
-        filterByField: null
+        filterByField: null,
+        valueField: null
       };
       // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
       config.editable = true;
@@ -1642,12 +1672,19 @@ export class ActionDefinitionComponent implements OnInit {
         config.dependency.field = null;
         config.dependency.fieldRenamed = null;
         config.dependency.filterByField = null;
+        config.dependency.valueField = null;
       }
     } else if (config.dependency?.target) {
       // Si se selecciona un endpoint válido, cargar sus campos
       config.dependency.field = null;
       config.dependency.fieldRenamed = null;
       config.dependency.filterByField = null;
+      config.dependency.valueField = null;
+      // Variante A (GET sin params): ocultar "Filtrar por" y limpiar hasSecondaryLookup
+      const targetPath = config.dependency.target;
+      if (typeof targetPath === 'string' && !targetPath.includes('{')) {
+        config.hasSecondaryLookup = false;
+      }
       // Si REFERENCIA EXTERNA está configurado, el check de editable debe estar activo
       if (config.refService) {
         config.editable = true;
@@ -1669,7 +1706,8 @@ export class ActionDefinitionComponent implements OnInit {
           target: null,
           field: null,
           fieldRenamed: null,
-          filterByField: null
+          filterByField: null,
+          valueField: null
         };
       }
       
@@ -1681,6 +1719,9 @@ export class ActionDefinitionComponent implements OnInit {
           }
           if (!config.dependency.hasOwnProperty('filterByField')) {
             config.dependency.filterByField = null;
+          }
+          if (!config.dependency.hasOwnProperty('valueField')) {
+            config.dependency.valueField = null;
           }
         }
         
@@ -1778,6 +1819,7 @@ export class ActionDefinitionComponent implements OnInit {
       if (config.dependency) {
         config.dependency.field = null;
         config.dependency.fieldRenamed = null;
+        config.dependency.valueField = null;
       }
       // Si se limpia el campo, también limpiar showIdWithDescriptionField
       if (config.showIdWithDescriptionField) {
@@ -1813,25 +1855,17 @@ export class ActionDefinitionComponent implements OnInit {
       // El "ATRIBUTO A MOSTRAR" es siempre obligatorio (independiente del switch)
       if (!config.dependency?.field) return false;
       
-      // Si el switch "Filtrar por" está activado, validar campos adicionales
-      if (config.hasSecondaryLookup) {
-        // "FILTRADO POR" es obligatorio cuando el switch está activo
-        // PERO: Si hay cambios detectados (por ejemplo, se acaba de activar el switch),
-        // permitimos habilitar el botón para que el usuario pueda seleccionar el valor
-        // La validación completa se hará en saveReferenceConfig() antes de guardar
-        if (!config.dependency?.filterByField) {
-          // NO bloqueamos aquí - permitimos que continúe la validación
-          // El usuario puede seleccionar el valor después de activar el switch
-        }
-        
-        // Si hay field configurado, el "NOMBRE TÉCNICO DEL ATRIBUTO LLAVE (RENOMBRADO)" es obligatorio
-        // PERO: Solo si ya hay un field seleccionado (no cuando se acaba de activar el switch)
+      // El "ATRIBUTO INTERNO" (valor a asignar) es obligatorio cuando hay referencia
+      if (!config.dependency?.valueField) return false;
+      
+      // Variante B (GET con params): si "Filtrar por" está activo, filterByField es obligatorio
+      const isVarianteB = config.dependency?.target && String(config.dependency.target).includes('{');
+      if (isVarianteB && config.hasSecondaryLookup && !config.dependency?.filterByField) {
+        return false;
       }
     }
     
     // Verificar que haya cambios en la configuración
-    // Si hay cambios, habilitamos el botón (incluso si faltan algunos campos obligatorios)
-    // La validación completa se hará en saveReferenceConfig() antes de guardar
     return this.hasReferenceConfigChanged();
   }
   
@@ -2001,11 +2035,15 @@ export class ActionDefinitionComponent implements OnInit {
         alert('Por favor seleccione un atributo a mostrar antes de guardar.');
         return;
       }
-      if (config.hasSecondaryLookup) {
-        if (!config.dependency?.filterByField) {
-          alert('Por favor seleccione un atributo para "Filtrar por" antes de guardar.');
-          return;
-        }
+      if (!config.dependency?.valueField) {
+        alert('Por favor seleccione un atributo interno (valor a asignar) antes de guardar.');
+        return;
+      }
+      // Variante B (GET con params): si "Filtrar por" está activo, filterByField es obligatorio
+      const isVarianteB = config.dependency?.target && String(config.dependency.target).includes('{');
+      if (isVarianteB && config.hasSecondaryLookup && !config.dependency?.filterByField) {
+        alert('Por favor seleccione un atributo para "Filtrar por" antes de guardar.');
+        return;
       }
     }
     
@@ -2057,7 +2095,8 @@ export class ActionDefinitionComponent implements OnInit {
             target: currentConfig.dependency.target || null,
             field: currentConfig.dependency.field || null,
             fieldRenamed: currentConfig.dependency.fieldRenamed || null,
-            filterByField: currentConfig.dependency.filterByField || null
+            filterByField: currentConfig.dependency.filterByField || null,
+            valueField: currentConfig.dependency.valueField || null
           } : null,
           hasSecondaryLookup: currentConfig.hasSecondaryLookup === true, // Normalizar a boolean explícito
           refDisplay: currentConfig.refDisplay || null,
@@ -2135,6 +2174,10 @@ export class ActionDefinitionComponent implements OnInit {
     const initialFilter = initialDep.filterByField || null;
     if (currentFilter !== initialFilter) return true;
     
+    const currentValueField = currentDep.valueField || null;
+    const initialValueField = initialDep.valueField || null;
+    if (currentValueField !== initialValueField) return true;
+    
     return false;
   }
 
@@ -2203,7 +2246,8 @@ export class ActionDefinitionComponent implements OnInit {
         target: config.dependency.target || null,
         field: config.dependency.field || null,
         fieldRenamed: config.dependency.fieldRenamed || null,
-        filterByField: config.dependency.filterByField || null
+        filterByField: config.dependency.filterByField || null,
+        valueField: config.dependency.valueField || null
       } : null,
       hasSecondaryLookup: Boolean(config.hasSecondaryLookup === true), // Normalizar a boolean explícito
       refDisplay: config.refDisplay || null,
@@ -2544,6 +2588,18 @@ export class ActionDefinitionComponent implements OnInit {
       }
       return true;
     });
+  }
+
+  /** GET con parámetros en path (variante B): ej. GET /api/xxx/{id}. Variante A = listado sin params. */
+  isGetWithPathParams(ep: any): boolean {
+    return !!(ep && ep.path && typeof ep.path === 'string' && ep.path.includes('{'));
+  }
+
+  /** True si el método actualmente seleccionado en Configurar dependencias es GET con parámetros (variante B). */
+  isEditingDependencyTargetWithPathParams(): boolean {
+    if (!this.editingPropKey || !this.editingTab) return false;
+    const target = this.getFieldConfig(this.editingPropKey, this.editingTab).dependency?.target;
+    return !!(target && typeof target === 'string' && target.includes('{'));
   }
 
   getAllAvailableEndpoints(): Endpoint[] {

@@ -57,6 +57,29 @@ Middleware Designer es un ecosistema para **diseñar interfaces dinámicas** a p
 
 **Detalle**: Ver [Microfrontend Designer UI](frontend/README.md).
 
+#### Configurar dependencias (referencias entre campos)
+
+En **Definición de acción**, por cada atributo (Request/Response) se puede abrir el modal **Configurar dependencias** para vincular el campo a un catálogo externo. El flujo es:
+
+1. **1. Servicio (Origen externo)**  
+   Se elige el microservicio que expone los datos (catálogo). Si no se selecciona, el campo es valor manual.
+
+2. **2. Seleccionar método del Servicio**  
+   Solo se listan métodos **GET** que estén **activos** para ese servicio. Hay dos variantes:
+   - **Variante A — GET sin parámetros en path** (ej. `GET /api/paises/`): listado completo. El bloque **Filtrar por** no se muestra; no se exige filtro.
+   - **Variante B — GET con parámetros en path** (ej. `GET /api/paises/{id}`): acceso por id/parámetro. El bloque **Filtrar por** se muestra; si el usuario lo activa, la selección del **atributo del DTO actual** para filtrar es **obligatoria** (y se valida al guardar).
+
+3. **3. Atributo a Mostrar**  
+   Siempre obligatorio cuando hay servicio y método. El usuario elige qué atributo se **muestra** en el desplegable (ej. descripción).
+
+4. **4. Atributo interno**  
+   Obligatorio cuando hay referencia. Es el atributo del response_dto que se usa para la **asignación a la entidad**: el valor que se guarda en el formulario al seleccionar una opción (p. ej. `id`). Si no se configura `valueField`, en Preview se usa `field` o `id` por compatibilidad.
+
+5. **Opción de vista: Mostrar id entre paréntesis**  
+   Si se activa **Mostrar atributo junto a la descripción (id entre paréntesis)**, en Preview y listados se muestra el valor legible con el id (u otro atributo) entre paréntesis (ej. `Buenos Aires (ID: 5)`).
+
+Esta lógica se aplica en todos los formularios de configuración que usan este modal (Action Definition) y en el consumo en Preview.
+
 ---
 
 ## 4. Flujos de usuario principales
@@ -105,7 +128,7 @@ Middleware Designer es un ecosistema para **diseñar interfaces dinámicas** a p
 ### Middleware (`middleware_config.db`)
 - **backend_services**: id, nombre, host, puerto, openapi_url, swagger_hash, swagger_spec_cached, is_active, baja_logica, etc.
 - **frontend_services**: id, nombre, is_active.
-- **backend_mappings**: id, frontend_service_id, backend_service_id, endpoint_path, metodo, configuracion_ui (JSON con label, fields_config: visualName, show, order, refService, dependsOn).
+- **backend_mappings**: id, frontend_service_id, backend_service_id, endpoint_path, metodo, configuracion_ui (JSON con label, fields_config: visualName, show, order, refService, dependsOn, dependency: target, field, valueField, filterByField, hasSecondaryLookup, showIdWithDescription, showIdWithDescriptionField).
 - Detalle: [Modelos de Datos](arquitectura/modelos_datos.md).
 
 ---

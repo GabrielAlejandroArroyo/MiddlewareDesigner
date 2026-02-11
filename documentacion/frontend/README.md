@@ -16,6 +16,7 @@ Monitoreo en tiempo real del estado de salud de todos los microservicios.
 La pantalla más crítica del sistema, donde se transforman datos técnicos en experiencia de usuario:
 - **Pestaña Request/Response**: Permite ver la jerarquía completa de DTOs.
 - **Ordenación Drag & Drop**: Los atributos técnicos pueden ser reordenados arrastrándolos directamente en la tabla. El sistema actualiza automáticamente el atributo técnico `order` (de 1 a N), lo cual se refleja inmediatamente en la **Preview UI**.
+- **Configurar dependencias**: Por cada campo se puede abrir un modal para vincular a un catálogo externo: (1) Servicio origen, (2) Seleccionar método del Servicio (solo GET activos; variante listado sin params o variante con params en path), (3) Atributo a mostrar (lo que se ve en el desplegable), (4) Atributo interno (valor que se asigna a la entidad al seleccionar). En variante GET con parámetros, "Filtrar por" está disponible y es obligatorio si se activa; en variante listado, "Filtrar por" no se muestra. Opción de vista: mostrar id entre paréntesis junto a la descripción.
 - **Botón "Limpiar Caché Swagger"**: Permite al administrador forzar una re-lectura del contrato desde el microservicio sin salir de la pantalla de configuración.
 - **Preview UI**: Renderiza formularios y grillas en tiempo real según la configuración de visibilidad y orden definida.
 

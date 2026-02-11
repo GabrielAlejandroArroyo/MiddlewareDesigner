@@ -26,6 +26,13 @@ globs: ["microfrontends/**/*.ts", "microfrontends/**/*.tsx", "microfrontends/**/
 - Evitar lógica de negocio pesada en el frontend:
   - el frontend orquesta UI, no reglas core.
 
+## Configurar dependencias (Designer UI)
+
+- En el modal de dependencias: paso 2 se llama "Seleccionar método del Servicio"; solo se listan métodos GET activos.
+- Dos variantes de GET: sin parámetros en path (listado) y con parámetros en path (por id). Clasificación con `path.includes('{')`.
+- Variante listado: bloque "Filtrar por" oculto. Variante con params: "Filtrar por" visible; si está activo, `filterByField` obligatorio al guardar.
+- Opción de vista: "Mostrar atributo junto a la descripción (id entre paréntesis)" se refleja en Preview como `Descripción (ID: valor)`.
+
 ## Calidad
 
 - Lint + format consistentes.
