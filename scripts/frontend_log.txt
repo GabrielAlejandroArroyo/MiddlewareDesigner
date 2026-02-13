@@ -13,14 +13,14 @@ case.
 
 Initial chunk files   | Names         |  Raw size
 vendor.js             | vendor        |   2.80 MB | 
-main.js               | main          | 601.95 kB | 
+main.js               | main          | 627.65 kB | 
 polyfills.js          | polyfills     | 262.57 kB | 
 styles.css, styles.js | styles        | 186.05 kB | 
 runtime.js            | runtime       |   6.50 kB | 
 
-                      | Initial total |   3.83 MB
+                      | Initial total |   3.86 MB
 
-Build at: 2026-02-11T13:21:50.575Z - Hash: 31c2bca7b3b49276 - Time: 4774ms
+Build at: 2026-02-13T17:46:58.653Z - Hash: 98027af28697ee35 - Time: 3475ms
 
 ** Angular Live Development Server is listening on 0.0.0.0:4200, open your browser on http://localhost:4200/ **
 
@@ -32,39 +32,20 @@ Build at: 2026-02-11T13:21:50.575Z - Hash: 31c2bca7b3b49276 - Time: 4774ms
 
 5 unchanged chunks
 
-Build at: 2026-02-11T13:21:52.525Z - Hash: 31c2bca7b3b49276 - Time: 1860ms
+Build at: 2026-02-13T17:46:59.954Z - Hash: 98027af28697ee35 - Time: 1231ms
 
 √ Compiled successfully.
+(node:32232) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
 ✔ Browser application bundle generation complete.
 
 Initial chunk files | Names   |  Raw size
-main.js             | main    | 602.29 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-02-11T13:29:24.469Z - Hash: badae2ea17f98581 - Time: 441ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
-main.js             | main    | 602.63 kB | 
-runtime.js          | runtime |   6.50 kB | 
-
-3 unchanged chunks
-
-Build at: 2026-02-11T13:29:26.805Z - Hash: afe1eec45ab8c6e8 - Time: 350ms
-
-√ Compiled successfully.
-✔ Browser application bundle generation complete.
-
-Initial chunk files | Names   |  Raw size
+vendor.js           | vendor  |   2.80 MB | 
 main.js             | main    | 604.15 kB | 
 runtime.js          | runtime |   6.50 kB | 
 
-3 unchanged chunks
+2 unchanged chunks
 
-Build at: 2026-02-11T13:29:35.033Z - Hash: 03c5507cb756a046 - Time: 464ms
+Build at: 2026-02-13T20:35:40.941Z - Hash: a65a71a4e97ddb5b - Time: 3552ms
 
 √ Compiled successfully.
