@@ -1,0 +1,67 @@
+---
+alwaysApply: true
+---
+
+# Composición de IDs (Regla global)
+
+Todos los IDs de entidades en microservicios deben seguir este formato:
+
+## Estructura
+
+```
+TTTT_YYMMDDHHMMSSFFFF
+```
+
+- **TTTT** (4 chars): Código del tipo de entidad.
+- **_** : Separador.
+- **YYMMDDHHMMSSFFFF** (16 chars): Timestamp (año, mes, día, hora, minuto, segundo, microsegundos 4 dígitos).
+
+**Longitud total**: 21 caracteres.
+
+## Códigos de entidad
+
+| Código | Entidad |
+|--------|---------|
+| APLI | Aplicación |
+| ROLE | Rol |
+| USUA | Usuario |
+| APRL | AplicacionRole |
+| USRO | UsuarioRol |
+| CORP | Corporación |
+| EMPR | Empresa |
+| PAIS | País |
+| PROV | Provincia |
+| LOCA | Localidad |
+
+## Implementación
+
+- Usar `generate_entity_id(tipo: str) -> str` al crear entidades.
+- El paquete/módulo compartido debe estar en `shared/id_generator.py` o equivalente por servicio.
+- Los Create DTOs pueden recibir `id` opcional; si no se envía, el backend lo genera.
+- Si se envía, validar que cumpla el formato: `^[A-Z]{4}_\d{16}$`.
+
+## Ejemplo Python
+
+```python
+from datetime import datetime
+
+ENTITY_TYPES = {"APLI", "ROLE", "USUA", "APRL", "USRO", "CORP", "EMPR", "PAIS", "PROV", "LOCA"}
+
+def generate_entity_id(tipo: str) -> str:
+    """Genera ID en formato TTTT_YYMMDDHHMMSSFFFF.
+    tipo: código de 4 letras (APLI, ROLE, USUA, etc.).
+    """
+    if tipo.upper() not in ENTITY_TYPES:
+        raise ValueError(f"Tipo inválido. Use uno de: {ENTITY_TYPES}")
+    now = datetime.utcnow()
+    ts = (
+        f"{now.strftime('%y')}"           # YY
+        f"{now.strftime('%m')}"           # MM
+        f"{now.strftime('%d')}"           # DD
+        f"{now.strftime('%H')}"           # HH
+        f"{now.strftime('%M')}"           # MM
+        f"{now.strftime('%S')}"           # SS
+        f"{now.microsecond // 100:04d}"   # FFFF
+    )
+    return f"{tipo.upper()}_{ts}"
+```
