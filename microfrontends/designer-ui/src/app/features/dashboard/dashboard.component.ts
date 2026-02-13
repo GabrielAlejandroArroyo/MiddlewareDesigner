@@ -46,7 +46,7 @@ interface ServiceHealth extends BackendService {
           <div class="row g-4">
             <!-- Stats Summary -->
             <div class="col-md-3">
-              <div class="card border-0 shadow-sm stat-card-primary rounded-4 p-3">
+              <div class="card border-0 shadow-sm stat-card-primary rounded-4 p-3 h-100">
                 <div class="d-flex align-items-center">
                   <div class="icon-circle stat-icon-primary me-3" style="width: 48px; height: 48px">
                     <i class="bi bi-cpu fs-4"></i>
@@ -59,7 +59,7 @@ interface ServiceHealth extends BackendService {
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card border-0 shadow-sm stat-card-success rounded-4 p-3 stat-card-with-list">
+              <div class="card border-0 shadow-sm stat-card-success rounded-4 p-3 stat-card-with-list h-100">
                 <div class="d-flex align-items-center">
                   <div class="icon-circle stat-icon-success me-3" style="width: 48px; height: 48px">
                     <i class="bi bi-check-circle fs-4"></i>
@@ -85,7 +85,7 @@ interface ServiceHealth extends BackendService {
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card border-0 shadow-sm stat-card-danger rounded-4 p-3 stat-card-with-list">
+              <div class="card border-0 shadow-sm stat-card-danger rounded-4 p-3 stat-card-with-list h-100">
                 <div class="d-flex align-items-center">
                   <div class="icon-circle stat-icon-danger me-3" style="width: 48px; height: 48px">
                     <i class="bi bi-exclamation-triangle fs-4"></i>
@@ -111,7 +111,7 @@ interface ServiceHealth extends BackendService {
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card border-0 shadow-sm stat-card-info rounded-4 p-3">
+              <div class="card border-0 shadow-sm stat-card-info rounded-4 p-3 h-100">
                 <div class="d-flex align-items-center">
                   <div class="icon-circle stat-icon-info me-3" style="width: 48px; height: 48px">
                     <i class="bi bi-lightning-charge fs-4"></i>
