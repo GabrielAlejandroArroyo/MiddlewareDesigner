@@ -9,6 +9,7 @@ class AplicacionModel(Base):
 
     id: Mapped[str] = mapped_column(String(50), primary_key=True, unique=True)
     descripcion: Mapped[str] = mapped_column(String(255), nullable=False)
+    tipo: Mapped[str] = mapped_column(String(50), default="APLICACION")
     baja_logica: Mapped[bool] = mapped_column(Boolean, default=False)
     fecha_alta_creacion: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     fecha_alta_modificacion: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

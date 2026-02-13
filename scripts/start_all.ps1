@@ -43,13 +43,26 @@ $scriptsDir = $PSScriptRoot
 Write-Host "[1/3] Iniciando backend..." -ForegroundColor Cyan
 & "$scriptsDir\start_backend.ps1"
 
-# Esperar a los microservicios críticos para el inicio
-Wait-ForUrl "http://127.0.0.1:8000/openapi.json" "Pais"
-Wait-ForUrl "http://127.0.0.1:8003/openapi.json" "Corporacion"
+# Esperar a los 5 microservicios que usa el seed
+Wait-ForUrl "http://127.0.0.1:8005/" "Aplicacion"
+Wait-ForUrl "http://127.0.0.1:8006/" "Roles"
+Wait-ForUrl "http://127.0.0.1:8007/" "Usuario"
+Wait-ForUrl "http://127.0.0.1:8008/" "Aplicacion-Role"
+Wait-ForUrl "http://127.0.0.1:8009/" "Usuario-Rol"
+
+# Ejecutar seeds (Aplicación MIDDLEWARE, Rol Admin, Usuario admin)
+Write-Host "  Ejecutando seeds..." -ForegroundColor Gray
+$rootDir = Split-Path -Parent $scriptsDir
+$env:PYTHONPATH = $rootDir
+try {
+    python "$rootDir\scripts\seed_initial_data.py"
+} catch {
+    Write-Host "  [WARN] Seeds fallaron (ejecutar manualmente: python scripts/seed_initial_data.py)" -ForegroundColor Yellow
+}
 
 Write-Host "[2/3] Iniciando middleware..." -ForegroundColor Cyan
 & "$scriptsDir\start_middleware.ps1"
-Wait-ForUrl "http://127.0.0.1:9000/api/v1/config/backend-services" "Middleware"
+Wait-ForUrl "http://127.0.0.1:9000/" "Middleware"
 
 Write-Host "[3/3] Iniciando frontend..." -ForegroundColor Cyan
 & "$scriptsDir\start_frontend.ps1"

@@ -5,28 +5,72 @@ export interface AuthCredentials {
   password: string;
 }
 
+const STORAGE_KEY = 'md_auth';
+const TTL_MS = 3 * 60 * 1000; // 3 minutos
+
+interface StoredAuth {
+  username: string;
+  password: string;
+  expiresAt: number;
+}
+
 /**
- * Servicio de autenticación: guarda credenciales en memoria para Basic Auth.
- * Preparado para ampliar con Bearer (OIDC/Keycloak) en el futuro.
+ * Servicio de autenticación: guarda credenciales en memoria y localStorage (TTL 3 min).
+ * Si el TTL expira, se requiere volver a autenticar.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly credentials = signal<AuthCredentials | null>(null);
+  private readonly credentials = signal<AuthCredentials | null>(this.loadFromStorage());
 
   readonly isLoggedIn = computed(() => this.credentials() !== null);
   readonly username = computed(() => this.credentials()?.username ?? null);
 
-  /** URL base del middleware (para que el interceptor solo añada header a estas peticiones). */
-  readonly middlewareBaseUrl = 'http://127.0.0.1:9000';
+  /** URL base del middleware (para que el interceptor añada header). Con proxy usa path relativo. */
+  readonly middlewareBaseUrl = '/api';
+
+  /** ID del usuario actual (para cambio de contraseña). */
+  private readonly _usuarioId = signal<string | null>(null);
+  readonly usuarioId = this._usuarioId.asReadonly();
+
+  private loadFromStorage(): AuthCredentials | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const stored: StoredAuth = JSON.parse(raw);
+      if (Date.now() > stored.expiresAt) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return { username: stored.username, password: stored.password };
+    } catch {
+      return null;
+    }
+  }
+
+  private saveToStorage(creds: AuthCredentials): void {
+    const stored: StoredAuth = {
+      ...creds,
+      expiresAt: Date.now() + TTL_MS
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+  }
+
+  setUsuarioId(id: string | null): void {
+    this._usuarioId.set(id);
+  }
 
   setCredentials(username: string, password: string): void {
-    this.credentials.set({ username, password });
+    const creds = { username, password };
+    this.credentials.set(creds);
+    this.saveToStorage(creds);
   }
 
   clearCredentials(): void {
     this.credentials.set(null);
+    this._usuarioId.set(null);
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   /**
@@ -43,6 +87,6 @@ export class AuthService {
    * Indica si la URL corresponde al middleware (para que el interceptor añada auth).
    */
   isMiddlewareUrl(url: string): boolean {
-    return url.startsWith(this.middlewareBaseUrl);
+    return url.includes('/api/v1');
   }
 }

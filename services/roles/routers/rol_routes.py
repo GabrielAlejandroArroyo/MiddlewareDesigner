@@ -59,7 +59,7 @@ async def obtener_rol(rol_id: str):
 
 @router.post("/", response_model=RolReadDTO, status_code=status.HTTP_201_CREATED)
 async def crear_rol(rol_data: RolCreateDTO):
-    if await get_rol_by_id(rol_data.id):
+    if rol_data.id and await get_rol_by_id(rol_data.id):
         raise HTTPException(status.HTTP_409_CONFLICT, detail="El ID de rol ya existe")
     return await create_rol(rol_data)
 

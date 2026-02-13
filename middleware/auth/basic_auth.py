@@ -18,7 +18,7 @@ class BasicAuthProvider:
             return None
         if password != self._settings.middleware_auth_password:
             return None
-        return UserInfo(username=username, sub=username)
+        return UserInfo(username=username, sub=username, requires_password_change=False)
 
     def validate_bearer(self, token: str) -> Optional[UserInfo]:
         """Basic Auth no soporta Bearer; para OIDC/Keycloak."""

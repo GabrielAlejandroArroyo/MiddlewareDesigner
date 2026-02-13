@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Union
 from datetime import datetime
 
+from shared.id_generator import generate_entity_id
+
 from config.database import AsyncSessionLocal
 from entity.aplicacion_model import AplicacionModel
 from dto.aplicacion_create_dto import AplicacionCreateDTO
@@ -38,9 +40,12 @@ async def get_aplicacion_by_id(aplicacion_id: str) -> Optional[AplicacionReadDTO
 async def create_aplicacion(aplicacion_data: AplicacionCreateDTO) -> AplicacionReadDTO:
     async with AsyncSessionLocal() as session:
         now = datetime.utcnow()
+        app_id = aplicacion_data.id or generate_entity_id("APLI")
+        tipo = getattr(aplicacion_data, "tipo", "APLICACION") or "APLICACION"
         new_app = AplicacionModel(
-            id=aplicacion_data.id,
+            id=app_id,
             descripcion=aplicacion_data.descripcion,
+            tipo=tipo,
             baja_logica=False,
             fecha_alta_creacion=now,
             fecha_alta_modificacion=now
@@ -71,7 +76,9 @@ async def delete_aplicacion(aplicacion_id: str) -> AplicacionDeleteDTO:
         aplicacion = await session.get(AplicacionModel, aplicacion_id)
         if not aplicacion:
             return AplicacionDeleteDTO(id=aplicacion_id, success=False, mensaje="Aplicación no encontrada")
-        
+        if aplicacion.tipo == "MIDDLEWARE":
+            return AplicacionDeleteDTO(id=aplicacion_id, success=False, mensaje="No se puede eliminar la aplicación tipo MIDDLEWARE (entidad protegida)")
+
         await session.delete(aplicacion)
         await session.commit()
         return AplicacionDeleteDTO(id=aplicacion_id, success=True, mensaje="Aplicación eliminada definitivamente")
@@ -82,7 +89,9 @@ async def baja_logica_aplicacion(aplicacion_id: str) -> AplicacionReadDTO:
         if not aplicacion:
             from fastapi import HTTPException
             raise HTTPException(status_code=404, detail="Aplicación no encontrada")
-        
+        if aplicacion.tipo == "MIDDLEWARE":
+            raise HTTPException(status_code=400, detail="No se puede dar de baja la aplicación tipo MIDDLEWARE (entidad protegida)")
+
         aplicacion.baja_logica = True
         aplicacion.fecha_alta_modificacion = datetime.utcnow()
         await session.commit()

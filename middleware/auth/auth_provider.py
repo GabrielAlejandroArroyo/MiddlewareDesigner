@@ -11,6 +11,7 @@ class UserInfo(BaseModel):
 
     username: str
     sub: Optional[str] = None  # ID en IAM (OIDC)
+    requires_password_change: bool = False
 
 
 @runtime_checkable

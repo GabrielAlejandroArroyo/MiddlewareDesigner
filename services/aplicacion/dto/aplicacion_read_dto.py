@@ -6,6 +6,7 @@ from dto.aplicacion_base_dto import AplicacionBaseDTO
 class AplicacionReadDTO(AplicacionBaseDTO):
     """DTO para lectura y listado detallado de una Aplicación"""
     id: str = Field(..., description="Identificador único alfanumérico de la aplicación", json_schema_extra={"unique": True}, title="ID de Aplicación")
+    tipo: str = Field(..., description="Tipo de aplicación (MIDDLEWARE, APLICACION)", title="Tipo")
     baja_logica: bool = Field(..., description="Indica si el registro está inactivo lógicamente", title="Baja Lógica")
     fecha_alta_creacion: datetime = Field(..., description="Fecha y hora de creación del registro", title="Fecha de Creación")
     fecha_alta_modificacion: Optional[datetime] = Field(None, description="Fecha y hora de la última modificación", title="Fecha de Modificación")

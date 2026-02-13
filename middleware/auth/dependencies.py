@@ -7,6 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBasic, HTTPBasicC
 from auth.auth_config import get_auth_settings
 from auth.auth_provider import AuthProvider, UserInfo
 from auth.basic_auth import BasicAuthProvider
+from auth.database_auth import DatabaseAuthProvider
 
 _http_basic = HTTPBasic(auto_error=False)
 _http_bearer = HTTPBearer(auto_error=False)
@@ -15,9 +16,10 @@ _http_bearer = HTTPBearer(auto_error=False)
 def _get_provider() -> AuthProvider:
     """Devuelve el AuthProvider según AUTH_TYPE (basic por defecto)."""
     settings = get_auth_settings()
+    if settings.auth_type == "database":
+        return DatabaseAuthProvider(settings)
     if settings.auth_type == "basic":
         return BasicAuthProvider(settings)
-    # Futuro: if settings.auth_type == "oidc": return OIDCProvider(settings)
     return BasicAuthProvider(settings)
 
 
