@@ -59,27 +59,53 @@ interface ServiceHealth extends BackendService {
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card border-0 shadow-sm stat-card-success rounded-4 p-3">
+              <div class="card border-0 shadow-sm stat-card-success rounded-4 p-3 stat-card-with-list">
                 <div class="d-flex align-items-center">
                   <div class="icon-circle stat-icon-success me-3" style="width: 48px; height: 48px">
                     <i class="bi bi-check-circle fs-4"></i>
                   </div>
-                  <div>
+                  <div class="flex-grow-1">
                     <div class="small stat-label">Operativos</div>
                     <div class="fs-3 fw-bold stat-value">{{ onlineCount }}</div>
+                    <ng-container *ngIf="onlineServices.length > 0">
+                      <button type="button" class="btn-stat-toggle p-0 border-0 bg-transparent text-white small"
+                              (click)="operativosExpanded = !operativosExpanded"
+                              [attr.aria-expanded]="operativosExpanded">
+                        <i class="bi me-1" [ngClass]="operativosExpanded ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        Ver lista ({{ onlineServices.length }})
+                      </button>
+                      <div class="stat-collapse-list mt-2" [class.show]="operativosExpanded">
+                        <div class="stat-list-inner">
+                          <div *ngFor="let svc of onlineServices" class="stat-list-item">{{ svc.nombre || svc.id }}</div>
+                        </div>
+                      </div>
+                    </ng-container>
                   </div>
                 </div>
               </div>
             </div>
             <div class="col-md-3">
-              <div class="card border-0 shadow-sm stat-card-danger rounded-4 p-3">
+              <div class="card border-0 shadow-sm stat-card-danger rounded-4 p-3 stat-card-with-list">
                 <div class="d-flex align-items-center">
                   <div class="icon-circle stat-icon-danger me-3" style="width: 48px; height: 48px">
                     <i class="bi bi-exclamation-triangle fs-4"></i>
                   </div>
-                  <div>
+                  <div class="flex-grow-1">
                     <div class="small stat-label">Caídos / Offline</div>
-                    <div class="fs-3 fw-bold stat-value">{{ services.length - onlineCount }}</div>
+                    <div class="fs-3 fw-bold stat-value">{{ offlineServices.length }}</div>
+                    <ng-container *ngIf="offlineServices.length > 0">
+                      <button type="button" class="btn-stat-toggle p-0 border-0 bg-transparent text-white small"
+                              (click)="caidosExpanded = !caidosExpanded"
+                              [attr.aria-expanded]="caidosExpanded">
+                        <i class="bi me-1" [ngClass]="caidosExpanded ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        Ver lista ({{ offlineServices.length }})
+                      </button>
+                      <div class="stat-collapse-list mt-2" [class.show]="caidosExpanded">
+                        <div class="stat-list-inner">
+                          <div *ngFor="let svc of offlineServices" class="stat-list-item">{{ svc.nombre || svc.id }}</div>
+                        </div>
+                      </div>
+                    </ng-container>
                   </div>
                 </div>
               </div>
@@ -274,6 +300,36 @@ interface ServiceHealth extends BackendService {
         color: white !important;
       }
 
+      .btn-stat-toggle {
+        cursor: pointer;
+        opacity: 0.9;
+        text-decoration: none;
+      }
+      .btn-stat-toggle:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+
+      .stat-collapse-list {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease-out;
+      }
+      .stat-collapse-list.show {
+        max-height: 120px;
+      }
+      .stat-list-inner {
+        max-height: 120px;
+        overflow-y: auto;
+        padding-right: 0.25rem;
+      }
+      .stat-list-item {
+        font-size: 0.75rem;
+        opacity: 0.95;
+        padding: 0.15rem 0;
+        color: rgba(255, 255, 255, 0.95);
+      }
+
       /* Header Flotante Global */
       .page-header-sticky {
         position: sticky;
@@ -375,6 +431,17 @@ export class DashboardComponent implements OnInit {
   services: ServiceHealth[] = [];
   onlineCount = 0;
   loading = true;
+
+  operativosExpanded = false;
+  caidosExpanded = false;
+
+  get onlineServices(): ServiceHealth[] {
+    return this.services.filter(s => s.status === 'online');
+  }
+
+  get offlineServices(): ServiceHealth[] {
+    return this.services.filter(s => s.status === 'offline');
+  }
 
   ngOnInit() {
     this.loadServices();
