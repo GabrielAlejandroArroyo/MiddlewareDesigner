@@ -12,9 +12,6 @@ $scriptsDir = $PSScriptRoot
 $rootDir = Split-Path -Parent $scriptsDir
 $servicesDir = Join-Path $rootDir "services"
 
-# Permite a los servicios importar shared/ (generador de IDs)
-$env:PYTHONPATH = $rootDir
-
 if (-not (Test-Path $servicesDir)) {
     Write-Host "Error: No se encontro la carpeta 'services' en $servicesDir" -ForegroundColor Red
     exit 1
@@ -50,6 +47,10 @@ foreach ($service in $services) {
     }
     
     Write-Host "Iniciando servicio: $serviceName en puerto $port" -ForegroundColor Yellow
+    
+    # PYTHONPATH: primero el directorio del servicio (imports locales),
+    # luego la raíz (shared/, etc.)
+    $env:PYTHONPATH = "$servicePath;$rootDir"
     
     # Usamos 0.0.0.0 para que escuche en todas las interfaces y evitar problemas con localhost/127.0.0.1
     $args = "-m uvicorn main:app --host 0.0.0.0 --port $port --reload"
