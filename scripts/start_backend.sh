@@ -67,8 +67,8 @@ while IFS= read -r SERVICE_PATH; do
         (cd "$SERVICE_PATH" && pip install -q -r requirements.txt)
     fi
     
-    # Iniciar el servicio en background
-    (cd "$SERVICE_PATH" && uvicorn main:app --host 0.0.0.0 --port "$PORT" --reload > /dev/null 2>&1) &
+    # Iniciar el servicio en background (PYTHONPATH permite importar shared/)
+    (cd "$SERVICE_PATH" && PYTHONPATH="$ROOT_DIR" uvicorn main:app --host 0.0.0.0 --port "$PORT" --reload > /dev/null 2>&1) &
     PID=$!
     PIDS+=($PID)
     

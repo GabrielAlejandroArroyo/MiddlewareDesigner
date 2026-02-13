@@ -45,6 +45,7 @@ El monorepo contiene microservicios desarrollados con **FastAPI** y **SQLAlchemy
 - **Puerto predeterminado**: 8007
 - **Responsabilidad**: Gestión de usuarios del sistema.
 - **Contrato**: `/api/v1/usuarios/`
+- **Auth**: `POST /api/v1/auth/validate` (valida credenciales; usado por el middleware).
 
 ---
 

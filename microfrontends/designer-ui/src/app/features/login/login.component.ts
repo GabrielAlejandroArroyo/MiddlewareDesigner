@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MiddlewareService } from '../../core/services/middleware.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -73,27 +74,38 @@ export class LoginComponent {
     return !this.password;
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.errorMessage = '';
     if (this.usernameInvalid || this.passwordInvalid) return;
 
     this.loading = true;
-    this.auth.setCredentials(this.username.trim(), this.password);
+    const user = this.username.trim();
+    const pass = this.password;
 
-    this.middleware.getBackendServices(false).subscribe({
-      next: () => {
+    try {
+      const res = await firstValueFrom(this.middleware.login(user, pass));
+      this.auth.setCredentials(user, pass);
+      if (res.usuario_id) {
+        this.auth.setUsuarioId(res.usuario_id);
+      }
+      if (res.requires_password_change) {
+        this.loading = false;
+        this.router.navigate(['/cambiar-password']);
+      } else {
         this.loading = false;
         this.router.navigate(['/']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.auth.clearCredentials();
-        if (err?.status === 401) {
-          this.errorMessage = 'Usuario o contraseña incorrectos.';
-        } else {
-          this.errorMessage = err?.message || 'Error de conexión. Compruebe que el middleware esté en ejecución.';
-        }
       }
-    });
+    } catch (err: unknown) {
+      this.loading = false;
+      this.auth.clearCredentials();
+      const e = err as { status?: number; message?: string };
+      if (e?.status === 401) {
+        this.errorMessage = 'Usuario o contraseña incorrectos.';
+      } else if (e?.status === 0) {
+        this.errorMessage = 'No se pudo conectar con el middleware. Compruebe que esté ejecutándose (puerto 9000). Ejecute scripts/start_all.ps1 o scripts/start_middleware.ps1.';
+      } else {
+        this.errorMessage = (e?.message as string) || 'Error de conexión. Compruebe que el middleware esté en ejecución.';
+      }
+    }
   }
 }

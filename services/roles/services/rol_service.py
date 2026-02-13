@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Union
 from datetime import datetime
 
+from shared.id_generator import generate_entity_id
+
 from config.database import AsyncSessionLocal
 from entity.rol_model import RolModel
 from dto.rol_create_dto import RolCreateDTO
@@ -28,6 +30,19 @@ async def _check_aplicacion_exists(aplicacion_id: str) -> bool:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al consultar servicio de Aplicación: {e}")
         except httpx.RequestError as e:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"Servicio de Aplicación no disponible en el puerto 8005: {e}")
+
+
+async def _is_aplicacion_middleware(aplicacion_id: str) -> bool:
+    """Verifica si la aplicación es de tipo MIDDLEWARE."""
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{APLICACION_SERVICE_URL}/{aplicacion_id}")
+            if response.status_code != 200:
+                return False
+            data = response.json()
+            return data.get("tipo") == "MIDDLEWARE"
+        except (httpx.RequestError, KeyError):
+            return False
 
 async def get_all_roles(include_baja_logica: bool = True) -> RolListDTO:
     async with AsyncSessionLocal() as session:
@@ -78,8 +93,9 @@ async def create_rol(rol_data: RolCreateDTO) -> RolReadDTO:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"La Aplicación con ID '{rol_data.id_aplicacion}' no existe.")
 
         now = datetime.utcnow()
+        rol_id = rol_data.id or generate_entity_id("ROLE")
         new_rol = RolModel(
-            id=rol_data.id,
+            id=rol_id,
             descripcion=rol_data.descripcion,
             id_aplicacion=rol_data.id_aplicacion,
             baja_logica=False,
@@ -116,7 +132,9 @@ async def delete_rol(rol_id: str) -> RolDeleteDTO:
         rol = await session.get(RolModel, rol_id)
         if not rol:
             return RolDeleteDTO(id=rol_id, success=False, mensaje="Rol no encontrado")
-        
+        if rol.descripcion == "Administrador" and await _is_aplicacion_middleware(rol.id_aplicacion):
+            return RolDeleteDTO(id=rol_id, success=False, mensaje="No se puede eliminar el rol Administrador de la aplicación MIDDLEWARE (entidad protegida)")
+
         await session.delete(rol)
         await session.commit()
         return RolDeleteDTO(id=rol_id, success=True, mensaje="Rol eliminado definitivamente")
@@ -126,7 +144,9 @@ async def baja_logica_rol(rol_id: str) -> RolReadDTO:
         rol = await session.get(RolModel, rol_id)
         if not rol:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rol no encontrado")
-        
+        if rol.descripcion == "Administrador" and await _is_aplicacion_middleware(rol.id_aplicacion):
+            raise HTTPException(status_code=400, detail="No se puede dar de baja el rol Administrador de la aplicación MIDDLEWARE (entidad protegida)")
+
         rol.baja_logica = True
         rol.fecha_alta_modificacion = datetime.utcnow()
         await session.commit()
