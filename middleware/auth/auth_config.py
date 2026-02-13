@@ -7,7 +7,7 @@ from typing import Literal, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-AuthType = Literal["none", "basic", "oidc"]
+AuthType = Literal["none", "basic", "database", "oidc"]
 
 
 class AuthSettings(BaseSettings):
@@ -21,6 +21,8 @@ class AuthSettings(BaseSettings):
     )
 
     auth_type: AuthType = "basic"
+    # Database Auth (contra servicio Usuario)
+    usuario_service_url: str = "http://127.0.0.1:8007"
     # Basic Auth
     middleware_auth_user: str = "admin"
     middleware_auth_password: str = "admin"

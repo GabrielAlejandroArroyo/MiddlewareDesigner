@@ -6,6 +6,7 @@ from dto.usuario_base_dto import UsuarioBaseDTO
 class UsuarioReadDTO(UsuarioBaseDTO):
     """DTO para lectura detallada de un Usuario"""
     id: str = Field(..., title="ID de Usuario")
+    requiere_cambio_password: bool = Field(..., title="Requiere Cambio de Contraseña")
     baja_logica: bool = Field(..., title="Baja Lógica")
     fecha_alta_creacion: datetime = Field(..., title="Fecha de Creación")
     fecha_alta_modificacion: Optional[datetime] = Field(None, title="Fecha de Modificación")

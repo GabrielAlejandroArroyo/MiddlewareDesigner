@@ -10,18 +10,21 @@ import { PreviewComponent } from './app/features/preview/preview.component';
 import { CustomPageDesignerComponent } from './app/features/custom-page-designer/custom-page-designer.component';
 import { DashboardComponent } from './app/features/dashboard/dashboard.component';
 import { LoginComponent } from './app/features/login/login.component';
+import { CambiarPasswordComponent } from './app/features/cambiar-password/cambiar-password.component';
 import { ThemeService } from './app/core/services/theme.service';
 import { AuthService } from './app/core/services/auth.service';
 import { authInterceptor } from './app/core/interceptors/auth.interceptor';
+import { authGuard } from './app/core/guards/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: '', component: DashboardComponent },
-  { path: 'backends', component: BackendManagementComponent },
-  { path: 'preview', component: PreviewComponent },
-  { path: 'custom-designer', component: CustomPageDesignerComponent },
-  { path: 'inspect/:id', component: EndpointInspectorComponent },
-  { path: 'inspect/:id/action-definition', component: ActionDefinitionComponent },
+  { path: 'cambiar-password', component: CambiarPasswordComponent },
+  { path: '', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'backends', component: BackendManagementComponent, canActivate: [authGuard] },
+  { path: 'preview', component: PreviewComponent, canActivate: [authGuard] },
+  { path: 'custom-designer', component: CustomPageDesignerComponent, canActivate: [authGuard] },
+  { path: 'inspect/:id', component: EndpointInspectorComponent, canActivate: [authGuard] },
+  { path: 'inspect/:id/action-definition', component: ActionDefinitionComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '' }
 ];
 
@@ -212,7 +215,8 @@ export class App {
   isCollapsed = true;
 
   isLoginRoute(): boolean {
-    return this.router.url === '/login' || this.router.url.startsWith('/login?');
+    const u = this.router.url;
+    return u === '/login' || u.startsWith('/login?') || u === '/cambiar-password' || u.startsWith('/cambiar-password?');
   }
 
   logout(): void {

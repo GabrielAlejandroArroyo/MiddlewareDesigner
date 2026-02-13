@@ -12,6 +12,9 @@ $scriptsDir = $PSScriptRoot
 $rootDir = Split-Path -Parent $scriptsDir
 $servicesDir = Join-Path $rootDir "services"
 
+# Permite a los servicios importar shared/ (generador de IDs)
+$env:PYTHONPATH = $rootDir
+
 if (-not (Test-Path $servicesDir)) {
     Write-Host "Error: No se encontro la carpeta 'services' en $servicesDir" -ForegroundColor Red
     exit 1

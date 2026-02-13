@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Union
 from datetime import datetime
 
+from shared.id_generator import generate_entity_id
+
 from config.database import AsyncSessionLocal
 from entity.usuario_rol_model import UsuarioRolModel
 from dto.usuario_rol_create_dto import UsuarioRolCreateDTO
@@ -45,6 +47,35 @@ async def _validate_refs(id_usuario: str, id_aplicacion: str, id_rol: str):
         except httpx.RequestError:
             raise HTTPException(status_code=503, detail="Servicio de Roles no disponible")
 
+
+async def _is_protected_admin_link(id_usuario: str, id_aplicacion: str, id_rol: str) -> bool:
+    """Verifica si es el vínculo protegido admin-MIDDLEWARE-Administrador."""
+    async with httpx.AsyncClient() as client:
+        try:
+            resp_u = await client.get(f"{USUARIO_URL}/{id_usuario}")
+            if resp_u.status_code != 200:
+                return False
+            user_data = resp_u.json()
+            if user_data.get("nombre_usuario") != "admin":
+                return False
+            resp_a = await client.get(f"{APLICACION_URL}/{id_aplicacion}")
+            if resp_a.status_code != 200:
+                return False
+            app_data = resp_a.json()
+            if app_data.get("tipo") != "MIDDLEWARE":
+                return False
+            resp_r = await client.get(f"{ROLES_URL}/{id_rol}")
+            if resp_r.status_code != 200:
+                return False
+            role_data = resp_r.json()
+            return (
+                role_data.get("descripcion") == "Administrador"
+                and role_data.get("id_aplicacion") == id_aplicacion
+            )
+        except (httpx.RequestError, KeyError):
+            return False
+
+
 async def get_all(include_baja: bool = True) -> UsuarioRolListDTO:
     async with AsyncSessionLocal() as session:
         query = select(UsuarioRolModel)
@@ -81,8 +112,9 @@ async def create(data: UsuarioRolCreateDTO) -> UsuarioRolReadDTO:
             raise HTTPException(status_code=409, detail="Ya existe un vínculo para este usuario, aplicación y rol")
 
         now = datetime.utcnow()
+        link_id = data.id or generate_entity_id("USRO")
         new_item = UsuarioRolModel(
-            id=data.id,
+            id=link_id,
             id_usuario=data.id_usuario,
             id_aplicacion=data.id_aplicacion,
             id_rol=data.id_rol,
@@ -132,7 +164,9 @@ async def delete(internal_id: int) -> UsuarioRolDeleteDTO:
         item = await session.get(UsuarioRolModel, internal_id)
         if not item:
             return UsuarioRolDeleteDTO(internal_id=internal_id, success=False, mensaje="No encontrado")
-        
+        if await _is_protected_admin_link(item.id_usuario, item.id_aplicacion, item.id_rol):
+            return UsuarioRolDeleteDTO(internal_id=internal_id, success=False, mensaje="No se puede eliminar el vínculo admin-MIDDLEWARE-Administrador (entidad protegida)")
+
         await session.delete(item)
         await session.commit()
         return UsuarioRolDeleteDTO(internal_id=internal_id, success=True, mensaje="Eliminado")
@@ -142,7 +176,9 @@ async def toggle_baja(internal_id: int, state: bool) -> UsuarioRolReadDTO:
         item = await session.get(UsuarioRolModel, internal_id)
         if not item:
             raise HTTPException(status_code=404, detail="No encontrado")
-        
+        if state and await _is_protected_admin_link(item.id_usuario, item.id_aplicacion, item.id_rol):
+            raise HTTPException(status_code=400, detail="No se puede dar de baja el vínculo admin-MIDDLEWARE-Administrador (entidad protegida)")
+
         item.baja_logica = state
         item.fecha_alta_modificacion = datetime.utcnow()
         await session.commit()

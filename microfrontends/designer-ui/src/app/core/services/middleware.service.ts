@@ -2,6 +2,15 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+/** En desarrollo (ng serve) usa proxy; en producción apunta al middleware. */
+const MIDDLEWARE_BASE = '/api/v1';
+
+export interface LoginResponse {
+  success: boolean;
+  requires_password_change: boolean;
+  usuario_id?: string;
+}
+
 export interface BackendService {
   id: string;
   nombre: string;
@@ -33,7 +42,11 @@ export interface Endpoint {
 })
 export class MiddlewareService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://127.0.0.1:9000/api/v1/config';
+  private apiUrl = `${MIDDLEWARE_BASE}/config`;
+
+  login(username: string, password: string) {
+    return this.http.post<LoginResponse>(`${MIDDLEWARE_BASE}/auth/login`, { username, password });
+  }
 
   getBackendServices(includeDeleted: boolean = false): Observable<BackendService[]> {
     return this.http.get<BackendService[]>(`${this.apiUrl}/backend-services?include_deleted=${includeDeleted}`);

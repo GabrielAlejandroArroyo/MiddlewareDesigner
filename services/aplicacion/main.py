@@ -5,8 +5,13 @@ from contextlib import asynccontextmanager
 from config.database import engine, Base
 from routers.aplicacion_routes import router as aplicacion_router
 
+from scripts.migrate_add_tipo import migrate as migrate_add_tipo
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Migrar esquema si la BD existía sin la columna tipo
+    migrate_add_tipo()
     # Crear tablas al iniciar
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
