@@ -50,7 +50,7 @@ Middleware Designer es un ecosistema para **diseñar interfaces dinámicas** a p
 | Pantalla | Ruta | Descripción |
 |----------|------|-------------|
 | **Login** | `/login` | Inicio de sesión (Basic Auth). Si el middleware devuelve 401, se redirige aquí. |
-| **Dashboard** | `/` | Heartbeat y estado de salud de los microservicios; acceso rápido a inspección por servicio. |
+| **Dashboard** | `/` | Heartbeat y estado de salud de los microservicios; acceso rápido a inspección por servicio. Las tarjetas Operativos y Caídos/Offline incluyen listas colapsables (por defecto) para ver los nombres de los servicios en cada categoría. |
 | **Gestión de microservicios** | `/backends` | Alta de backends (URL OpenAPI), listado, eliminación (lógica/física), reactivación, listado de mapeos por servicio con indicador de cambios en Swagger. |
 | **Inspección de contrato** | `/inspect/:id` | Listado de endpoints del servicio; habilitar/deshabilitar para el frontend; navegación a definición de acción. |
 | **Definición de acción** | `/inspect/:id/action-definition?path=&method=` | Configuración por endpoint (Request/Response): labels, orden drag-and-drop, visibilidad; botón "Limpiar caché Swagger"; guardado de configuración en el middleware. |
