@@ -1,8 +1,9 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, Routes, RouterOutlet, RouterModule, Router } from '@angular/router';
+import { provideRouter, Routes, RouterOutlet, RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { filter, Subscription } from 'rxjs';
 import { BackendManagementComponent } from './app/features/backend-management/backend-management.component';
 import { EndpointInspectorComponent } from './app/features/endpoint-inspector/endpoint-inspector.component';
 import { ActionDefinitionComponent } from './app/features/action-definition/action-definition.component';
@@ -13,6 +14,7 @@ import { LoginComponent } from './app/features/login/login.component';
 import { CambiarPasswordComponent } from './app/features/cambiar-password/cambiar-password.component';
 import { ThemeService } from './app/core/services/theme.service';
 import { AuthService } from './app/core/services/auth.service';
+import { InactivityWatcherService } from './app/core/services/inactivity-watcher.service';
 import { authInterceptor } from './app/core/interceptors/auth.interceptor';
 import { authGuard } from './app/core/guards/auth.guard';
 
@@ -128,6 +130,22 @@ const routes: Routes = [
       </div>
     </div>
 
+    <!-- Modal de sesión expirada por inactividad -->
+    <div *ngIf="showInactivityModal" class="custom-modal-overlay">
+      <div class="custom-modal shadow-lg p-0 rounded-4 overflow-hidden animate-in" style="max-width: 420px;">
+        <div class="p-4 border-bottom bg-warning bg-opacity-10 d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle-fill text-warning fs-4"></i>
+          <h4 class="mb-0 fw-bold text-warning">Sesión expirada por inactividad</h4>
+        </div>
+        <div class="p-4">
+          <p class="mb-4">Ha permanecido inactivo durante demasiado tiempo. Será redirigido al inicio de sesión.</p>
+          <button type="button" class="btn btn-primary w-100 py-2 fw-bold" (click)="onInactivityModalConfirm()">
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+
     <style>
       .sidebar { 
         width: 280px; 
@@ -208,11 +226,40 @@ const routes: Routes = [
     </style>
   `
 })
-export class App {
+export class App implements OnInit, OnDestroy {
   themeService = inject(ThemeService);
   authService = inject(AuthService);
+  inactivityWatcher = inject(InactivityWatcherService);
   router = inject(Router);
   isCollapsed = true;
+  showInactivityModal = false;
+
+  private subs: Subscription[] = [];
+
+  ngOnInit(): void {
+    this.updateInactivityWatcher();
+    this.subs.push(
+      this.router.events.pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+      ).subscribe(() => this.updateInactivityWatcher()),
+      this.inactivityWatcher.inactivityDetected$.subscribe(() => {
+        this.showInactivityModal = true;
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+    this.inactivityWatcher.stop();
+  }
+
+  private updateInactivityWatcher(): void {
+    if (!this.isLoginRoute() && this.authService.isLoggedIn() && this.authService.sessionInactivityMinutes() > 0) {
+      this.inactivityWatcher.start(this.authService.sessionInactivityMinutes());
+    } else {
+      this.inactivityWatcher.stop();
+    }
+  }
 
   isLoginRoute(): boolean {
     const u = this.router.url;
@@ -220,6 +267,14 @@ export class App {
   }
 
   logout(): void {
+    this.authService.clearCredentials();
+    this.inactivityWatcher.stop();
+    this.router.navigate(['/login']);
+  }
+
+  onInactivityModalConfirm(): void {
+    this.showInactivityModal = false;
+    this.inactivityWatcher.stop();
     this.authService.clearCredentials();
     this.router.navigate(['/login']);
   }

@@ -84,7 +84,7 @@ export class LoginComponent {
 
     try {
       const res = await firstValueFrom(this.middleware.login(user, pass));
-      this.auth.setCredentials(user, pass);
+      this.auth.setCredentials(user, pass, res.session_timeout_minutes ?? 3, res.session_inactivity_minutes ?? 0);
       if (res.usuario_id) {
         this.auth.setUsuarioId(res.usuario_id);
       }

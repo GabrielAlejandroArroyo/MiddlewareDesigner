@@ -6,16 +6,17 @@ export interface AuthCredentials {
 }
 
 const STORAGE_KEY = 'md_auth';
-const TTL_MS = 3 * 60 * 1000; // 3 minutos
+const DEFAULT_TTL_MINUTES = 3;
 
 interface StoredAuth {
   username: string;
   password: string;
   expiresAt: number;
+  sessionInactivityMinutes?: number;
 }
 
 /**
- * Servicio de autenticación: guarda credenciales en memoria y localStorage (TTL 3 min).
+ * Servicio de autenticación: guarda credenciales en memoria y localStorage (TTL configurable vía login).
  * Si el TTL expira, se requiere volver a autenticar.
  */
 @Injectable({
@@ -34,6 +35,10 @@ export class AuthService {
   private readonly _usuarioId = signal<string | null>(null);
   readonly usuarioId = this._usuarioId.asReadonly();
 
+  /** Minutos de inactividad antes del logout (0 = deshabilitado). */
+  private readonly _sessionInactivityMinutes = signal<number>(0);
+  readonly sessionInactivityMinutes = this._sessionInactivityMinutes.asReadonly();
+
   private loadFromStorage(): AuthCredentials | null {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -43,16 +48,18 @@ export class AuthService {
         localStorage.removeItem(STORAGE_KEY);
         return null;
       }
+      this._sessionInactivityMinutes.set(stored.sessionInactivityMinutes ?? 0);
       return { username: stored.username, password: stored.password };
     } catch {
       return null;
     }
   }
 
-  private saveToStorage(creds: AuthCredentials): void {
+  private saveToStorage(creds: AuthCredentials, ttlMinutes: number, inactivityMinutes: number = 0): void {
     const stored: StoredAuth = {
       ...creds,
-      expiresAt: Date.now() + TTL_MS
+      expiresAt: Date.now() + ttlMinutes * 60 * 1000,
+      sessionInactivityMinutes: inactivityMinutes
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   }
@@ -61,15 +68,19 @@ export class AuthService {
     this._usuarioId.set(id);
   }
 
-  setCredentials(username: string, password: string): void {
+  setCredentials(username: string, password: string, sessionTimeoutMinutes?: number, sessionInactivityMinutes?: number): void {
     const creds = { username, password };
+    const ttlMinutes = sessionTimeoutMinutes ?? DEFAULT_TTL_MINUTES;
+    const inactivityMinutes = sessionInactivityMinutes ?? 0;
+    this._sessionInactivityMinutes.set(inactivityMinutes);
     this.credentials.set(creds);
-    this.saveToStorage(creds);
+    this.saveToStorage(creds, ttlMinutes, inactivityMinutes);
   }
 
   clearCredentials(): void {
     this.credentials.set(null);
     this._usuarioId.set(null);
+    this._sessionInactivityMinutes.set(0);
     localStorage.removeItem(STORAGE_KEY);
   }
 

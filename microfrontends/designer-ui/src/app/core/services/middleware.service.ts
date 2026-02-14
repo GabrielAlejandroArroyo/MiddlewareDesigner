@@ -9,6 +9,8 @@ export interface LoginResponse {
   success: boolean;
   requires_password_change: boolean;
   usuario_id?: string;
+  session_timeout_minutes?: number;
+  session_inactivity_minutes?: number;
 }
 
 export interface BackendService {

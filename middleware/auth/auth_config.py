@@ -4,6 +4,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal, Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +27,10 @@ class AuthSettings(BaseSettings):
     # Basic Auth
     middleware_auth_user: str = "admin"
     middleware_auth_password: str = "admin"
+    # Tiempo de sesión en minutos (desconexión automática tras X minutos desde el login)
+    session_timeout_minutes: int = Field(default=3, ge=1, le=1440)
+    # Tiempo de inactividad en minutos (logout si no hay interacción). 0 = deshabilitado
+    session_inactivity_minutes: int = Field(default=15, ge=0, le=1440)
     # OIDC (Keycloak) - para uso futuro
     oidc_issuer_url: Optional[str] = None
     oidc_audience: Optional[str] = None

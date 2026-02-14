@@ -27,6 +27,8 @@ El **usuario y la contraseña** se configuran en un archivo **`.env`** en la car
 | `USUARIO_SERVICE_URL` | URL del servicio Usuario (puerto 8007). Solo cuando `AUTH_TYPE=database` | `http://127.0.0.1:8007` |
 | `MIDDLEWARE_AUTH_USER` | Usuario para Basic Auth | `admin` |
 | `MIDDLEWARE_AUTH_PASSWORD` | Contraseña para Basic Auth | `admin` |
+| `SESSION_TIMEOUT_MINUTES` | Tiempo de sesión en minutos (desconexión automática tras X minutos desde el login) | `3` |
+| `SESSION_INACTIVITY_MINUTES` | Tiempo de inactividad en minutos (logout automático si no hay interacción; 0 = deshabilitado) | `15` |
 | `OIDC_ISSUER_URL` | URL del issuer (Keycloak) | — |
 | `OIDC_AUDIENCE` | Audience del JWT | — |
 | `OIDC_CLIENT_ID` | Client ID (Keycloak) | — |
@@ -43,10 +45,14 @@ El **usuario y la contraseña** se configuran en un archivo **`.env`** en la car
 2. Si una petición al middleware devuelve **401**, el frontend redirige a la pantalla de login (`/login`).
 3. El usuario introduce usuario y contraseña y envía el formulario.
 4. El frontend llama a `POST /api/v1/auth/login` con `{username, password}`.
-5. Si la respuesta es **200**, se considera “logueado” y se redirige al panel principal. Las credenciales se persisten en localStorage con TTL de 3 minutos.
+5. Si la respuesta es **200**, se considera “logueado” y se redirige al panel principal. Las credenciales se persisten en localStorage con TTL configurable (`session_timeout_minutes` devuelto por el login; se configura en `.env` con `SESSION_TIMEOUT_MINUTES`).
 6. Si requires_password_change: true, se redirige a /cambiar-password; si no, al panel principal.
 7. Todas las peticiones posteriores incluyen el header Authorization Basic (inyectado por un interceptor HTTP).
-8. Tras 3 minutos sin revalidación, la sesión expira y se requiere volver a autenticarse.
+8. Tras el tiempo configurado sin revalidación, la sesión expira y se requiere volver a autenticarse.
+
+### Timeout por inactividad
+
+Si `SESSION_INACTIVITY_MINUTES` > 0, el frontend detecta la inactividad del usuario (sin mouse, teclado, scroll o touch) durante ese tiempo. Tras alcanzar el límite, se muestra un modal informativo (“Sesión expirada por inactividad”) y se redirige al login. Ambos mecanismos conviven: la sesión expira por tiempo máximo (`SESSION_TIMEOUT_MINUTES`) o por inactividad (el que ocurra primero).
 
 ## Flujo futuro con Keycloak (OIDC)
 
