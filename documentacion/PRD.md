@@ -37,7 +37,7 @@ Middleware Designer es un ecosistema para **diseñar interfaces dinámicas** a p
 
 ### 3.2 Middleware (`middleware/`)
 
-- **Autenticación**: Las rutas bajo `/api/v1/config` están protegidas. Por defecto se usa **Basic Auth** (usuario y contraseña por variables de entorno); el sistema está preparado para conectar un IAM como Keycloak (OIDC). La ruta `GET /` y la documentación OpenAPI permanecen públicas. Ver [docs/auth.md](../docs/auth.md).
+- **Autenticación**: Las rutas bajo `/api/v1/config` están protegidas. Por defecto se usa **Basic Auth** (usuario y contraseña por variables de entorno); el tiempo de sesión (desconexión automática) es configurable vía `SESSION_TIMEOUT_MINUTES`; el timeout por inactividad vía `SESSION_INACTIVITY_MINUTES` (logout automático con mensaje si no hay interacción); el sistema está preparado para conectar un IAM como Keycloak (OIDC). La ruta `GET /` y la documentación OpenAPI permanecen públicas. Ver [docs/auth.md](../docs/auth.md).
 - **Registro y listado** de backend services: `POST` / `GET` `/api/v1/config/backend-services`.
 - **Inspección de contrato** por servicio: `GET .../backend-services/{id}/inspect` — devuelve endpoints con DTOs de request/response aplanados y estado de habilitación.
 - **Mapeos endpoint ↔ frontend**: Habilitar/deshabilitar endpoints; configuración UI por endpoint: `label`, `fields_config` (visualName, show, order, refService, dependsOn).
