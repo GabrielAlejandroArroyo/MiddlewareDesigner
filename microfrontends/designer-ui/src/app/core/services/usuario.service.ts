@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-const USUARIO_API = 'http://127.0.0.1:8007/api/v1';
+/** En desarrollo (ng serve) usa proxy /usuario-api -> 127.0.0.1:8007; en producción configurar reverse proxy equivalente. */
+const USUARIO_API = '/usuario-api/api/v1';
 
 export interface CambiarPasswordRequest {
   password_actual: string;

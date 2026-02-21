@@ -24,6 +24,10 @@ def migrate():
         if "requiere_cambio_password" not in columns:
             cur.execute("ALTER TABLE usuarios ADD COLUMN requiere_cambio_password BOOLEAN DEFAULT 0")
             print("  Añadida columna requiere_cambio_password")
+            # Marcar admin existente para que deba cambiar la contraseña al próximo login
+            cur.execute("UPDATE usuarios SET requiere_cambio_password = 1 WHERE nombre_usuario = 'admin'")
+            if cur.rowcount > 0:
+                print("  Admin existente marcado con requiere_cambio_password")
         conn.commit()
         print("Migración completada.")
     except Exception as e:

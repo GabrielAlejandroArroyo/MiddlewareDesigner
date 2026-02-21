@@ -84,10 +84,7 @@ export class LoginComponent {
 
     try {
       const res = await firstValueFrom(this.middleware.login(user, pass));
-      this.auth.setCredentials(user, pass, res.session_timeout_minutes ?? 3, res.session_inactivity_minutes ?? 0);
-      if (res.usuario_id) {
-        this.auth.setUsuarioId(res.usuario_id);
-      }
+      this.auth.setCredentials(user, pass, res.session_timeout_minutes ?? 3, res.session_inactivity_minutes ?? 0, res.usuario_id);
       if (res.requires_password_change) {
         this.loading = false;
         this.router.navigate(['/cambiar-password']);

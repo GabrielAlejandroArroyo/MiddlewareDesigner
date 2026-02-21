@@ -23,7 +23,7 @@ El **usuario y la contraseña** se configuran en un archivo **`.env`** en la car
 
 | Variable | Descripción | Por defecto |
 |----------|-------------|-------------|
-| `AUTH_TYPE` | `none`, `basic`, `database` o `oidc` | `basic` |
+| `AUTH_TYPE` | `none`, `basic`, `database` o `oidc` | `database` (recomendado) |
 | `USUARIO_SERVICE_URL` | URL del servicio Usuario (puerto 8007). Solo cuando `AUTH_TYPE=database` | `http://127.0.0.1:8007` |
 | `MIDDLEWARE_AUTH_USER` | Usuario para Basic Auth | `admin` |
 | `MIDDLEWARE_AUTH_PASSWORD` | Contraseña para Basic Auth | `admin` |
@@ -46,9 +46,13 @@ El **usuario y la contraseña** se configuran en un archivo **`.env`** en la car
 3. El usuario introduce usuario y contraseña y envía el formulario.
 4. El frontend llama a `POST /api/v1/auth/login` con `{username, password}`.
 5. Si la respuesta es **200**, se considera “logueado” y se redirige al panel principal. Las credenciales se persisten en localStorage con TTL configurable (`session_timeout_minutes` devuelto por el login; se configura en `.env` con `SESSION_TIMEOUT_MINUTES`).
-6. Si requires_password_change: true, se redirige a /cambiar-password; si no, al panel principal.
+6. Si `requires_password_change: true`, se redirige a `/cambiar-password` (cambio obligatorio) antes de acceder al panel; si no, al panel principal. **Este flujo solo funciona con `AUTH_TYPE=database`**, ya que Basic Auth no consulta el flag en la BD ni devuelve el `usuario_id` real para el endpoint de cambio de contraseña.
 7. Todas las peticiones posteriores incluyen el header Authorization Basic (inyectado por un interceptor HTTP).
 8. Tras el tiempo configurado sin revalidación, la sesión expira y se requiere volver a autenticarse.
+
+### Cambio de contraseña obligatorio al primer login
+
+Cuando el usuario admin (u otro con `requiere_cambio_password=true` en el servicio Usuario) inicia sesión, el login devuelve `requires_password_change: true` y `usuario_id`. El frontend redirige a `/cambiar-password`, donde el usuario debe ingresar la contraseña actual, la nueva y su confirmación. Solo tras cambiar correctamente podrá acceder al panel. Si falla (contraseña actual incorrecta), `requiere_cambio_password` permanece en true. **Requiere `AUTH_TYPE=database`**.
 
 ### Timeout por inactividad
 
@@ -70,6 +74,14 @@ Si `SESSION_INACTIVITY_MINUTES` > 0, el frontend detecta la inactividad del usua
 ## Seeds y usuario admin
 
 El script `scripts/seed_initial_data.py` crea los datos iniciales: Aplicación MIDDLEWARE, Rol Administrador, Usuario admin (password inicial `admin`, debe cambiarse en el primer login). Se ejecuta automáticamente desde `start_all.ps1` tras esperar a los 5 microservicios (Aplicación, Roles, Usuario, Aplicacion-Role, Usuario-Rol). Si se ejecuta manualmente, el script verifica que estén disponibles antes de crear los seeds: `python scripts/seed_initial_data.py`.
+
+## Proxy del frontend
+
+En desarrollo (`ng serve`), el frontend usa un proxy que redirige:
+- `/api` → middleware (puerto 9000)
+- `/usuario-api` → servicio Usuario (puerto 8007)
+
+El cambio de contraseña se invoca a través de `/usuario-api/api/v1/usuarios/{id}/cambiar-password`. En producción debe configurarse un reverse proxy equivalente (por ejemplo, nginx) para exponer el servicio Usuario.
 
 ## OpenAPI (Swagger)
 

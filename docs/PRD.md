@@ -12,7 +12,8 @@ Esta página resume las secciones afectadas por **seguridad y autenticación** e
 
 El middleware incluye un sistema de login configurable:
 
-- **Por defecto**: autenticación **Basic Auth** (usuario y contraseña configurados por variables de entorno).
+- **Recomendado**: autenticación **Database Auth** (`AUTH_TYPE=database`), contra el servicio Usuario. Permite flujo completo: admin con contraseña por defecto, cambio obligatorio al primer login y `requiere_cambio_password`.
+- **Alternativa**: **Basic Auth** (usuario y contraseña configurados por variables de entorno; `AUTH_TYPE=basic`).
 - **Preparado para**: conectar un IAM como **Keycloak** (OIDC/JWT) en el futuro, sin cambiar la lógica de rutas.
 
 ### Rutas afectadas
@@ -26,10 +27,11 @@ El middleware incluye un sistema de login configurable:
 ### Flujo de usuario (Designer UI)
 
 1. El usuario accede al Designer UI. Si el middleware exige auth y no hay credenciales, la primera petición devuelve **401** y el frontend redirige a **/login**.
-2. En la pantalla de login el usuario introduce usuario y contraseña (Basic Auth).
-3. Tras un login correcto (petición de prueba con `Authorization: Basic ...` que devuelve 200), se redirige al panel principal.
-4. Un interceptor HTTP añade el header `Authorization` a todas las peticiones al middleware.
-5. Si en cualquier momento el middleware devuelve **401**, se limpian las credenciales y se redirige de nuevo a **/login**.
+2. En la pantalla de login el usuario introduce usuario y contraseña.
+3. Tras un login correcto, si `requires_password_change=true` (p. ej. admin con contraseña por defecto), se redirige a **/cambiar-password**; en caso contrario al panel principal.
+4. Si se requiere cambio, el usuario introduce contraseña actual, nueva y confirmación; al completar pasa al panel principal.
+5. Un interceptor HTTP añade el header `Authorization` a todas las peticiones al middleware.
+6. Si en cualquier momento el middleware devuelve **401**, se limpian las credenciales y se redirige de nuevo a **/login**.
 
 ### API y OpenAPI
 
