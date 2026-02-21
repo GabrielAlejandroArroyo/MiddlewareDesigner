@@ -92,9 +92,11 @@ async def update_usuario(usuario_id: str, usuario_data: Union[UsuarioUpdateDTO, 
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
         update_data = usuario_data.model_dump(exclude_unset=True)
+        if "password" in update_data:
+            usuario.password_hash = _hash_password(update_data.pop("password"))
         for key, value in update_data.items():
             setattr(usuario, key, value)
-        
+
         usuario.fecha_alta_modificacion = datetime.utcnow()
         await session.commit()
         await session.refresh(usuario)
@@ -126,7 +128,10 @@ async def validate_credentials(username: str, password: str) -> Optional[Tuple[s
         model = result.scalar_one_or_none()
         if not model or not getattr(model, "password_hash", None):
             return None
-        if not _verify_password(password, model.password_hash):
+        try:
+            if not _verify_password(password, model.password_hash):
+                return None
+        except (ValueError, TypeError):
             return None
         return (model.id, model.nombre_usuario, model.requiere_cambio_password)
 

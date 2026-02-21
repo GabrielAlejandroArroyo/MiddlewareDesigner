@@ -451,8 +451,9 @@ Expone CRUD de usuarios y endpoints de autenticación:
 - POST /api/v1/auth/validate (usado por middleware AUTH_TYPE=database)
 - POST /api/v1/auth/cambiar-password
 
-Ejecuta migración de esquema (password_hash, requiere_cambio_password)
-en lifespan si la BD existía sin estas columnas.
+Ejecuta migraciones en lifespan:
+- Esquema: password_hash, requiere_cambio_password.
+- Usuarios con password null → "1234" y requiere_cambio_password=true (cambiar en primer login).
 """
 ```
 

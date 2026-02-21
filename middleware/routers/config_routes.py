@@ -227,6 +227,25 @@ async def list_backend_services(include_deleted: bool = False, check_changes: bo
         raise HTTPException(status_code=500, detail=f"Error al listar servicios: {str(e)}")
 
 
+@router.get("/backend-services/{service_id}/health")
+async def check_backend_health(service_id: str):
+    """
+    Comprueba si un backend está online. Usado por el dashboard (el middleware puede
+    alcanzar hostnames Docker como 'usuario', mientras que el navegador no).
+    """
+    async with AsyncSessionLocal() as session:
+        search_id = service_id.lower().strip()
+        svc = await session.get(BackendService, search_id)
+        if not svc or svc.baja_logica:
+            raise HTTPException(status_code=404, detail="Backend no encontrado o dado de baja")
+
+        spec = await openapi_service.fetch_spec_by_url(svc.openapi_url)
+        if "error" in spec:
+            raise HTTPException(status_code=503, detail=spec["error"])
+
+        return {"status": "online"}
+
+
 @router.get("/backend-services/{service_id}/mappings")
 async def get_backend_service_mappings(service_id: str):
     """Obtiene los mapeos configurados para un servicio backend y valida contra el Swagger actual."""

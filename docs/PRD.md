@@ -42,6 +42,10 @@ El middleware incluye un sistema de login configurable:
 
 Ver **[auth.md](auth.md)** para variables de entorno (`AUTH_TYPE`, `MIDDLEWARE_AUTH_USER`, `MIDDLEWARE_AUTH_PASSWORD`, y opciones OIDC para Keycloak) y detalles de implementación.
 
+### Despliegue con Docker
+
+El middleware incluye un `Dockerfile`. Construir: `docker build -t middleware-designer ./middleware`. Ejecutar: `docker run -p 9000:9000 middleware-designer`. Ver [documentacion/middleware/README.md](../documentacion/middleware/README.md) para instrucciones completas.
+
 ---
 
 ## Referencias

@@ -46,6 +46,8 @@ El monorepo contiene microservicios desarrollados con **FastAPI** y **SQLAlchemy
 - **Responsabilidad**: Gestión de usuarios del sistema.
 - **Contrato**: `/api/v1/usuarios/`
 - **Auth**: `POST /api/v1/auth/validate` (valida credenciales; usado por el middleware).
+- **Migraciones** (al arrancar): Esquema (password_hash, requiere_cambio_password); usuarios con password null → "1234" y deben cambiar en primer login.
+- **Docker**: Incluye `Dockerfile`. Construir desde la raíz del repo: `docker build -f services/usuario/Dockerfile -t usuario-service .`. Ejecutar: `docker run -p 8007:8007 usuario-service`.
 
 ---
 

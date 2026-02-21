@@ -1,6 +1,8 @@
+import os
 import httpx
 import hashlib
 import json
+from urllib.parse import urlparse, urlunparse
 from typing import Dict, List, Any, Optional
 
 class OpenApiService:
@@ -12,6 +14,29 @@ class OpenApiService:
         spec_str = json.dumps(spec, sort_keys=True, separators=(',', ':'))
         return hashlib.md5(spec_str.encode('utf-8')).hexdigest()
     
+    def _rewrite_localhost_url(self, url: str) -> str:
+        """Reescribe localhost/127.0.0.1 al hostname del servicio en Docker (LOCALHOST_SERVICE_MAP)."""
+        map_env = os.environ.get("LOCALHOST_SERVICE_MAP", "")
+        if not map_env:
+            return url
+        parsed = urlparse(url)
+        if parsed.hostname not in ("localhost", "127.0.0.1"):
+            return url
+        port = parsed.port or (80 if parsed.scheme == "http" else 443)
+        for mapping in map_env.split(","):
+            parts = mapping.strip().split(":")
+            if len(parts) != 2:
+                continue
+            try:
+                p, host = int(parts[0]), parts[1].strip()
+                if p == port:
+                    netloc = f"{host}:{port}" if port not in (80, 443) else host
+                    new_parsed = parsed._replace(netloc=netloc)
+                    return urlunparse(new_parsed)
+            except ValueError:
+                continue
+        return url
+
     async def fetch_spec_by_url(self, url: str) -> Dict[str, Any]:
         """Obtiene el JSON de OpenAPI desde una URL completa"""
         # Correccion automatica: si el usuario pasa la URL de docs, cambiar a openapi.json
@@ -19,7 +44,9 @@ class OpenApiService:
             url = url.replace("/docs", "/openapi.json")
         elif url.endswith("/docs/"):
             url = url.replace("/docs/", "/openapi.json")
-            
+
+        url = self._rewrite_localhost_url(url)
+
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(url)

@@ -54,6 +54,10 @@ export class MiddlewareService {
     return this.http.get<BackendService[]>(`${this.apiUrl}/backend-services?include_deleted=${includeDeleted}`);
   }
 
+  checkBackendHealth(serviceId: string): Observable<{ status: 'online' }> {
+    return this.http.get<{ status: 'online' }>(`${this.apiUrl}/backend-services/${serviceId}/health`);
+  }
+
   registerBackend(service: Partial<BackendService>): Observable<BackendService> {
     return this.http.post<BackendService>(`${this.apiUrl}/backend-services`, service);
   }

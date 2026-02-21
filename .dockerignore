@@ -1,0 +1,16 @@
+# Usado cuando se construye desde la raíz del monorepo
+# Ej: docker build -f services/usuario/Dockerfile -t usuario-service .
+
+__pycache__
+*.py[cod]
+*$py.class
+.venv
+venv
+.env
+.env.*
+*.db
+.git
+.gitignore
+microfrontends
+*.md
+.cursor

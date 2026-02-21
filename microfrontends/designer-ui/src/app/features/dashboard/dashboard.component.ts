@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MiddlewareService, BackendService } from '../../core/services/middleware.service';
-import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
@@ -426,7 +425,6 @@ interface ServiceHealth extends BackendService {
 })
 export class DashboardComponent implements OnInit {
   private middlewareService = inject(MiddlewareService);
-  private http = inject(HttpClient);
 
   services: ServiceHealth[] = [];
   onlineCount = 0;
@@ -460,14 +458,12 @@ export class DashboardComponent implements OnInit {
   }
 
   checkHealthAll() {
-    const healthChecks = this.services.map(svc => {
-      // Usar openapi_url directamente ya que es la URL completa y correcta
-      const url = svc.openapi_url;
-      return this.http.get(url).pipe(
+    const healthChecks = this.services.map(svc =>
+      this.middlewareService.checkBackendHealth(svc.id).pipe(
         map(() => ({ id: svc.id, status: 'online' as const })),
         catchError(() => of({ id: svc.id, status: 'offline' as const }))
-      );
-    });
+      )
+    );
 
     forkJoin(healthChecks).subscribe(results => {
       this.onlineCount = 0;
