@@ -7,6 +7,7 @@
 - **[Requisitos de producto (PRD)](PRD.md)** — Descripción del producto, flujos, API y modelo de datos, incluyendo seguridad y login.
 - **[Autenticación (auth)](auth.md)** — Login en el middleware: Basic Auth, variables de entorno, flujo desde el MFE y pasos futuros para Keycloak (OIDC).
 - **[Documentación completa (DOCUMENTACION-COMPLETA.md)](DOCUMENTACION-COMPLETA.md)** — README principal, tabla resumen de archivos, docstrings sugeridos, diagrama Mermaid y análisis del proyecto.
+- **[Middleware README](../documentacion/middleware/README.md)** — Tecnologías, lógica de resolución, despliegue con Docker.
 
 ## Otra documentación
 

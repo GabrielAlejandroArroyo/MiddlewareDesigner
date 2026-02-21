@@ -6,15 +6,21 @@ from routers.usuario_routes import router as usuario_router
 from routers.auth_routes import router as auth_router
 
 from scripts.migrate_add_password import migrate as migrate_add_password
+from scripts.migrate_null_passwords_to_1234 import migrate as migrate_null_passwords_to_1234
+from scripts.ensure_admin_password import ensure_admin_password_valid_async
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Migrar esquema si la BD existía sin password_hash / requiere_cambio_password
-    migrate_add_password()
-    # Crear tablas al iniciar
+    # Crear tablas al iniciar (primero para que migrate pueda alterar si es necesario)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    # Migrar esquema y asegurar admin con contraseña válida (admin/admin)
+    migrate_add_password()
+    # Usuarios con password null → "1234" y debe cambiar en primer login
+    migrate_null_passwords_to_1234()
+    # Corrección: si el hash de admin no verifica (ej. BD corrupta), reasignar contraseña
+    await ensure_admin_password_valid_async()
     yield
     # Limpieza al cerrar
     await engine.dispose()

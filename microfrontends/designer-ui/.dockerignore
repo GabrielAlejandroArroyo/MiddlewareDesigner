@@ -1,0 +1,8 @@
+node_modules
+.angular
+dist
+*.md
+.git
+.gitignore
+karma.conf.js
+*.log

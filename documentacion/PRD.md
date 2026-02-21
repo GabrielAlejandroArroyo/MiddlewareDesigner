@@ -43,6 +43,7 @@ Middleware Designer es un ecosistema para **diseñar interfaces dinámicas** a p
 - **Mapeos endpoint ↔ frontend**: Habilitar/deshabilitar endpoints; configuración UI por endpoint: `label`, `fields_config` (visualName, show, order, refService, dependsOn).
 - **Refresh de Swagger**: Actualizar contrato cacheado con opción de conservar configuración; detección de cambios por hash.
 - **Baja lógica y reactivación** de servicios.
+- **Despliegue**: Incluye `Dockerfile` para ejecución en contenedor.
 - **Detalle**: Ver [Middleware Designer](middleware/README.md).
 
 ### 3.3 Frontend Designer UI (`microfrontends/designer-ui/`)

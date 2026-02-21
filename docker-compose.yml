@@ -1,0 +1,67 @@
+name: fullstackmiddle
+
+services:
+  usuario:
+    build:
+      context: .
+      dockerfile: services/usuario/Dockerfile
+    container_name: usuario-service
+    ports:
+      - "8007:8007"
+    networks:
+      - middleware-network
+    volumes:
+      - usuario_db:/app
+
+  usuario-init:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.seed-usuario
+    container_name: usuario-init
+    environment:
+      USUARIO_SERVICE_URL: http://usuario:8007
+    depends_on:
+      usuario:
+        condition: service_started
+    networks:
+      - middleware-network
+    restart: "no"
+
+  middleware:
+    build:
+      context: ./middleware
+      dockerfile: Dockerfile
+    container_name: middleware-designer
+    ports:
+      - "9000:9000"
+    environment:
+      AUTH_TYPE: database
+      USUARIO_SERVICE_URL: http://usuario:8007
+      LOCALHOST_SERVICE_MAP: "8007:usuario"
+    depends_on:
+      usuario-init:
+        condition: service_completed_successfully
+    networks:
+      - middleware-network
+    volumes:
+      - middleware_db:/app
+
+  designer-ui:
+    build:
+      context: ./microfrontends/designer-ui
+      dockerfile: Dockerfile
+    container_name: designer-ui
+    ports:
+      - "4200:80"
+    depends_on:
+      - middleware
+    networks:
+      - middleware-network
+
+networks:
+  middleware-network:
+    driver: bridge
+
+volumes:
+  usuario_db:
+  middleware_db:
