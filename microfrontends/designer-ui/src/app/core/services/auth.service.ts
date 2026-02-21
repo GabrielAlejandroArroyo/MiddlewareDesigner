@@ -13,6 +13,7 @@ interface StoredAuth {
   password: string;
   expiresAt: number;
   sessionInactivityMinutes?: number;
+  usuario_id?: string;
 }
 
 /**
@@ -49,17 +50,19 @@ export class AuthService {
         return null;
       }
       this._sessionInactivityMinutes.set(stored.sessionInactivityMinutes ?? 0);
+      this._usuarioId.set(stored.usuario_id ?? null);
       return { username: stored.username, password: stored.password };
     } catch {
       return null;
     }
   }
 
-  private saveToStorage(creds: AuthCredentials, ttlMinutes: number, inactivityMinutes: number = 0): void {
+  private saveToStorage(creds: AuthCredentials, ttlMinutes: number, inactivityMinutes: number = 0, usuarioId?: string | null): void {
     const stored: StoredAuth = {
       ...creds,
       expiresAt: Date.now() + ttlMinutes * 60 * 1000,
-      sessionInactivityMinutes: inactivityMinutes
+      sessionInactivityMinutes: inactivityMinutes,
+      ...(usuarioId != null && usuarioId !== '' ? { usuario_id: usuarioId } : {})
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
   }
@@ -68,13 +71,16 @@ export class AuthService {
     this._usuarioId.set(id);
   }
 
-  setCredentials(username: string, password: string, sessionTimeoutMinutes?: number, sessionInactivityMinutes?: number): void {
+  setCredentials(username: string, password: string, sessionTimeoutMinutes?: number, sessionInactivityMinutes?: number, usuarioId?: string | null): void {
     const creds = { username, password };
     const ttlMinutes = sessionTimeoutMinutes ?? DEFAULT_TTL_MINUTES;
     const inactivityMinutes = sessionInactivityMinutes ?? 0;
     this._sessionInactivityMinutes.set(inactivityMinutes);
+    if (usuarioId != null && usuarioId !== '') {
+      this._usuarioId.set(usuarioId);
+    }
     this.credentials.set(creds);
-    this.saveToStorage(creds, ttlMinutes, inactivityMinutes);
+    this.saveToStorage(creds, ttlMinutes, inactivityMinutes, usuarioId);
   }
 
   clearCredentials(): void {
