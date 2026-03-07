@@ -83,6 +83,15 @@ En **Definición de acción**, por cada atributo (Request/Response) se puede abr
 
 Esta lógica se aplica en todos los formularios de configuración que usan este modal (Action Definition) y en el consumo en Preview.
 
+#### Validación de campos obligatorios en Preview
+
+En los formularios POST/PUT/PATCH del **Preview**, la validación de campos obligatorios se determina por **dos fuentes**:
+
+1. **Esquema OpenAPI** (`request_dto.required`): el array `required` del contrato del microservicio indica qué campos son obligatorios.
+2. **Configuración de Action Definition** (`fields_config.request`): el administrador puede marcar explícitamente un campo como obligatorio en la definición de acción.
+
+Un campo se considera obligatorio si está en el esquema OpenAPI **o** si está marcado como tal en Action Definition. Al enviar el formulario con campos obligatorios vacíos, se muestran mensajes en rojo debajo de cada campo inválido y se evita el envío hasta que se completen.
+
 ---
 
 ## 4. Flujos de usuario principales

@@ -168,18 +168,25 @@ import { ChangeDetectorRef } from '@angular/core';
         <!-- Contenido principal -->
         <div class="flex-grow-1 overflow-auto bg-light p-4 p-md-5">
           <div class="container-xxl">
-            <!-- Alerta de Respuesta -->
-            <div *ngIf="testResponse" class="alert shadow-sm border-0 mb-4 animate-in" 
-                 [ngClass]="testResponse.success ? 'alert-success' : 'alert-danger'">
-              <div class="d-flex justify-content-between">
-                <strong class="small text-uppercase">{{ testResponse.success ? 'Resultado de la Operación' : 'Error en la Operación' }}</strong>
-                <button class="btn-close btn-close-sm" (click)="testResponse = null"></button>
+            <!-- Track de respuesta del backend: colapsado por defecto, click para expandir -->
+            <div *ngIf="testResponse" id="preview-error-panel" class="alert shadow-sm border-0 mb-4 animate-in"
+                 [ngClass]="testResponse.success ? 'alert-success' : 'alert-danger'"
+                 role="alert">
+              <div class="d-flex justify-content-between align-items-center cursor-pointer"
+                   (click)="responsePanelExpanded = !responsePanelExpanded"
+                   [attr.aria-expanded]="responsePanelExpanded">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi" [ngClass]="testResponse.success ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
+                  <strong class="small text-uppercase">{{ testResponse.success ? 'Resultado de la Operación' : 'Error en la Operación' }}</strong>
+                  <span class="badge bg-dark bg-opacity-25 px-2 py-1 small">Track de respuesta del backend</span>
+                </div>
+                <i class="bi transition-transform" [ngClass]="responsePanelExpanded ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
               </div>
-              <div class="mb-0 mt-2">
-                <div *ngIf="isObject(testResponse.data)" class="bg-dark bg-opacity-10 p-3 rounded-3 overflow-auto" style="max-height: 200px">
+              <div *ngIf="responsePanelExpanded" class="mb-0 mt-2">
+                <div *ngIf="isObject(testResponse.data)" class="bg-dark bg-opacity-10 p-3 rounded-3 overflow-auto" style="max-height: 250px">
                   <pre class="mb-0 small">{{ testResponse.data | json }}</pre>
                 </div>
-                <div *ngIf="!isObject(testResponse.data)" class="fw-bold">{{ testResponse.data }}</div>
+                <div *ngIf="!isObject(testResponse.data)" class="fw-bold mt-2">{{ testResponse.data }}</div>
               </div>
             </div>
 
@@ -284,6 +291,7 @@ import { ChangeDetectorRef } from '@angular/core';
                       </span>
                       <div class="position-relative flex-grow-1">
                         <select class="form-select" 
+                                [class.is-invalid]="hasFieldError(prop)"
                                 [(ngModel)]="formData[prop.key]" 
                                 [disabled]="!prop.editable || activeTest.method === 'GET' || isLoadingOptions(prop)" 
                                 [title]="'Atributo técnico: ' + prop.key"
@@ -300,21 +308,37 @@ import { ChangeDetectorRef } from '@angular/core';
                         </div>
                       </div>
                     </div>
+                    <div *ngIf="prop.refService && hasFieldError(prop)" class="text-danger small mt-1">{{ getFieldErrorMessage(prop) }}</div>
                     <div *ngIf="getShouldShowWarning(prop) && activeTest.method !== 'GET'" class="small text-warning mt-2 d-flex align-items-center">
                       <i class="bi bi-exclamation-triangle me-2"></i> Debe seleccionar <strong>{{ getParentLabel(prop.dependsOn || prop.dependency?.filterByField) }}</strong> primero.
                     </div>
 
-                    <!-- Caso ESTÁNDAR -->
-                    <input *ngIf="!prop.refService" [type]="prop.type === 'integer' ? 'number' : 'text'" 
+                    <!-- Caso BOOLEAN: Checkbox -->
+                    <div *ngIf="!prop.refService && prop.type === 'boolean'" class="form-check form-switch mt-2">
+                      <input class="form-check-input" type="checkbox"
+                             [class.is-invalid]="hasFieldError(prop)"
+                             [(ngModel)]="formData[prop.key]"
+                             [disabled]="!prop.editable || activeTest.method === 'GET'"
+                             [id]="'cb-' + prop.key"
+                             [title]="'Atributo técnico: ' + prop.key">
+                      <label class="form-check-label" [for]="'cb-' + prop.key">{{ prop.label }}</label>
+                    </div>
+                    <div *ngIf="!prop.refService && prop.type === 'boolean' && hasFieldError(prop)" class="text-danger small mt-1">{{ getFieldErrorMessage(prop) }}</div>
+
+                    <!-- Caso ESTÁNDAR (text, number, etc.) -->
+                    <input *ngIf="!prop.refService && prop.type !== 'boolean'" [type]="prop.type === 'integer' ? 'number' : 'text'"
                            [(ngModel)]="formData[prop.key]"
-                           class="form-control" 
+                           (ngModelChange)="clearFieldErrorOnEdit(prop)"
+                           class="form-control"
+                           [class.is-invalid]="hasFieldError(prop)"
                            [placeholder]="'Valor para ' + prop.label"
                            [disabled]="!prop.editable || activeTest.method === 'GET'"
                            [class.bg-light]="!prop.editable || activeTest.method === 'GET'"
-                           [class.border-info]="prop.unique && activeTest.method !== 'GET'"
+                           [class.border-info]="isIdField(prop.key) && prop.unique && activeTest.method !== 'GET'"
                            [title]="'Atributo técnico: ' + prop.key">
-                    <div *ngIf="prop.unique && activeTest.method !== 'GET'" class="small text-info mt-2">
-                      <i class="bi bi-magic me-2"></i> Valor autogenerado (Campo único)
+                    <div *ngIf="hasFieldError(prop) && !prop.refService && prop.type !== 'boolean'" class="text-danger small mt-1">{{ getFieldErrorMessage(prop) }}</div>
+                    <div *ngIf="isIdField(prop.key) && prop.unique && activeTest.method !== 'GET'" class="small text-info mt-2">
+                      <i class="bi bi-magic me-2"></i> Valor autogenerado (solo para ID)
                     </div>
                   </div>
                 </div>
@@ -558,6 +582,11 @@ export class PreviewComponent implements OnInit {
   formData: any = {};
   selectedId: string = '';
   testResponse: any = null;
+  /** Panel de respuesta del backend: colapsado por defecto, expandible al hacer clic */
+  responsePanelExpanded = false;
+  formSubmitted = false;
+  /** Errores de validación del backend por campo (key -> mensaje) */
+  fieldErrors: Record<string, string> = {};
   testerColumns: { key: string, label: string }[] = [];
   testerFields: {
     key: string, 
@@ -613,6 +642,7 @@ export class PreviewComponent implements OnInit {
   openTester(ep: any, preserveFormData: boolean = false, preserveSelectedId: boolean = false) {
     this.activeTest = ep;
     this.testData = [];
+    this.formSubmitted = false;
     
     // Solo limpiar formData y selectedId si no se debe preservar (para edición)
     if (!preserveFormData) {
@@ -624,6 +654,7 @@ export class PreviewComponent implements OnInit {
     }
     
     this.testResponse = null;
+    this.fieldErrors = {};
     
     // Pre-calcular columnas y campos
     this.testerColumns = this.calculateColumns(ep);
@@ -747,14 +778,98 @@ export class PreviewComponent implements OnInit {
   private generateUniqueIds() {
     if (this.activeTest?.method === 'POST') {
       this.testerFields.forEach(f => {
-        if (f.unique) {
-          // Generar un ID aleatorio corto pero identificativo
-          const prefix = this.activeTest.path.split('/')[2]?.substring(0, 3).toUpperCase() || 'ID';
+        if (f.unique && this.isIdField(f.key)) {
+          // Generar un ID aleatorio corto solo para campos ID
+          const prefix = this.activeTest!.path.split('/')[2]?.substring(0, 3).toUpperCase() || 'ID';
           const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
           this.formData[f.key] = `${prefix}_${randomSuffix}`;
         }
       });
     }
+  }
+
+  isIdField(key: string): boolean {
+    return key?.toLowerCase() === 'id';
+  }
+
+  isFieldInvalid(prop: any): boolean {
+    if (!prop.required || this.activeTest?.method === 'GET') return false;
+    if (!this.formSubmitted) return false;
+    const val = this.formData[prop.key];
+    if (prop.type === 'boolean') return val === undefined || val === null;
+    if (prop.refService) return val === undefined || val === null || val === '';
+    return val === null || val === undefined || (typeof val === 'string' && val.trim() === '');
+  }
+
+  private parseBackendValidationErrors(detail: any): Record<string, string> {
+    const errors: Record<string, string> = {};
+    // Formato {"errors": {"email": ["msg1"], "nombre": ["msg2"]}}
+    if (detail?.errors && typeof detail.errors === 'object') {
+      for (const [key, msgs] of Object.entries(detail.errors)) {
+        const msg = Array.isArray(msgs) ? msgs[0] : msgs;
+        if (msg && typeof key === 'string') {
+          errors[key] = String(msg);
+          errors[key.toLowerCase()] = String(msg);
+        }
+      }
+      if (Object.keys(errors).length > 0) return errors;
+    }
+    // Formato FastAPI/Pydantic: detail = [{loc, msg}]
+    let items = Array.isArray(detail) ? detail : (detail && typeof detail === 'object' ? [detail] : []);
+    if (items.length === 0 && detail?.detail && Array.isArray(detail.detail)) {
+      items = detail.detail;
+    }
+    for (const item of items) {
+      const msg = item?.msg ?? item?.message;
+      const msgStr = typeof msg === 'string' ? msg : (msg?.msg ?? (msg ? String(msg) : ''));
+      if (!msgStr) continue;
+      let fieldKey: string | null = null;
+      const loc = item?.loc;
+      if (loc) {
+        const locArr = Array.isArray(loc) ? loc : [loc];
+        // Usar el último elemento string de loc (para ["body","email"] -> "email"; para ["body",0,"field"] -> "field")
+        for (let i = locArr.length - 1; i >= 0; i--) {
+          const part = locArr[i];
+          if (part != null && typeof part === 'string') {
+            fieldKey = part;
+            break;
+          }
+        }
+      }
+      if (!fieldKey && item?.field) fieldKey = String(item.field);
+      if (fieldKey) {
+        errors[fieldKey] = msgStr;
+        errors[fieldKey.toLowerCase()] = msgStr;
+      }
+    }
+    return errors;
+  }
+
+  /** Obtiene el mensaje de error del backend para un campo, o null si no hay */
+  getFieldError(propKey: string): string | null {
+    if (!propKey) return null;
+    return this.fieldErrors[propKey] ?? this.fieldErrors[propKey.toLowerCase()] ?? null;
+  }
+
+  /** Limpia el error de un campo cuando el usuario lo edita (mejora UX) */
+  clearFieldErrorOnEdit(prop: any) {
+    if (!prop?.key) return;
+    delete this.fieldErrors[prop.key];
+    delete this.fieldErrors[prop.key.toLowerCase()];
+    this.cdr.detectChanges();
+  }
+
+  /** Indica si el campo debe mostrarse con error (obligatorio vacío o validación backend) */
+  hasFieldError(prop: any): boolean {
+    return this.isFieldInvalid(prop) || !!this.getFieldError(prop.key);
+  }
+
+  /** Mensaje a mostrar debajo del campo: error del backend o "X es obligatorio" */
+  getFieldErrorMessage(prop: any): string {
+    const backendErr = this.getFieldError(prop.key);
+    if (backendErr) return backendErr;
+    if (this.isFieldInvalid(prop)) return `${prop.label} es obligatorio.`;
+    return '';
   }
 
   fetchRefData(serviceId: string | undefined, fieldConfig?: any) {
@@ -1220,13 +1335,17 @@ export class PreviewComponent implements OnInit {
                 ? (ep.configuracion_ui?.fields_config?.request || {})
                 : (ep.configuracion_ui?.fields_config?.response || {});
 
+    const schemaRequired = isMutation
+      ? (ep.request_dto?.required || [])
+      : (ep.response_dto?.required || []);
+
     return Object.entries(props)
       .map(([k, v]: any) => ({ 
         key: k, 
         label: config[k]?.visualName || k,
         type: v.type,
         editable: config[k]?.editable !== false,
-        required: config[k]?.required === true,
+        required: config[k]?.required === true || schemaRequired.includes(k),
         unique: config[k]?.unique === true,
         order: config[k]?.order || 0,
         refService: config[k]?.refService,
@@ -1310,6 +1429,11 @@ export class PreviewComponent implements OnInit {
   executeMutation() {
     if (!this.selectedServiceRaw || !this.activeTest) return;
     
+    this.formSubmitted = true;
+    this.cdr.detectChanges();
+    const hasInvalid = this.testerFields.some(p => this.isFieldInvalid(p));
+    if (hasInvalid) return;
+    
     let baseUrl = this.selectedServiceRaw.host;
     if (!baseUrl.startsWith('http')) baseUrl = `http://${baseUrl}`;
     
@@ -1350,6 +1474,7 @@ export class PreviewComponent implements OnInit {
 
     obs.subscribe({
       next: (res) => {
+        this.responsePanelExpanded = false;
         this.testResponse = { success: true, data: res };
         
         if (this.activeTest.method === 'POST') {
@@ -1370,8 +1495,17 @@ export class PreviewComponent implements OnInit {
         }
       },
       error: (err) => {
-        const errorMsg = err.error?.detail || err.message || 'Error al procesar la solicitud';
+        const detail = err.error?.detail ?? err.error;
+        this.fieldErrors = this.parseBackendValidationErrors(detail);
+        const errorMsg = detail || err.message || 'Error al procesar la solicitud';
+        this.responsePanelExpanded = false;
         this.testResponse = { success: false, data: errorMsg };
+        // Defer para asegurar que la vista muestre el panel y los errores debajo de cada campo
+        setTimeout(() => {
+          this.cdr.detectChanges();
+          const el = document.getElementById('preview-error-panel');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
       }
     });
   }
@@ -1416,6 +1550,12 @@ export class PreviewComponent implements OnInit {
   }
 
   // --- HELPERS ---
+
+  /** Cierra el panel de error pero mantiene los mensajes debajo de cada campo */
+  dismissErrorPanel() {
+    this.testResponse = null;
+    this.cdr.detectChanges();
+  }
 
   isObject(val: any): boolean {
     return val !== null && typeof val === 'object';
