@@ -48,6 +48,69 @@ El middleware incluye un `Dockerfile`. Construir: `docker build -t middleware-de
 
 ---
 
+## Gestión de Aplicaciones
+
+### Descripción
+
+El sistema permite definir aplicaciones personalizadas desde el Designer UI. Cada aplicación se configura con roles, módulos accesibles por rol, y un menú personalizable. Las aplicaciones generadas son accesibles desde un microfrontend runtime separado (`app-runtime`, puerto 4201).
+
+### Pantalla "Aplicaciones" en Designer UI
+
+Ruta: `/apps` en el Designer UI. Permite:
+
+1. **Crear/editar aplicaciones** con nombre, descripción, slug (URL) y vinculación opcional a una aplicación del microservicio `aplicacion` (puerto 8005).
+2. **Asignar roles** disponibles: se cargan **todos los roles** del servicio `roles` (8006) y del servicio `aplicacion-role` (8008). Si la app está vinculada a una aplicación del microservicio, los roles se agrupan visualmente: primero los roles que pertenecen a esa aplicación (por `id_aplicacion` o vínculo en `aplicacion-role`), luego el resto de roles disponibles. Si no está vinculada, se muestran todos los roles sin agrupamiento. Al asignar un rol, se sincroniza opcionalmente con el servicio `aplicacion-role`.
+3. **Configurar módulos por rol**: seleccionar qué endpoints habilitados de cada backend service son accesibles por cada rol.
+4. **Diseñar el menú**: auto-generado desde los módulos seleccionados, con opción de personalización manual (etiquetas, iconos, jerarquía).
+5. **URL de acceso**: muestra la URL del runtime donde los usuarios finales acceden a la aplicación.
+
+### Integración con microservicios
+
+La pantalla de Aplicaciones consume directamente los siguientes microservicios vía proxies del dev server Angular:
+
+| Proxy | Microservicio | Puerto | Uso |
+|-------|---------------|--------|-----|
+| `/aplicacion-api` | aplicacion | 8005 | Listar aplicaciones existentes para vincular |
+| `/roles-api` | roles | 8006 | Listar roles disponibles, filtrados por aplicación |
+| `/aplicacion-role-api` | aplicacion-role | 8008 | Sincronizar vínculos aplicación-rol |
+| `/usuario-rol-api` | usuario-rol | 8009 | Consultar asignaciones usuario-rol (runtime) |
+
+### API del middleware (`/api/v1/apps/*`)
+
+| Ruta | Método | Descripción |
+|------|--------|-------------|
+| `/api/v1/apps` | POST | Crear aplicación |
+| `/api/v1/apps` | GET | Listar aplicaciones |
+| `/api/v1/apps/{id}` | GET | Obtener aplicación con roles |
+| `/api/v1/apps/{id}` | PUT | Actualizar aplicación |
+| `/api/v1/apps/{id}` | DELETE | Baja lógica |
+| `/api/v1/apps/{id}/roles` | GET/POST | Gestión de roles |
+| `/api/v1/apps/{id}/roles/{rc_id}` | DELETE | Remover rol |
+| `/api/v1/apps/{id}/roles/{rc_id}/modules` | GET/PUT | Módulos por rol |
+| `/api/v1/apps/{id}/menu` | GET/PUT | Menú personalizado |
+| `/api/v1/apps/{id}/menu/auto-generate` | POST | Auto-generar menú |
+| `/api/v1/apps/{id}/runtime/{role_id}` | GET | Config runtime (público) |
+| `/api/v1/apps/by-slug/{slug}` | GET | Buscar app por slug |
+
+### Modelo de datos (middleware DB)
+
+- **app_definitions**: id, id_aplicacion, nombre, descripcion, slug (unique), is_active, baja_logica, created_at, updated_at.
+- **app_role_configs**: id, app_definition_id (FK), id_role, role_nombre, is_active.
+- **app_role_modules**: id, app_role_config_id (FK), backend_service_id, endpoint_path, metodo, is_enabled.
+- **app_menu_configs**: id, app_definition_id (FK, unique), menu_structure (JSON).
+
+### Microfrontend App Runtime
+
+- Puerto: 4201 (desarrollo) / 80 (Docker).
+- Ruta: `/:slug` (ej: `/mi-app-admin`).
+- Flujo: Login → resolución de rol del usuario → carga de configuración runtime → sidebar dinámico con menú personalizado → visor de módulos.
+
+### Despliegue
+
+El `docker-compose.yml` incluye el servicio `app-runtime` en puerto 4201.
+
+---
+
 ## Referencias
 
 - [documentacion/PRD.md](../documentacion/PRD.md) — PRD completo.

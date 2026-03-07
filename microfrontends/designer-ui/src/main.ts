@@ -9,6 +9,7 @@ import { EndpointInspectorComponent } from './app/features/endpoint-inspector/en
 import { ActionDefinitionComponent } from './app/features/action-definition/action-definition.component';
 import { PreviewComponent } from './app/features/preview/preview.component';
 import { CustomPageDesignerComponent } from './app/features/custom-page-designer/custom-page-designer.component';
+import { AppDefinitionComponent } from './app/features/app-definition/app-definition.component';
 import { DashboardComponent } from './app/features/dashboard/dashboard.component';
 import { LoginComponent } from './app/features/login/login.component';
 import { CambiarPasswordComponent } from './app/features/cambiar-password/cambiar-password.component';
@@ -24,6 +25,7 @@ const routes: Routes = [
   { path: '', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'backends', component: BackendManagementComponent, canActivate: [authGuard] },
   { path: 'preview', component: PreviewComponent, canActivate: [authGuard] },
+  { path: 'apps', component: AppDefinitionComponent, canActivate: [authGuard] },
   { path: 'custom-designer', component: CustomPageDesignerComponent, canActivate: [authGuard] },
   { path: 'inspect/:id', component: EndpointInspectorComponent, canActivate: [authGuard] },
   { path: 'inspect/:id/action-definition', component: ActionDefinitionComponent, canActivate: [authGuard] },
@@ -77,6 +79,14 @@ const routes: Routes = [
                  [title]="isCollapsed ? 'Previsualización' : ''">
                 <i class="bi bi-eye-fill fs-5" [class.me-3]="!isCollapsed"></i>
                 <span class="text-nowrap" *ngIf="!isCollapsed">Previsualización</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center rounded-3 p-3 transition-all" 
+                 routerLink="/apps" routerLinkActive="active bg-info bg-opacity-10 text-info shadow-sm"
+                 [title]="isCollapsed ? 'Aplicaciones' : ''">
+                <i class="bi bi-window-stack fs-5" [class.me-3]="!isCollapsed"></i>
+                <span class="text-nowrap" *ngIf="!isCollapsed">Aplicaciones</span>
               </a>
             </li>
             <li class="nav-item">
