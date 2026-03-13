@@ -1,6 +1,6 @@
 import re
 from typing import Optional, List, Dict, Any
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from entity.app_models import AppDefinition, AppRoleConfig, AppRoleModule, AppMenuConfig
 from entity.config_models import BackendService, BackendMapping
@@ -9,6 +9,7 @@ from dto.app_dtos import (
     AppRoleConfigCreate, AppRoleModuleCreate,
     AppMenuConfigUpdate, MenuItemSchema,
     RuntimeModuleInfo, AppRuntimeResponse,
+    AppAccessCheckResponse, AppAccessIssue,
 )
 
 
@@ -319,6 +320,94 @@ async def auto_generate_menu(session: AsyncSession, app_id: int) -> AppMenuConfi
     return await save_menu(session, app_id, menu_update)
 
 
+# --- Access Check ---
+
+async def check_app_access(session: AsyncSession, app_id: int) -> AppAccessCheckResponse:
+    app_def = await session.get(AppDefinition, app_id)
+    issues: List[AppAccessIssue] = []
+
+    if not app_def:
+        issues.append(AppAccessIssue(
+            code="APP_NOT_FOUND",
+            severity="error",
+            message="La aplicación no existe en el sistema.",
+            suggestion="Verifique que el ID de la aplicación sea correcto o cree una nueva aplicación.",
+        ))
+        return AppAccessCheckResponse(
+            can_access=False, app_active=False, has_roles=False,
+            has_modules=False, has_menu=False, issues=issues,
+        )
+
+    app_active = app_def.is_active and not app_def.baja_logica
+
+    if app_def.baja_logica:
+        issues.append(AppAccessIssue(
+            code="APP_DELETED",
+            severity="error",
+            message="La aplicación fue dada de baja lógica.",
+            suggestion="Reactive la aplicación antes de intentar acceder.",
+        ))
+    elif not app_def.is_active:
+        issues.append(AppAccessIssue(
+            code="APP_INACTIVE",
+            severity="error",
+            message="La aplicación está marcada como inactiva.",
+            suggestion="Active la aplicación desde la pestaña 'Información'.",
+        ))
+
+    roles = await list_app_roles(session, app_id)
+    has_roles = len(roles) > 0
+    total_roles = len(roles)
+
+    if not has_roles:
+        issues.append(AppAccessIssue(
+            code="NO_ROLES",
+            severity="error",
+            message="La aplicación no tiene roles asignados.",
+            suggestion="Vaya a la pestaña 'Roles' y asigne al menos un rol a la aplicación.",
+        ))
+
+    total_modules = 0
+    for role in roles:
+        modules = await get_role_modules(session, role.id)
+        enabled = [m for m in modules if m.is_enabled]
+        total_modules += len(enabled)
+
+    has_modules = total_modules > 0
+    if has_roles and not has_modules:
+        issues.append(AppAccessIssue(
+            code="NO_MODULES",
+            severity="warning",
+            message="Los roles asignados no tienen módulos (endpoints) configurados.",
+            suggestion="Vaya a la pestaña 'Módulos por Rol' y asigne endpoints a los roles.",
+        ))
+
+    menu_cfg = await get_menu(session, app_id)
+    has_menu = menu_cfg is not None and bool(menu_cfg.menu_structure)
+    menu_items_count = len(menu_cfg.menu_structure) if menu_cfg and menu_cfg.menu_structure else 0
+
+    if not has_menu:
+        issues.append(AppAccessIssue(
+            code="NO_MENU",
+            severity="warning",
+            message="La aplicación no tiene un menú configurado.",
+            suggestion="Vaya a la pestaña 'Menú' y configure la estructura del menú o use 'Auto-generar'.",
+        ))
+
+    can_access = app_active and has_roles
+    return AppAccessCheckResponse(
+        can_access=can_access,
+        app_active=app_active,
+        has_roles=has_roles,
+        has_modules=has_modules,
+        has_menu=has_menu,
+        total_roles=total_roles,
+        total_modules=total_modules,
+        menu_items_count=menu_items_count,
+        issues=issues,
+    )
+
+
 # --- Runtime ---
 
 async def get_runtime_config(
@@ -371,6 +460,43 @@ async def get_runtime_config(
 
     menu_cfg = await get_menu(session, app_id)
     menu_structure = menu_cfg.menu_structure if menu_cfg else []
+
+    if not runtime_modules and menu_structure:
+        seen: set = set()
+        for item in menu_structure:
+            for child in (item.get("children") or []):
+                sid = child.get("target_service_id") or child.get("targetServiceId")
+                path = child.get("target_endpoint_path") or child.get("targetEndpointPath")
+                method = (child.get("target_endpoint_method") or child.get("targetEndpointMethod") or "").upper()
+                if not sid or not path:
+                    continue
+                key = (sid, path, method)
+                if key in seen:
+                    continue
+                seen.add(key)
+                svc = await session.get(BackendService, sid)
+                if not svc:
+                    continue
+                m_upper = (method or "GET").upper()
+                m_lower = m_upper.lower()
+                mapping_result = await session.execute(
+                    select(BackendMapping).where(
+                        BackendMapping.backend_service_id == sid,
+                        BackendMapping.endpoint_path == path,
+                        or_(BackendMapping.metodo == m_upper, BackendMapping.metodo == m_lower),
+                    ).limit(1)
+                )
+                mapping = mapping_result.scalar_one_or_none()
+                config_ui = mapping.configuracion_ui if mapping else {}
+                runtime_modules.append(RuntimeModuleInfo(
+                    backend_service_id=sid,
+                    backend_service_nombre=svc.nombre,
+                    backend_service_host=svc.host,
+                    backend_service_puerto=svc.puerto,
+                    endpoint_path=path,
+                    metodo=m_upper,
+                    configuracion_ui=config_ui,
+                ))
 
     return AppRuntimeResponse(
         app_id=app_def.id,

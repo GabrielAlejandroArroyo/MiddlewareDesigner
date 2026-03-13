@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 const MIDDLEWARE_BASE = '/api/v1';
 
@@ -60,6 +60,10 @@ export class RuntimeService {
     return this.http.post<LoginResponse>(`${MIDDLEWARE_BASE}/auth/login`, { username, password });
   }
 
+  getAvailableApps(): Observable<AppInfo[]> {
+    return this.http.get<AppInfo[]>(`${MIDDLEWARE_BASE}/apps/available`);
+  }
+
   getAppBySlug(slug: string): Observable<AppInfo> {
     return this.http.get<AppInfo>(`${MIDDLEWARE_BASE}/apps/by-slug/${slug}`);
   }
@@ -69,6 +73,8 @@ export class RuntimeService {
   }
 
   getUserRoles(usuarioId: string): Observable<any[]> {
-    return this.http.get<any[]>(`/usuario-api/api/v1/usuario-roles?id_usuario=${usuarioId}`);
+    return this.http.get<{ usuario_roles: any[]; total: number }>(
+      `/usuario-rol-api/api/v1/usuario-roles?id_usuario=${usuarioId}`
+    ).pipe(map(res => res.usuario_roles || []));
   }
 }

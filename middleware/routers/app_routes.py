@@ -6,7 +6,7 @@ from dto.app_dtos import (
     AppRoleConfigCreate, AppRoleConfigResponse,
     AppRoleModuleBatch, AppRoleModuleResponse,
     AppMenuConfigUpdate, AppMenuConfigResponse,
-    AppRuntimeResponse,
+    AppRuntimeResponse, AppAccessCheckResponse,
 )
 from services import app_service
 from auth.dependencies import get_current_user
@@ -67,6 +67,14 @@ def _app_to_response(app_def) -> dict:
 
 # --- Rutas públicas (sin auth) - DEBEN ir primero para evitar conflicto con {app_id} ---
 
+@router.get("/available", response_model=List[AppDefinitionResponse])
+async def list_available_apps():
+    """Lista todas las apps activas y no eliminadas (público, usado por app-runtime)."""
+    async with AsyncSessionLocal() as session:
+        apps = await app_service.list_app_definitions(session, include_deleted=False)
+        return [_app_to_response(a) for a in apps if a.is_active]
+
+
 @router.get("/by-slug/{slug}", response_model=AppDefinitionResponse)
 async def get_app_by_slug(slug: str):
     async with AsyncSessionLocal() as session:
@@ -74,6 +82,12 @@ async def get_app_by_slug(slug: str):
         if not app_def or app_def.baja_logica:
             raise HTTPException(status_code=404, detail="Aplicación no encontrada")
         return _app_to_response(app_def)
+
+
+@router.get("/{app_id}/check-access", response_model=AppAccessCheckResponse, dependencies=_auth)
+async def check_access(app_id: int):
+    async with AsyncSessionLocal() as session:
+        return await app_service.check_app_access(session, app_id)
 
 
 @router.get("/{app_id}/runtime/{role_id}", response_model=AppRuntimeResponse)

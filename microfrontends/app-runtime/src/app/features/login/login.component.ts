@@ -56,6 +56,12 @@ export class LoginComponent {
   appName = '';
 
   ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/apps';
+      this.router.navigateByUrl(returnUrl);
+      return;
+    }
+
     const slug = this.route.snapshot.queryParamMap.get('app') || '';
     if (slug) {
       this.runtimeService.getAppBySlug(slug).subscribe({
@@ -77,7 +83,7 @@ export class LoginComponent {
             res.session_timeout_minutes,
             res.usuario_id
           );
-          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/apps';
           this.router.navigateByUrl(returnUrl);
         } else {
           this.error = 'Credenciales inválidas';

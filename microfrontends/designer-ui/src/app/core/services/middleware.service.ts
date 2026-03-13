@@ -99,6 +99,25 @@ export interface AppRuntimeResponse {
   modules: any[];
 }
 
+export interface AppAccessIssue {
+  code: string;
+  severity: 'error' | 'warning';
+  message: string;
+  suggestion: string;
+}
+
+export interface AppAccessCheckResponse {
+  can_access: boolean;
+  app_active: boolean;
+  has_roles: boolean;
+  has_modules: boolean;
+  has_menu: boolean;
+  total_roles: number;
+  total_modules: number;
+  menu_items_count: number;
+  issues: AppAccessIssue[];
+}
+
 // --- Interfaces para microservicios externos ---
 
 export interface Aplicacion {
@@ -286,6 +305,10 @@ export class MiddlewareService {
 
   getAppBySlug(slug: string): Observable<AppDefinition> {
     return this.http.get<AppDefinition>(`${this.appsUrl}/by-slug/${slug}`);
+  }
+
+  checkAppAccess(appId: number): Observable<AppAccessCheckResponse> {
+    return this.http.get<AppAccessCheckResponse>(`${this.appsUrl}/${appId}/check-access`);
   }
 
   // --- Microservicios externos (acceso directo via proxy) ---

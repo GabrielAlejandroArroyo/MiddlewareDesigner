@@ -59,10 +59,10 @@ El sistema permite definir aplicaciones personalizadas desde el Designer UI. Cad
 Ruta: `/apps` en el Designer UI. Permite:
 
 1. **Crear/editar aplicaciones** con nombre, descripción, slug (URL) y vinculación opcional a una aplicación del microservicio `aplicacion` (puerto 8005).
-2. **Asignar roles** disponibles: se cargan **todos los roles** del servicio `roles` (8006) y del servicio `aplicacion-role` (8008). Si la app está vinculada a una aplicación del microservicio, los roles se agrupan visualmente: primero los roles que pertenecen a esa aplicación (por `id_aplicacion` o vínculo en `aplicacion-role`), luego el resto de roles disponibles. Si no está vinculada, se muestran todos los roles sin agrupamiento. Al asignar un rol, se sincroniza opcionalmente con el servicio `aplicacion-role`.
+2. **Asignar roles** disponibles: se cargan **únicamente los roles pertenecientes a la aplicación vinculada** usando `GET /roles/aplicacion/{id_aplicacion}` del servicio `roles` (8006). Si la app no está vinculada, no se muestran roles y se indica al usuario que debe vincular desde la pestaña Información. Cada rol muestra: descripción, ID, aplicación asociada, fecha de creación, estado (activo/baja) y cantidad de usuarios vinculados. Al asignar un rol, se sincroniza con el servicio `aplicacion-role` (8008).
 3. **Configurar módulos por rol**: seleccionar qué endpoints habilitados de cada backend service son accesibles por cada rol.
-4. **Diseñar el menú**: auto-generado desde los módulos seleccionados, con opción de personalización manual (etiquetas, iconos, jerarquía).
-5. **URL de acceso**: muestra la URL del runtime donde los usuarios finales acceden a la aplicación.
+4. **Diseñar el menú**: auto-generado desde los módulos seleccionados, con opción de personalización manual (etiquetas, iconos, jerarquía). La pestaña Menú incluye **Previsualización en vivo**: el mismo panel que en `/preview` (Módulos Generados, microservicios y botón "Probar funcionalidad") para ver y probar los endpoints mientras se configura la estructura del menú.
+5. **URL de acceso**: muestra la URL del runtime donde los usuarios finales acceden a la aplicación. Incluye un botón **"Diagnosticar"** que verifica el estado de configuración (app activa, roles, módulos, menú, accesibilidad del runtime) y un botón **"Abrir Aplicación"** que realiza esta verificación antes de redirigir, mostrando problemas detectados si la app no está lista.
 
 ### Integración con microservicios
 
@@ -89,8 +89,11 @@ La pantalla de Aplicaciones consume directamente los siguientes microservicios v
 | `/api/v1/apps/{id}/roles/{rc_id}/modules` | GET/PUT | Módulos por rol |
 | `/api/v1/apps/{id}/menu` | GET/PUT | Menú personalizado |
 | `/api/v1/apps/{id}/menu/auto-generate` | POST | Auto-generar menú |
+| `/api/v1/apps/{id}/check-access` | GET | Diagnóstico de accesibilidad (auth) |
 | `/api/v1/apps/{id}/runtime/{role_id}` | GET | Config runtime (público) |
+| `/api/v1/apps/available` | GET | Listar apps activas (público, usado por app-runtime home) |
 | `/api/v1/apps/by-slug/{slug}` | GET | Buscar app por slug |
+| `/api/v1/runtime/proxy/{service_id}/{path}` | GET/POST/PUT/PATCH/DELETE | Proxy a backends (evita CORS; app-runtime) |
 
 ### Modelo de datos (middleware DB)
 
@@ -102,12 +105,56 @@ La pantalla de Aplicaciones consume directamente los siguientes microservicios v
 ### Microfrontend App Runtime
 
 - Puerto: 4201 (desarrollo) / 80 (Docker).
-- Ruta: `/:slug` (ej: `/mi-app-admin`).
-- Flujo: Login → resolución de rol del usuario → carga de configuración runtime → sidebar dinámico con menú personalizado → visor de módulos.
+- **Rutas del SPA**:
+  - `/login` — Pantalla de login (pública).
+  - `/apps` — Home: listado de todas las aplicaciones configuradas (requiere auth). Muestra tarjetas con nombre, slug, descripción, roles y un enlace directo a cada app.
+  - `/:slug` — Shell de la aplicación específica (requiere auth). Carga la configuración runtime según el rol del usuario.
+  - `/` y `/**` — Redirigen a `/apps`.
+- **Flujo de navegación**: Login → `/apps` (listado de aplicaciones) → clic en app → `/:slug` (shell con sidebar y módulos). Desde el shell se puede volver al listado con "Todas las Aplicaciones".
+- **Interacción del menú**: Al cargar la app se auto-selecciona el primer módulo GET y se muestra la grilla. Los ítems padre se expanden por defecto. Al hacer clic en cualquier opción del menú (ej. "Listar todos los paises") se selecciona el módulo correspondiente. El proxy `/api/v1/runtime/proxy/{service_id}/{path}` evita CORS al llamar a backends.
+- El **guard de autenticación** preserva la URL de retorno (`returnUrl`), de modo que al hacer login desde una URL directa (ej: `/base`) se redirige automáticamente a esa app.
+- **Página de error descriptiva**: cuando la app no puede cargarse, se muestra una página de error con: código de error, título, descripción detallada, detalles técnicos (estado de la app, roles, módulos, menú), sugerencia de resolución, timestamp y slug. Los códigos de error incluyen: `APP_NOT_FOUND`, `APP_INACTIVE`, `APP_DELETED`, `NO_ROLES`, `NO_USER_ROLE`, `NO_MODULES`, `NO_MENU`, `RUNTIME_ERROR`.
 
 ### Despliegue
 
 El `docker-compose.yml` incluye el servicio `app-runtime` en puerto 4201.
+
+---
+
+## Asistente IA (Ayuda Contextual)
+
+### Descripción
+
+El sistema incluye un asistente de ayuda integrado basado en **Ollama** (IA open source, gratuita, sin API keys). Aparece como un botón flotante (FAB) en la esquina inferior derecha del Designer UI.
+
+### Características
+
+- **Botón flotante**: Icono de robot (bi-robot) siempre visible cuando el usuario está logueado.
+- **Chat panel**: Panel emergente con historial de mensajes, streaming de respuestas y sugerencias rápidas.
+- **Contexto automático**: Detecta en qué pantalla está el usuario y envía el contexto relevante al modelo de IA.
+- **Streaming**: Las respuestas se muestran token a token en tiempo real.
+- **Sin API keys**: Usa Ollama corriendo localmente (puerto 11434 por defecto).
+- **Modelo configurable**: Por defecto `llama3.2`, configurable vía `OLLAMA_MODEL` en el `.env` del middleware.
+
+### Arquitectura
+
+1. El frontend (`AiHelpComponent`) envía la pregunta + contexto de la página al middleware.
+2. El middleware (`/api/v1/ai-help/chat`) construye un prompt con un system prompt específico del proyecto y lo envía a Ollama.
+3. Ollama procesa con el modelo local y devuelve la respuesta en streaming.
+4. El frontend muestra los tokens a medida que llegan.
+
+### API del middleware
+
+| Ruta | Método | Descripción |
+|------|--------|-------------|
+| `/api/v1/ai-help/status` | GET | Verificar disponibilidad de Ollama y modelos instalados |
+| `/api/v1/ai-help/chat` | POST | Enviar pregunta con contexto y recibir respuesta en streaming |
+
+### Requisitos
+
+- Instalar [Ollama](https://ollama.com) en la máquina donde corre el middleware.
+- Descargar un modelo: `ollama pull llama3.2`.
+- Configurar en `middleware/.env`: `OLLAMA_BASE_URL` y `OLLAMA_MODEL`.
 
 ---
 

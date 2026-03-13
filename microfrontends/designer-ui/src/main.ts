@@ -13,6 +13,7 @@ import { AppDefinitionComponent } from './app/features/app-definition/app-defini
 import { DashboardComponent } from './app/features/dashboard/dashboard.component';
 import { LoginComponent } from './app/features/login/login.component';
 import { CambiarPasswordComponent } from './app/features/cambiar-password/cambiar-password.component';
+import { AiHelpComponent } from './app/features/ai-help/ai-help.component';
 import { ThemeService } from './app/core/services/theme.service';
 import { AuthService } from './app/core/services/auth.service';
 import { InactivityWatcherService } from './app/core/services/inactivity-watcher.service';
@@ -35,7 +36,7 @@ const routes: Routes = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterModule, CommonModule],
+  imports: [RouterOutlet, RouterModule, CommonModule, AiHelpComponent],
   template: `
     <router-outlet *ngIf="isLoginRoute()"></router-outlet>
     <div class="d-flex h-100 vh-100 overflow-hidden" *ngIf="!isLoginRoute()">
@@ -139,6 +140,9 @@ const routes: Routes = [
         </main>
       </div>
     </div>
+
+    <!-- Asistente IA flotante (solo cuando logueado) -->
+    <ai-help-fab *ngIf="!isLoginRoute() && authService.isLoggedIn()"></ai-help-fab>
 
     <!-- Modal de sesión expirada por inactividad -->
     <div *ngIf="showInactivityModal" class="custom-modal-overlay">

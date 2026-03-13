@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from config.database import engine, Base
-from routers import config_routes, auth_routes, app_routes
+from routers import config_routes, auth_routes, app_routes, ai_routes, runtime_routes
 # Importar modelos para que SQLAlchemy los registre en Base.metadata
 from entity.config_models import BackendService, FrontendService, BackendMapping
 from entity.app_models import AppDefinition, AppRoleConfig, AppRoleModule, AppMenuConfig
@@ -72,6 +72,8 @@ app.add_middleware(
 app.include_router(config_routes.router, prefix="/api/v1")
 app.include_router(auth_routes.router, prefix="/api/v1")
 app.include_router(app_routes.router, prefix="/api/v1")
+app.include_router(ai_routes.router, prefix="/api/v1")
+app.include_router(runtime_routes.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

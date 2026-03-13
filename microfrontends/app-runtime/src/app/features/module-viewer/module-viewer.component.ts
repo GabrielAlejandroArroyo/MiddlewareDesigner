@@ -30,7 +30,7 @@ import { RuntimeModule } from '../../core/services/runtime.service';
       </div>
 
       <!-- GET: Data grid -->
-      <div *ngIf="module.metodo === 'get'">
+      <div *ngIf="(module.metodo || '').toLowerCase() === 'get'">
         <div *ngIf="loading" class="text-center py-5">
           <div class="spinner-border text-primary"></div>
         </div>
@@ -70,11 +70,11 @@ import { RuntimeModule } from '../../core/services/runtime.service';
       </div>
 
       <!-- POST/PUT/PATCH: Form -->
-      <div *ngIf="module.metodo === 'post' || module.metodo === 'put' || module.metodo === 'patch'">
+      <div *ngIf="['post','put','patch'].includes((module.metodo || '').toLowerCase())">
         <div class="card">
           <div class="card-header fw-bold">
             <i class="bi bi-pencil-square me-2"></i>
-            {{ module.metodo === 'post' ? 'Crear' : 'Editar' }}
+            {{ (module.metodo || '').toLowerCase() === 'post' ? 'Crear' : 'Editar' }}
           </div>
           <div class="card-body">
             <div *ngIf="formFields.length === 0" class="text-muted small">
@@ -93,7 +93,7 @@ import { RuntimeModule } from '../../core/services/runtime.service';
             <div class="mt-4">
               <button class="btn btn-primary" (click)="submitForm()" [disabled]="loading">
                 <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-                {{ module.metodo === 'post' ? 'Crear' : 'Guardar' }}
+                {{ (module.metodo || '').toLowerCase() === 'post' ? 'Crear' : 'Guardar' }}
               </button>
             </div>
             <div *ngIf="successMsg" class="alert alert-success mt-3 small">{{ successMsg }}</div>
@@ -103,7 +103,7 @@ import { RuntimeModule } from '../../core/services/runtime.service';
       </div>
 
       <!-- DELETE: Confirm -->
-      <div *ngIf="module.metodo === 'delete'">
+      <div *ngIf="(module.metodo || '').toLowerCase() === 'delete'">
         <div class="card border-danger">
           <div class="card-header bg-danger text-white fw-bold">
             <i class="bi bi-trash me-2"></i> Eliminar
@@ -144,7 +144,7 @@ export class ModuleViewerComponent implements OnChanges {
     if (changes['module']) {
       this.reset();
       this.buildFormFields();
-      if (this.module.metodo === 'get') {
+      if ((this.module.metodo || '').toLowerCase() === 'get') {
         this.executeRequest();
       }
     }
@@ -177,10 +177,21 @@ export class ModuleViewerComponent implements OnChanges {
     this.formFields.forEach(f => this.formValues[f.name] = '');
   }
 
+  private unwrapListResponse(res: any): any {
+    if (Array.isArray(res)) return res;
+    if (res && typeof res === 'object') {
+      const values = Object.values(res);
+      const arr = values.find(v => Array.isArray(v) && v.length > 0) ?? values.find(v => Array.isArray(v));
+      if (arr) return arr;
+    }
+    return res;
+  }
+
   private buildUrl(): string {
-    let base = this.module.backend_service_host || '';
-    if (!base.startsWith('http')) base = `http://${base}`;
-    return `${base}:${this.module.backend_service_puerto}${this.module.endpoint_path}`;
+    const path = (this.module.endpoint_path || '').startsWith('/')
+      ? this.module.endpoint_path
+      : `/${this.module.endpoint_path}`;
+    return `/api/v1/runtime/proxy/${this.module.backend_service_id}${path}`;
   }
 
   executeRequest() {
@@ -191,9 +202,10 @@ export class ModuleViewerComponent implements OnChanges {
 
     this.http.get<any>(url).subscribe({
       next: (res) => {
-        this.data = res;
-        if (Array.isArray(res) && res.length > 0) {
-          this.columns = Object.keys(res[0]);
+        this.data = this.unwrapListResponse(res);
+        const arr = Array.isArray(this.data) ? this.data : [];
+        if (arr.length > 0) {
+          this.columns = Object.keys(arr[0]);
         }
         this.loading = false;
       },

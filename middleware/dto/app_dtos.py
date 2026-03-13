@@ -129,6 +129,27 @@ class AppRuntimeResponse(BaseModel):
     modules: List[RuntimeModuleInfo] = []
 
 
+# --- Access Check ---
+
+class AppAccessIssue(BaseModel):
+    code: str
+    severity: str  # "error" | "warning"
+    message: str
+    suggestion: str
+
+
+class AppAccessCheckResponse(BaseModel):
+    can_access: bool
+    app_active: bool
+    has_roles: bool
+    has_modules: bool
+    has_menu: bool
+    total_roles: int = 0
+    total_modules: int = 0
+    menu_items_count: int = 0
+    issues: List[AppAccessIssue] = []
+
+
 # Rebuild para referencias circulares
 MenuItemSchema.model_rebuild()
 AppDefinitionResponse.model_rebuild()

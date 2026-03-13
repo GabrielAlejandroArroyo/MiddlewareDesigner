@@ -6,14 +6,16 @@ import { HttpClient } from '@angular/common/http';
 import {
   MiddlewareService, BackendService, Endpoint,
   AppDefinition, AppRoleConfig, AppRoleModule, MenuItem, AppMenuConfig,
-  Aplicacion, Rol, AplicacionRole, UsuarioRol, Usuario
+  Aplicacion, Rol, AplicacionRole, UsuarioRol, Usuario,
+  AppAccessCheckResponse, AppAccessIssue
 } from '../../core/services/middleware.service';
+import { ModulePreviewPanelComponent } from '../../shared/module-preview-panel/module-preview-panel.component';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-definition',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, ModulePreviewPanelComponent],
   template: `
     <div class="container-fluid px-4 py-4">
       <!-- Header -->
@@ -249,90 +251,94 @@ import { forkJoin } from 'rxjs';
                   <div *ngIf="selectedApp.id_aplicacion">
                     <strong>Vinculada a:</strong> {{ linkedAplicacionNombre || selectedApp.id_aplicacion }}
                     <span class="badge bg-info ms-2">{{ selectedApp.id_aplicacion }}</span>
-                    <br><small>Se priorizan los roles de esta aplicación. También puede asignar roles de otras aplicaciones.</small>
+                    <br><small>Mostrando solo los roles configurados para esta aplicación.</small>
                   </div>
                   <div *ngIf="!selectedApp.id_aplicacion">
                     <strong>Sin vínculo a aplicación del microservicio.</strong>
-                    <br><small>Se muestran todos los roles disponibles. Para filtrar, vincule esta app a una aplicación existente desde la pestaña Información.</small>
+                    <br><small>Debe vincular esta app a una aplicación existente desde la pestaña <strong>Información</strong> para poder ver y asignar roles.</small>
                   </div>
                 </div>
               </div>
 
-              <div class="row g-4">
+              <!-- Sin vinculación: no se muestran roles -->
+              <div *ngIf="!selectedApp.id_aplicacion" class="text-center text-muted py-5">
+                <i class="bi bi-link-45deg display-3 text-warning"></i>
+                <p class="mt-3 fw-bold">Aplicación sin vincular</p>
+                <p class="small">Vaya a la pestaña <strong>Información</strong> y seleccione una aplicación del microservicio para cargar los roles disponibles.</p>
+              </div>
+
+              <!-- Con vinculación: layout de roles -->
+              <div class="row g-4" *ngIf="selectedApp.id_aplicacion">
                 <div class="col-md-5">
-                  <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Roles Disponibles</h6>
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2"></i>Roles de {{ linkedAplicacionNombre || selectedApp.id_aplicacion }}</h6>
+                    <span class="badge bg-info" *ngIf="rolesDeApp.length > 0">{{ rolesDeApp.length }}</span>
+                  </div>
                   <div *ngIf="loadingRoles" class="text-center py-3">
                     <div class="spinner-border spinner-border-sm text-primary"></div>
                     <span class="ms-2 small text-muted">Cargando roles...</span>
                   </div>
                   <div *ngIf="!loadingRoles">
-                    <!-- Roles de la aplicación vinculada -->
-                    <div *ngIf="selectedApp.id_aplicacion && rolesDeApp.length > 0" class="mb-3">
-                      <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-info"><i class="bi bi-link-45deg me-1"></i>{{ linkedAplicacionNombre || selectedApp.id_aplicacion }}</span>
-                        <small class="text-muted">({{ rolesDeApp.length }} roles)</small>
-                      </div>
-                      <div class="list-group">
-                        <ng-container *ngFor="let role of rolesDeApp">
-                          <ng-container *ngTemplateOutlet="roleTpl; context: { $implicit: role, highlight: true }"></ng-container>
-                        </ng-container>
-                      </div>
+                    <div class="list-group" *ngIf="rolesDeApp.length > 0">
+                      <button class="list-group-item list-group-item-action p-3"
+                              *ngFor="let role of rolesDeApp"
+                              (click)="assignRole(role)"
+                              [disabled]="isRoleAssigned(role.id)"
+                              [class.list-group-item-success]="isRoleAssigned(role.id)">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                              <i class="bi bi-shield-fill" [class.text-info]="!isRoleAssigned(role.id)" [class.text-success]="isRoleAssigned(role.id)"></i>
+                              <span class="fw-bold">{{ role.descripcion }}</span>
+                              <span class="badge small" [class.bg-success]="!role.baja_logica" [class.bg-opacity-25]="!role.baja_logica"
+                                    [class.text-success]="!role.baja_logica" [class.bg-danger]="role.baja_logica"
+                                    [class.text-danger]="role.baja_logica" [class.bg-opacity-10]="role.baja_logica">
+                                <i class="bi me-1" [class.bi-check-circle]="!role.baja_logica" [class.bi-x-circle]="role.baja_logica"></i>
+                                {{ role.baja_logica ? 'Baja' : 'Activo' }}
+                              </span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mb-1">
+                              <span class="badge bg-light text-dark border small">
+                                <i class="bi bi-key me-1"></i>{{ role.id }}
+                              </span>
+                              <span class="badge bg-info bg-opacity-10 text-info border-0 small">
+                                <i class="bi bi-app-indicator me-1"></i>{{ getAplicacionDescription(role.id_aplicacion) || role.id_aplicacion }}
+                              </span>
+                              <span class="badge bg-secondary bg-opacity-10 text-secondary border-0 small" *ngIf="role.fecha_alta_creacion">
+                                <i class="bi bi-calendar-event me-1"></i>{{ role.fecha_alta_creacion | date:'dd/MM/yyyy HH:mm' }}
+                              </span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                              <span class="badge bg-primary bg-opacity-10 text-primary border-0 small"
+                                    *ngIf="getUsersForRole(role.id).length > 0">
+                                <i class="bi bi-people me-1"></i>{{ getUsersForRole(role.id).length }} usuarios
+                              </span>
+                              <span class="badge bg-warning bg-opacity-10 text-warning border-0 small"
+                                    *ngIf="getUsersForRole(role.id).length === 0">
+                                <i class="bi bi-person-x me-1"></i>Sin usuarios
+                              </span>
+                            </div>
+                          </div>
+                          <i class="bi fs-5" [class.bi-check-circle-fill]="isRoleAssigned(role.id)"
+                             [class.bi-plus-circle]="!isRoleAssigned(role.id)"
+                             [class.text-success]="isRoleAssigned(role.id)"
+                             [class.text-primary]="!isRoleAssigned(role.id)"></i>
+                        </div>
+                      </button>
                     </div>
-                    <!-- Otros roles -->
-                    <div *ngIf="rolesOtros.length > 0">
-                      <div class="d-flex align-items-center gap-2 mb-2" *ngIf="selectedApp.id_aplicacion">
-                        <span class="badge bg-secondary"><i class="bi bi-collection me-1"></i>Otros roles</span>
-                        <small class="text-muted">({{ rolesOtros.length }})</small>
-                      </div>
-                      <div class="list-group">
-                        <ng-container *ngFor="let role of rolesOtros">
-                          <ng-container *ngTemplateOutlet="roleTpl; context: { $implicit: role, highlight: false }"></ng-container>
-                        </ng-container>
-                      </div>
-                    </div>
-
-                    <div *ngIf="availableRoles.length === 0" class="text-muted small text-center py-3">
-                      <i class="bi bi-info-circle me-1"></i>
-                      No se encontraron roles. Verifica que el servicio de roles esté activo.
+                    <div *ngIf="rolesDeApp.length === 0" class="text-muted small text-center py-4">
+                      <i class="bi bi-info-circle display-6 d-block mb-2"></i>
+                      No se encontraron roles para <strong>{{ linkedAplicacionNombre || selectedApp.id_aplicacion }}</strong>.
+                      <br>Verifica que existan roles creados en el servicio de roles para esta aplicación.
                     </div>
                   </div>
                 </div>
 
-                <!-- ng-template para cada rol disponible -->
-                <ng-template #roleTpl let-role let-highlight="highlight">
-                  <button class="list-group-item list-group-item-action p-3"
-                          (click)="assignRole(role)"
-                          [disabled]="isRoleAssigned(role.id)"
-                          [class.list-group-item-success]="isRoleAssigned(role.id)"
-                          [class.border-info]="highlight && !isRoleAssigned(role.id)">
-                    <div class="d-flex justify-content-between align-items-start">
-                      <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                          <i class="bi bi-shield" [class.text-info]="highlight" [class.text-secondary]="!highlight"></i>
-                          <span class="fw-bold">{{ role.descripcion }}</span>
-                        </div>
-                        <div class="d-flex flex-wrap gap-1">
-                          <span class="badge bg-light text-dark border small">
-                            <i class="bi bi-key me-1"></i>{{ role.id }}
-                          </span>
-                          <span class="badge bg-info bg-opacity-10 text-info border-0 small" *ngIf="role.id_aplicacion">
-                            <i class="bi bi-app-indicator me-1"></i>{{ getAplicacionDescription(role.id_aplicacion) || role.id_aplicacion }}
-                          </span>
-                          <span class="badge bg-primary bg-opacity-10 text-primary border-0 small"
-                                *ngIf="getUsersForRole(role.id).length > 0">
-                            <i class="bi bi-people me-1"></i>{{ getUsersForRole(role.id).length }} usuarios
-                          </span>
-                        </div>
-                      </div>
-                      <i class="bi fs-5" [class.bi-check-circle-fill]="isRoleAssigned(role.id)"
-                         [class.bi-plus-circle]="!isRoleAssigned(role.id)"
-                         [class.text-success]="isRoleAssigned(role.id)"
-                         [class.text-primary]="!isRoleAssigned(role.id)"></i>
-                    </div>
-                  </button>
-                </ng-template>
                 <div class="col-md-7">
-                  <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2"></i>Roles Asignados a esta App</h6>
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-shield-lock me-2"></i>Roles Asignados a esta App</h6>
+                    <span class="badge bg-primary" *ngIf="selectedApp.roles.length > 0">{{ selectedApp.roles.length }}</span>
+                  </div>
                   <div *ngIf="selectedApp.roles.length === 0" class="text-center text-muted py-4">
                     <i class="bi bi-shield display-4"></i>
                     <p class="mt-2">No hay roles asignados aún</p>
@@ -342,32 +348,34 @@ import { forkJoin } from 'rxjs';
                     <div class="list-group-item p-3" *ngFor="let role of selectedApp.roles">
                       <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
-                          <!-- Nombre y estado -->
                           <div class="d-flex align-items-center gap-2 mb-1">
                             <i class="bi bi-shield-fill-check text-primary"></i>
                             <span class="fw-bold fs-6">{{ role.role_nombre }}</span>
-                            <span class="badge bg-success bg-opacity-25 text-success">
-                              <i class="bi bi-check-circle me-1"></i>Activo
+                            <span class="badge small" [class.bg-success]="!getRolObject(role.id_role)?.baja_logica"
+                                  [class.bg-opacity-25]="!getRolObject(role.id_role)?.baja_logica"
+                                  [class.text-success]="!getRolObject(role.id_role)?.baja_logica"
+                                  [class.bg-danger]="getRolObject(role.id_role)?.baja_logica"
+                                  [class.text-danger]="getRolObject(role.id_role)?.baja_logica"
+                                  [class.bg-opacity-10]="getRolObject(role.id_role)?.baja_logica">
+                              <i class="bi me-1" [class.bi-check-circle]="!getRolObject(role.id_role)?.baja_logica"
+                                 [class.bi-x-circle]="getRolObject(role.id_role)?.baja_logica"></i>
+                              {{ getRolObject(role.id_role)?.baja_logica ? 'Baja' : 'Activo' }}
                             </span>
                           </div>
 
-                          <!-- Descripción del rol desde el microservicio -->
-                          <div class="small text-muted mb-2" *ngIf="getRoleDescription(role.id_role)">
-                            <i class="bi bi-card-text me-1"></i>
-                            {{ getRoleDescription(role.id_role) }}
-                          </div>
-
-                          <!-- Info detallada en badges -->
                           <div class="d-flex flex-wrap gap-1 mb-2">
                             <span class="badge bg-light text-dark border">
-                              <i class="bi bi-key me-1"></i>ID: {{ role.id_role }}
+                              <i class="bi bi-key me-1"></i>{{ role.id_role }}
                             </span>
-                            <span class="badge bg-info bg-opacity-10 text-info border-0" *ngIf="selectedApp.id_aplicacion">
-                              <i class="bi bi-app-indicator me-1"></i>App: {{ getAplicacionDescription(selectedApp.id_aplicacion!) || selectedApp.id_aplicacion }}
+                            <span class="badge bg-info bg-opacity-10 text-info border-0">
+                              <i class="bi bi-app-indicator me-1"></i>{{ getAplicacionDescription(selectedApp.id_aplicacion!) || selectedApp.id_aplicacion }}
+                            </span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border-0"
+                                  *ngIf="getRolObject(role.id_role)?.fecha_alta_creacion">
+                              <i class="bi bi-calendar-event me-1"></i>Creado: {{ getRolObject(role.id_role)?.fecha_alta_creacion | date:'dd/MM/yyyy HH:mm' }}
                             </span>
                           </div>
 
-                          <!-- Usuarios vinculados a este rol -->
                           <div *ngIf="getUsersForRole(role.id_role).length > 0">
                             <div class="small fw-bold text-muted mb-1">
                               <i class="bi bi-people me-1"></i>Usuarios con este rol ({{ getUsersForRole(role.id_role).length }}):
@@ -398,24 +406,78 @@ import { forkJoin } from 'rxjs';
 
             <!-- TAB: Módulos por Rol -->
             <div *ngIf="activeTab === 'modules'">
-              <div *ngIf="selectedApp.roles.length === 0" class="text-center text-muted py-4">
-                <i class="bi bi-exclamation-triangle display-4"></i>
-                <p class="mt-2">Primero debes asignar roles a la aplicación</p>
+              <div *ngIf="selectedApp.roles.length === 0" class="text-center text-muted py-5">
+                <i class="bi bi-exclamation-triangle display-3 text-warning"></i>
+                <p class="mt-3 fw-bold">Primero debes asignar roles a la aplicación</p>
+                <p class="small">Ve a la pestaña <strong>Roles</strong> y asigna al menos un rol para configurar módulos.</p>
               </div>
 
               <div *ngIf="selectedApp.roles.length > 0">
-                <!-- Selector de rol -->
+                <!-- Resumen de asignaciones existentes -->
+                <h6 class="fw-bold mb-3"><i class="bi bi-diagram-3 me-2"></i>Resumen de Asignaciones por Rol</h6>
+                <div *ngIf="loadingModuleSummary" class="text-center py-3">
+                  <div class="spinner-border spinner-border-sm text-primary"></div>
+                  <span class="ms-2 small text-muted">Cargando resumen...</span>
+                </div>
+                <div class="row g-3 mb-4" *ngIf="!loadingModuleSummary">
+                  <div class="col-md-4 col-sm-6" *ngFor="let summary of roleModuleSummary">
+                    <div class="card h-100 border" [class.border-primary]="selectedRoleId === '' + summary.roleConfigId"
+                         style="cursor: pointer" (click)="selectedRoleId = '' + summary.roleConfigId; onRoleSelected()">
+                      <div class="card-body p-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                          <i class="bi bi-shield-fill text-primary"></i>
+                          <span class="fw-bold">{{ summary.roleName }}</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                          <span class="badge bg-light text-dark border small">
+                            <i class="bi bi-key me-1"></i>{{ summary.idRole }}
+                          </span>
+                          <span class="badge small" [class.bg-success]="summary.moduleCount > 0" [class.bg-opacity-25]="summary.moduleCount > 0"
+                                [class.text-success]="summary.moduleCount > 0" [class.bg-secondary]="summary.moduleCount === 0"
+                                [class.bg-opacity-10]="summary.moduleCount === 0" [class.text-secondary]="summary.moduleCount === 0">
+                            <i class="bi me-1" [class.bi-check-circle]="summary.moduleCount > 0" [class.bi-dash-circle]="summary.moduleCount === 0"></i>
+                            {{ summary.moduleCount }} módulos
+                          </span>
+                        </div>
+                        <div *ngIf="summary.modules.length > 0">
+                          <div class="small text-muted" *ngFor="let m of summary.modules.slice(0, 4)">
+                            <span class="badge rounded-pill me-1" [class]="getMethodBadgeClass(m.method)" style="font-size: .65rem">{{ m.method }}</span>
+                            <span class="text-truncate">{{ m.service }} {{ m.endpoint }}</span>
+                          </div>
+                          <div class="small text-muted fst-italic" *ngIf="summary.modules.length > 4">
+                            ... y {{ summary.modules.length - 4 }} más
+                          </div>
+                        </div>
+                        <div *ngIf="summary.modules.length === 0" class="small text-muted fst-italic">
+                          <i class="bi bi-info-circle me-1"></i>Sin módulos configurados
+                        </div>
+                      </div>
+                      <div class="card-footer bg-transparent border-top p-2 text-center">
+                        <small class="text-primary fw-bold"><i class="bi bi-pencil-square me-1"></i>Configurar</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="roleModuleSummary.length === 0 && !loadingModuleSummary" class="col-12 text-muted small text-center py-3">
+                    No hay roles con módulos configurados aún.
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Configuración detallada -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <h6 class="fw-bold mb-0"><i class="bi bi-sliders me-2"></i>Configurar Módulos</h6>
+                </div>
                 <div class="mb-4">
                   <label class="form-label fw-bold">Seleccionar Rol</label>
                   <select class="form-select" [(ngModel)]="selectedRoleId" (change)="onRoleSelected()">
                     <option value="">-- Seleccionar rol --</option>
                     <option *ngFor="let role of selectedApp.roles" [value]="role.id">
-                      {{ role.role_nombre }}
+                      {{ role.role_nombre }} ({{ role.id_role }})
                     </option>
                   </select>
                 </div>
 
-                <!-- Módulos disponibles -->
                 <div *ngIf="selectedRoleId">
                   <div *ngIf="loadingModules" class="text-center py-3">
                     <div class="spinner-border spinner-border-sm text-primary"></div>
@@ -632,6 +694,23 @@ import { forkJoin } from 'rxjs';
                   </div>
                 </div>
               </div>
+
+              <!-- Previsualización en vivo: Módulos generados y probar funcionalidad -->
+              <div class="mt-4 pt-4 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0">
+                    <i class="bi bi-eye me-2"></i> Previsualización en vivo — Módulos generados y probar funcionalidad
+                  </h6>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="menuPreviewPanel?.loadEnabledServices()">
+                    <i class="bi bi-arrow-repeat me-1"></i> Actualizar datos
+                  </button>
+                </div>
+                <app-module-preview-panel
+                  #menuPreviewPanel
+                  [compactMode]="true"
+                  [showConfigurarLink]="false">
+                </app-module-preview-panel>
+              </div>
             </div>
 
             <!-- TAB: URL -->
@@ -643,15 +722,122 @@ import { forkJoin } from 'rxjs';
                 <div class="bg-light rounded-3 p-4 d-inline-block">
                   <code class="fs-4 text-primary">{{ runtimeBaseUrl }}/{{ selectedApp.slug }}</code>
                 </div>
-                <div class="mt-3">
+                <div class="mt-3 d-flex justify-content-center gap-2">
                   <button class="btn btn-outline-primary" (click)="copyUrl()">
                     <i class="bi bi-clipboard me-2"></i> Copiar URL
                   </button>
-                  <a [href]="runtimeBaseUrl + '/' + selectedApp.slug" target="_blank"
-                     class="btn btn-primary ms-2">
-                    <i class="bi bi-box-arrow-up-right me-2"></i> Abrir Aplicación
-                  </a>
+                  <button class="btn btn-primary" (click)="openAppUrl()" [disabled]="checkingAccess">
+                    <span *ngIf="checkingAccess" class="spinner-border spinner-border-sm me-2"></span>
+                    <i *ngIf="!checkingAccess" class="bi bi-box-arrow-up-right me-2"></i>
+                    {{ checkingAccess ? 'Verificando...' : 'Abrir Aplicación' }}
+                  </button>
+                  <button class="btn btn-outline-secondary" (click)="runAccessCheck()" [disabled]="checkingAccess"
+                          title="Verificar estado de la configuración">
+                    <i class="bi bi-shield-check me-1"></i> Diagnosticar
+                  </button>
                 </div>
+
+                <!-- Resultado del diagnóstico -->
+                <div *ngIf="accessCheckResult" class="mt-4 text-start mx-auto" style="max-width:700px">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex align-items-center justify-content-between"
+                         [class.bg-success]="accessCheckResult.can_access" [class.bg-danger]="!accessCheckResult.can_access"
+                         [class.bg-opacity-10]="true">
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi fs-4" [class.bi-check-circle-fill]="accessCheckResult.can_access"
+                           [class.text-success]="accessCheckResult.can_access"
+                           [class.bi-x-circle-fill]="!accessCheckResult.can_access"
+                           [class.text-danger]="!accessCheckResult.can_access"></i>
+                        <span class="fw-bold">
+                          {{ accessCheckResult.can_access ? 'La aplicación está lista para acceder' : 'La aplicación no está lista para acceder' }}
+                        </span>
+                      </div>
+                      <button class="btn btn-sm btn-outline-secondary border-0" (click)="accessCheckResult = null">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                    <div class="card-body">
+                      <div class="row g-3 mb-3">
+                        <div class="col-6 col-md-3">
+                          <div class="text-center p-2 rounded-3" [class.bg-success]="accessCheckResult.app_active"
+                               [class.bg-danger]="!accessCheckResult.app_active" [class.bg-opacity-10]="true">
+                            <i class="bi fs-4" [class.bi-check-circle]="accessCheckResult.app_active"
+                               [class.bi-x-circle]="!accessCheckResult.app_active"
+                               [class.text-success]="accessCheckResult.app_active"
+                               [class.text-danger]="!accessCheckResult.app_active"></i>
+                            <div class="small fw-bold mt-1">App Activa</div>
+                          </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <div class="text-center p-2 rounded-3" [class.bg-success]="accessCheckResult.has_roles"
+                               [class.bg-danger]="!accessCheckResult.has_roles" [class.bg-opacity-10]="true">
+                            <i class="bi fs-4" [class.bi-check-circle]="accessCheckResult.has_roles"
+                               [class.bi-x-circle]="!accessCheckResult.has_roles"
+                               [class.text-success]="accessCheckResult.has_roles"
+                               [class.text-danger]="!accessCheckResult.has_roles"></i>
+                            <div class="small fw-bold mt-1">{{ accessCheckResult.total_roles }} Roles</div>
+                          </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <div class="text-center p-2 rounded-3" [class.bg-success]="accessCheckResult.has_modules"
+                               [class.bg-warning]="!accessCheckResult.has_modules" [class.bg-opacity-10]="true">
+                            <i class="bi fs-4" [class.bi-check-circle]="accessCheckResult.has_modules"
+                               [class.bi-exclamation-circle]="!accessCheckResult.has_modules"
+                               [class.text-success]="accessCheckResult.has_modules"
+                               [class.text-warning]="!accessCheckResult.has_modules"></i>
+                            <div class="small fw-bold mt-1">{{ accessCheckResult.total_modules }} Módulos</div>
+                          </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                          <div class="text-center p-2 rounded-3" [class.bg-success]="accessCheckResult.has_menu"
+                               [class.bg-warning]="!accessCheckResult.has_menu" [class.bg-opacity-10]="true">
+                            <i class="bi fs-4" [class.bi-check-circle]="accessCheckResult.has_menu"
+                               [class.bi-exclamation-circle]="!accessCheckResult.has_menu"
+                               [class.text-success]="accessCheckResult.has_menu"
+                               [class.text-warning]="!accessCheckResult.has_menu"></i>
+                            <div class="small fw-bold mt-1">{{ accessCheckResult.menu_items_count }} Menú</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div *ngIf="accessCheckResult.issues.length > 0">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle me-1"></i> Problemas detectados:</h6>
+                        <div *ngFor="let issue of accessCheckResult.issues" class="alert py-2 px-3 mb-2"
+                             [class.alert-danger]="issue.severity === 'error'"
+                             [class.alert-warning]="issue.severity === 'warning'">
+                          <div class="d-flex align-items-start gap-2">
+                            <i class="bi mt-1" [class.bi-x-circle-fill]="issue.severity === 'error'"
+                               [class.bi-exclamation-triangle-fill]="issue.severity === 'warning'"></i>
+                            <div>
+                              <div class="fw-bold small">{{ issue.message }}</div>
+                              <div class="small opacity-75"><i class="bi bi-lightbulb me-1"></i>{{ issue.suggestion }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div *ngIf="accessCheckResult.issues.length === 0 && accessCheckResult.can_access"
+                           class="alert alert-success py-2 mb-0">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Todos los requisitos están cumplidos. La aplicación está lista para ser utilizada.
+                      </div>
+
+                      <div *ngIf="runtimeUnreachable" class="alert alert-danger py-2 mt-2 mb-0">
+                        <div class="d-flex align-items-start gap-2">
+                          <i class="bi bi-wifi-off mt-1"></i>
+                          <div>
+                            <div class="fw-bold small">El servidor de aplicaciones (app-runtime) no está accesible.</div>
+                            <div class="small opacity-75">
+                              <i class="bi bi-lightbulb me-1"></i>Verifique que el servicio app-runtime esté corriendo en el puerto 4201.
+                              Ejecute <code>ng serve</code> en <code>microfrontends/app-runtime</code>.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="mt-4 text-start mx-auto" style="max-width:600px">
                   <h6 class="fw-bold">Resumen de la configuración:</h6>
                   <table class="table table-sm">
@@ -736,7 +922,6 @@ export class AppDefinitionComponent implements OnInit {
   // Roles
   availableRoles: Rol[] = [];
   rolesDeApp: Rol[] = [];
-  rolesOtros: Rol[] = [];
   loadingRoles = false;
   linkedAplicacionNombre = '';
 
@@ -749,15 +934,20 @@ export class AppDefinitionComponent implements OnInit {
   // Modules
   selectedRoleId = '';
   loadingModules = false;
+  loadingModuleSummary = false;
   availableServices: any[] = [];
   allBackendServices: BackendService[] = [];
+  roleModuleSummary: { roleConfigId: number; roleName: string; idRole: string; moduleCount: number; modules: { service: string; endpoint: string; method: string }[] }[] = [];
 
   // Menu
   menuItems: MenuItem[] = [];
   selectedMenuItem: MenuItem | null = null;
 
-  // URL
+  // URL & Access Check
   runtimeBaseUrl = '';
+  checkingAccess = false;
+  accessCheckResult: AppAccessCheckResponse | null = null;
+  runtimeUnreachable = false;
 
   // Toast
   toastMessage = '';
@@ -862,6 +1052,8 @@ export class AppDefinitionComponent implements OnInit {
   backToList() {
     this.selectedApp = null;
     this.selectedMenuItem = null;
+    this.accessCheckResult = null;
+    this.runtimeUnreachable = false;
     this.loadApps();
   }
 
@@ -894,32 +1086,24 @@ export class AppDefinitionComponent implements OnInit {
     this.loadingRoles = true;
     this.resolveLinkedAplicacion(this.selectedApp.id_aplicacion);
 
+    const idApp = this.selectedApp.id_aplicacion;
+    if (!idApp) {
+      this.availableRoles = [];
+      this.rolesDeApp = [];
+      this.loadingRoles = false;
+      return;
+    }
+
     forkJoin({
-      allRoles: this.middlewareService.getAllRoles(false),
+      roles: this.middlewareService.getRolesByAplicacion(idApp, false),
       usuarioRoles: this.middlewareService.getUsuarioRoles(false),
       usuarios: this.middlewareService.getUsuarios(false),
       aplicaciones: this.middlewareService.getAplicaciones(false),
-      appRoleLinks: this.middlewareService.getAplicacionRoles(false),
     }).subscribe({
-      next: ({ allRoles, usuarioRoles, usuarios, aplicaciones, appRoleLinks }) => {
-        const allRolesList = Array.isArray(allRoles) ? allRoles : [];
-        const links = Array.isArray(appRoleLinks) ? appRoleLinks : [];
-        const idApp = this.selectedApp?.id_aplicacion;
-
-        if (idApp) {
-          const linkedRoleIds = new Set(
-            links.filter(l => l.id_aplicacion === idApp).map(l => l.id_role)
-          );
-          const appRoles = allRolesList.filter(r => r.id_aplicacion === idApp || linkedRoleIds.has(r.id));
-          const otherRoles = allRolesList.filter(r => r.id_aplicacion !== idApp && !linkedRoleIds.has(r.id));
-          this.rolesDeApp = appRoles;
-          this.rolesOtros = otherRoles;
-          this.availableRoles = [...appRoles, ...otherRoles];
-        } else {
-          this.rolesDeApp = [];
-          this.rolesOtros = allRolesList;
-          this.availableRoles = allRolesList;
-        }
+      next: ({ roles, usuarioRoles, usuarios, aplicaciones }) => {
+        const rolesList = Array.isArray(roles) ? roles : [];
+        this.rolesDeApp = rolesList;
+        this.availableRoles = rolesList;
 
         this.usuarioRoles = Array.isArray(usuarioRoles) ? usuarioRoles : [];
 
@@ -927,7 +1111,7 @@ export class AppDefinitionComponent implements OnInit {
         (Array.isArray(usuarios) ? usuarios : []).forEach(u => this.usuariosMap.set(u.id, u));
 
         this.rolesDescMap.clear();
-        this.availableRoles.forEach(r => this.rolesDescMap.set(r.id, r.descripcion));
+        rolesList.forEach(r => this.rolesDescMap.set(r.id, r.descripcion));
 
         this.aplicacionesMap.clear();
         (Array.isArray(aplicaciones) ? aplicaciones : []).forEach(a => this.aplicacionesMap.set(a.id, a.descripcion));
@@ -937,15 +1121,18 @@ export class AppDefinitionComponent implements OnInit {
       error: () => {
         this.availableRoles = [];
         this.rolesDeApp = [];
-        this.rolesOtros = [];
         this.loadingRoles = false;
-        this.showToast('No se pudo cargar la lista de roles. Verifica que los servicios estén activos.', 'warning');
+        this.showToast('No se pudo cargar los roles. Verifica que el servicio de roles esté activo.', 'warning');
       }
     });
   }
 
   getRoleDescription(idRole: string): string {
     return this.rolesDescMap.get(idRole) || '';
+  }
+
+  getRolObject(idRole: string): Rol | undefined {
+    return this.rolesDeApp.find(r => r.id === idRole);
   }
 
   getAplicacionDescription(idAplicacion: string): string {
@@ -1020,6 +1207,51 @@ export class AppDefinitionComponent implements OnInit {
   loadModulesData() {
     this.selectedRoleId = '';
     this.availableServices = [];
+    this.loadModuleSummary();
+  }
+
+  loadModuleSummary() {
+    if (!this.selectedApp || this.selectedApp.roles.length === 0) {
+      this.roleModuleSummary = [];
+      return;
+    }
+    this.loadingModuleSummary = true;
+    this.roleModuleSummary = [];
+
+    const roles = this.selectedApp.roles;
+    let loaded = 0;
+
+    roles.forEach(role => {
+      this.middlewareService.getAppRoleModules(this.selectedApp!.id, role.id).subscribe({
+        next: (modules) => {
+          const enabledModules = modules.filter(m => m.is_enabled);
+          this.roleModuleSummary.push({
+            roleConfigId: role.id,
+            roleName: role.role_nombre,
+            idRole: role.id_role,
+            moduleCount: enabledModules.length,
+            modules: enabledModules.map(m => ({
+              service: this.allBackendServices.find(s => s.id === m.backend_service_id)?.nombre || m.backend_service_id,
+              endpoint: m.endpoint_path,
+              method: m.metodo.toUpperCase(),
+            })),
+          });
+          loaded++;
+          if (loaded === roles.length) this.loadingModuleSummary = false;
+        },
+        error: () => {
+          this.roleModuleSummary.push({
+            roleConfigId: role.id,
+            roleName: role.role_nombre,
+            idRole: role.id_role,
+            moduleCount: 0,
+            modules: [],
+          });
+          loaded++;
+          if (loaded === roles.length) this.loadingModuleSummary = false;
+        }
+      });
+    });
   }
 
   onRoleSelected() {
@@ -1115,7 +1347,10 @@ export class AppDefinitionComponent implements OnInit {
     }
 
     this.middlewareService.setAppRoleModules(this.selectedApp.id, roleConfigId, modules).subscribe({
-      next: () => this.showToast('Módulos guardados correctamente', 'success'),
+      next: () => {
+        this.showToast('Módulos guardados correctamente', 'success');
+        this.loadModuleSummary();
+      },
       error: () => this.showToast('Error al guardar módulos', 'error'),
     });
   }
@@ -1192,7 +1427,7 @@ export class AppDefinitionComponent implements OnInit {
     });
   }
 
-  // --- URL ---
+  // --- URL & Access Check ---
 
   copyUrl() {
     if (!this.selectedApp) return;
@@ -1201,6 +1436,72 @@ export class AppDefinitionComponent implements OnInit {
       () => this.showToast('URL copiada al portapapeles', 'success'),
       () => this.showToast('No se pudo copiar', 'error')
     );
+  }
+
+  openAppUrl() {
+    if (!this.selectedApp) return;
+    this.checkingAccess = true;
+    this.accessCheckResult = null;
+    this.runtimeUnreachable = false;
+
+    this.middlewareService.checkAppAccess(this.selectedApp.id).subscribe({
+      next: (result) => {
+        this.accessCheckResult = result;
+        if (result.can_access) {
+          this.checkRuntimeReachability().then(reachable => {
+            this.checkingAccess = false;
+            if (reachable) {
+              window.open(`${this.runtimeBaseUrl}/${this.selectedApp!.slug}`, '_blank');
+            } else {
+              this.runtimeUnreachable = true;
+            }
+          });
+        } else {
+          this.checkingAccess = false;
+        }
+      },
+      error: () => {
+        this.checkingAccess = false;
+        this.showToast('Error al verificar acceso de la aplicación', 'error');
+      }
+    });
+  }
+
+  runAccessCheck() {
+    if (!this.selectedApp) return;
+    this.checkingAccess = true;
+    this.accessCheckResult = null;
+    this.runtimeUnreachable = false;
+
+    this.middlewareService.checkAppAccess(this.selectedApp.id).subscribe({
+      next: (result) => {
+        this.accessCheckResult = result;
+        this.checkRuntimeReachability().then(reachable => {
+          this.runtimeUnreachable = !reachable;
+          this.checkingAccess = false;
+        });
+      },
+      error: () => {
+        this.checkingAccess = false;
+        this.showToast('Error al verificar acceso', 'error');
+      }
+    });
+  }
+
+  private async checkRuntimeReachability(): Promise<boolean> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const resp = await fetch(this.runtimeBaseUrl, {
+        method: 'HEAD',
+        mode: 'no-cors',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // --- Helpers ---
