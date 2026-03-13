@@ -58,6 +58,18 @@ services:
     networks:
       - middleware-network
 
+  app-runtime:
+    build:
+      context: ./microfrontends/app-runtime
+      dockerfile: Dockerfile
+    container_name: app-runtime
+    ports:
+      - "4201:80"
+    depends_on:
+      - middleware
+    networks:
+      - middleware-network
+
 networks:
   middleware-network:
     driver: bridge

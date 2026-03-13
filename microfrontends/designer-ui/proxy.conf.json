@@ -5,5 +5,29 @@
     "secure":false,
     "changeOrigin":true,
     "pathRewrite":{"^/usuario-api":""}
+  },
+  "/roles-api": {
+    "target":"http://127.0.0.1:8006",
+    "secure":false,
+    "changeOrigin":true,
+    "pathRewrite":{"^/roles-api":""}
+  },
+  "/aplicacion-api": {
+    "target":"http://127.0.0.1:8005",
+    "secure":false,
+    "changeOrigin":true,
+    "pathRewrite":{"^/aplicacion-api":""}
+  },
+  "/aplicacion-role-api": {
+    "target":"http://127.0.0.1:8008",
+    "secure":false,
+    "changeOrigin":true,
+    "pathRewrite":{"^/aplicacion-role-api":""}
+  },
+  "/usuario-rol-api": {
+    "target":"http://127.0.0.1:8009",
+    "secure":false,
+    "changeOrigin":true,
+    "pathRewrite":{"^/usuario-rol-api":""}
   }
 }

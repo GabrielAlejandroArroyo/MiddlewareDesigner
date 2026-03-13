@@ -2,9 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from config.database import engine, Base
-from routers import config_routes, auth_routes
+from routers import config_routes, auth_routes, app_routes, ai_routes, runtime_routes
 # Importar modelos para que SQLAlchemy los registre en Base.metadata
 from entity.config_models import BackendService, FrontendService, BackendMapping
+from entity.app_models import AppDefinition, AppRoleConfig, AppRoleModule, AppMenuConfig
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,8 +60,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:4200",
         "http://127.0.0.1:4200",
-        "http://localhost:*",
-        "http://127.0.0.1:*"
+        "http://localhost:4201",
+        "http://127.0.0.1:4201",
     ],
     allow_origin_regex="http://(127\.0\.0\.1|localhost):[0-9]+",
     allow_credentials=True,
@@ -70,6 +71,9 @@ app.add_middleware(
 
 app.include_router(config_routes.router, prefix="/api/v1")
 app.include_router(auth_routes.router, prefix="/api/v1")
+app.include_router(app_routes.router, prefix="/api/v1")
+app.include_router(ai_routes.router, prefix="/api/v1")
+app.include_router(runtime_routes.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

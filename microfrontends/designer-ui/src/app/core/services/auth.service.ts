@@ -104,6 +104,6 @@ export class AuthService {
    * Indica si la URL corresponde al middleware (para que el interceptor añada auth).
    */
   isMiddlewareUrl(url: string): boolean {
-    return url.includes('/api/v1');
+    return url.startsWith('/api/');
   }
 }

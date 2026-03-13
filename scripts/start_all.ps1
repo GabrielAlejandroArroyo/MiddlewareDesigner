@@ -67,10 +67,17 @@ Wait-ForUrl "http://127.0.0.1:9000/" "Middleware"
 Write-Host "[3/3] Iniciando frontend..." -ForegroundColor Cyan
 & "$scriptsDir\start_frontend.ps1"
 
-# El frontend tarda mas, damos tiempo extra
-Write-Host "  El Frontend (Angular) esta compilando... esto demora ~60 segundos." -ForegroundColor Yellow
+# Los frontends tardan mas, damos tiempo extra
+Write-Host "  Los Frontends (Angular) estan compilando... esto demora ~60 segundos." -ForegroundColor Yellow
 Write-Host "  Puedes ir abriendo http://127.0.0.1:4200 en tu navegador." -ForegroundColor Gray
-Wait-ForUrl "http://127.0.0.1:4200" "Frontend"
+Wait-ForUrl "http://127.0.0.1:4200" "Designer UI"
+
+$runtimeDir = Join-Path (Split-Path -Parent $scriptsDir) "microfrontends\app-runtime"
+if (Test-Path (Join-Path $runtimeDir "node_modules")) {
+    Wait-ForUrl "http://127.0.0.1:4201" "App Runtime"
+} else {
+    Write-Host "  [SKIP] App Runtime: node_modules no encontrado." -ForegroundColor Yellow
+}
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Magenta
